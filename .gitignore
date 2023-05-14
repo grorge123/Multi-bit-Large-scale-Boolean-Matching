@@ -1,0 +1,9 @@
+obj
+main
+.idea/
+lib/*.a
+lib/*/*.o
+abc-2c1c83f
+abc.rc
+trace.cnf
+.vscode
