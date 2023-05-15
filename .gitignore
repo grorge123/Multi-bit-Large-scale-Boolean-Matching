@@ -2,8 +2,10 @@ obj
 main
 .idea/
 lib/*.a
+lib/*.o
 lib/*/*.o
 abc-2c1c83f
 abc.rc
 trace.cnf
 .vscode
+test/*.out
