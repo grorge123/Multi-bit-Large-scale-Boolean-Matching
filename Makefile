@@ -3,7 +3,7 @@ exe := main
 #obj := main.o statistic.o evaluate.o utility.o
 CFLAGS := -std=c++17 -O2 -Wall -Wextra
 SANITIZE := -fsanitize=undefined -fsanitize=address
-#LINK := -lm -ldl -lreadline -lpthread
+LINK := -lm -ldl -lreadline
 LIB := lib/libabc.a lib/libkissat.a lib/aiger.o
 #INCLUDES :=
 
@@ -21,7 +21,7 @@ $(obj_dir)/%.o: $(src_dir)/%.cpp
 	$(CC) $(CFLAGS) -c $< -o $@
 
 lib/libabc.a:
-	$(MAKE) -C "lib/abc/" libabc.a
+	$(MAKE) -C "lib/abc/" libabc.a ABC_USE_NO_PTHREADS=1 ABC_USE_NO_READLINE=1
 	mv lib/abc/libabc.a lib/
 
 lib/libkissat.a:

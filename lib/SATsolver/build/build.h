@@ -1,5 +1,0 @@
-#define VERSION "1.0.3"
-#define COMPILER "gcc (Ubuntu 11.3.0-1ubuntu1~22.04) 11.3.0 -W -Wall -O3 -DNEMBEDDED -DNDEBUG -DNMETRICS -DNSTATISTICS"
-#define ID "79d8d8f20465e71fd2b0f193b468898cd803a59a"
-#define BUILD "Sun 14 May 2023 10:16:37 PM CST Linux grorge-System-Product-Name 5.19.0-41-generic x86_64"
-#define DIR "/home/grorge/Desktop/BooleanMatching/Multi-bit-Large-scale-Boolean-Matching/lib/SATsolver/build"
