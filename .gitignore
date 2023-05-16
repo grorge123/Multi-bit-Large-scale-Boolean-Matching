@@ -10,3 +10,4 @@ abc.rc
 trace.cnf
 .vscode
 test/*.out
+test/*.o

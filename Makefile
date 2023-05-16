@@ -32,6 +32,9 @@ lib/libkissat.a:
 lib/aiger.o:
 	gcc -c lib/aiger/aiger.c -o lib/aiger.o
 
+test:$(obj) $(LIB)
+
+
 clean:
 	rm -rf $(obj) $(exe)
 
