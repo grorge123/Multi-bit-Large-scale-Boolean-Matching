@@ -6,25 +6,27 @@ OBJECTS := $(SOURCES:.cpp=.o)
 EXECUTABLES := $(SOURCES:.cpp=.out)
 LIB := ../lib/libabc.a ../lib/libkissat.a ../lib/aiger.o
 obj_dir = ../obj
+src_dir = ../src
 obj = $(wildcard $(obj_dir)/*.o)
 obj := $(filter-out ../obj/main.o, $(obj))
+header = $(wildcard $(src_dir)/*.h)
 
-all: run
+all: $(EXECUTABLES)
 
-$(EXECUTABLES):$(OBJECTS) preBuild
-	$(CC) -o $@ $< $(obj) $(LIB) $(CFLAGS)
+%.out: %.o preBuild
+	$(CC) -o $@ $(patsubst %.out, %.o, $@) $(obj) $(LIB) $(CFLAGS)
+	./$@
 
-$(OBJECTS):$(SOURCES)
+$(EXECUTABLES): $(OBJECTS) preBuild
+	$(CC) -o $@ $(patsubst %.out, %.o, $@) $(obj) $(LIB) $(CFLAGS)
+	./$@
+
+
+%.o : %.cpp $(header)
 	$(CC) -c $@ $< $(CFLAGS)
 
 preBuild:
 	make -C "../" test
-
-run: $(EXECUTABLES)
-	@for file in $(EXECUTABLES); do \
-		./$$file; \
-	done
-
 
 clean:
 	rm -f *.o *.out

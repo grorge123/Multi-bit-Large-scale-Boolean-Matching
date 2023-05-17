@@ -11,13 +11,14 @@ src_dir = ./src
 obj_dir = ./obj
 
 src = $(wildcard $(src_dir)/*.cpp)
+header = $(wildcard $(src_dir)/*.h)
 obj = $(patsubst $(src_dir)/%.cpp, $(obj_dir)/%.o, $(src))
 
-all:$(obj) $(LIB)
+all:$(obj) $(LIB) $(header)
 	mkdir -p $(obj_dir)
 	$(CC) $(CFLAGS) -o $(exe) $(obj) $(LIB)
 
-$(obj_dir)/%.o: $(src_dir)/%.cpp
+$(obj_dir)/%.o: $(src_dir)/%.cpp $(header)
 	$(CC) $(CFLAGS) -c $< -o $@
 
 lib/libabc.a:
@@ -32,8 +33,8 @@ lib/libkissat.a:
 lib/aiger.o:
 	gcc -c lib/aiger/aiger.c -o lib/aiger.o
 
-test:$(obj) $(LIB)
-
+test:$(obj) $(LIB) $(header)
+	echo $(header)
 
 clean:
 	rm -rf $(obj) $(exe)
