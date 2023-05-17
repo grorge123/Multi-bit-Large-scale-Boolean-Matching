@@ -40,6 +40,31 @@ TEST_F(AIGCase, test1) {
     EXPECT_EQ(m1 , _m1);
 }
 
+TEST_F(AIGCase, test2){
+    cout << "INPUT: ";
+    for(int i = 0 ; i < aig.getInputNum() ; i++){
+        cout << aig.fromIndexToName(i) << ' ' ;
+    }
+    cout << endl << "OUTPUT: ";
+    for(int q = aig.getInputNum() ; q < aig.getInputNum() + aig.getOutputNum() ; q++){
+        cout << aig.fromIndexToName(q) << ' ' ;
+    }
+    cout << endl;
+    vector<bool> input1{0,1,0,1,1};
+    vector<bool> input2{1,0,1,0,0};
+    vector<bool> input3{1,1,1,0,1};
+    vector<bool> input4{1,1,1,1,1};
+    vector<bool> input5{0,0,0,0,0};
+    vector<bool> output1{0,1,1,0};
+    vector<bool> output2{0,1,1,0};
+    vector<bool> output3{0,1,1,1};
+    vector<bool> output4{0,0,0,0};
+    vector<bool> output5{1,0,0,0};
+    ASSERT_EQ(aig.generateOutput(input1), output1);
+    ASSERT_EQ(aig.generateOutput(input2), output2);
+    ASSERT_EQ(aig.generateOutput(input3), output3);
+}
+
 int main(int argc, char **argv) {
     testing::InitGoogleTest(&argc, argv);
     return RUN_ALL_TESTS();

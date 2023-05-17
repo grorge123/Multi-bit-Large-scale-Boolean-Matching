@@ -81,7 +81,7 @@ vector<bool> AIG::generateOutput(vector<bool> input) {
     vector<int> signal;
     signal.resize(MAXIndex + 1, -1);
     output.resize(outputNum);
-    for(int i = inputNum ; i < outputNum ; i++){
+    for(int i = inputNum ; i < outputNum + inputNum ; i++){
         signal[indexMap[i]] = recursiveGenerateOutput(indexMap[i], signal, input);
         output[i - inputNum] = (invMap[indexMap[i]] ? !signal[indexMap[i]] : signal[indexMap[i]]);
     }
@@ -89,7 +89,7 @@ vector<bool> AIG::generateOutput(vector<bool> input) {
 }
 
 bool AIG::recursiveGenerateOutput(int now, vector<int> &signal, vector<bool> &input) {
-    if(!tree[now].isInput){
+    if(tree[now].isInput){
         return (invMap[now] ? !input[now - 1] : input[now - 1]);
     }
     if(signal[tree[now].l] == -1){

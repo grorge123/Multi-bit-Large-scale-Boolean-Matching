@@ -23,7 +23,10 @@ TEST_F(ParCase, Test1) {
 TEST_F(ParCase, Test2){
     pa.initialRefinement();
     pa.dependencyAnalysis();
-    pa.print();
+    vector<vector<string> > input{{"a1"},{"c"}, {"a0"}, {"b1"}, {"b0"}};
+    vector<vector<string> > output{{"m1"},{"h0"},{"m0"},{"h1"}};
+    ASSERT_EQ(input, pa.getInputClusters());
+    ASSERT_EQ(output, pa.getOutputClusters());
 }
 
 

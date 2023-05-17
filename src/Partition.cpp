@@ -33,8 +33,12 @@ const vector<vector<string>> &Partition::getOutputClusters() const {
 }
 
 void Partition::dependencyAnalysis() {
-    while (dependencyAnalysisCluster(inputClusters, outputClusters));
-    while(dependencyAnalysisCluster(outputClusters, inputClusters));
+    int change = 0;
+    do {
+        change = 0;
+        change += dependencyAnalysisCluster(inputClusters, outputClusters);
+        change += dependencyAnalysisCluster(outputClusters, inputClusters);
+    } while (change != 0);
     return;
 }
 
