@@ -1,6 +1,37 @@
 #include <gtest/gtest.h>
 #include <set>
+#include <bitset>
 #include "../src/AIG.h"
+vector<bool> top(bool a0, bool a1, bool b1, bool b0, bool c) {
+    bool na, a, b, ne, e, d, na0, nb1, nb0;
+    bool h0, h1, m0, m1;
+
+    a = a1 && b0;
+    na = !a;
+    na0 = !a0;
+    nb1 = !b1;
+    b = na0 || nb1;
+    e = b0 && c;
+    ne = !e;
+    d = ne ^ b1;
+
+    h0 = a0 && b0;
+    h1 = na ^ b;
+    m0 = !d;
+    m1 = b0 ^ c;
+
+    return vector<bool>{h0, h1, m0, m1};
+}
+std::vector<bool> intToBoolVector(int n) {
+    std::bitset<5> b(n);
+    std::vector<bool> boolVec;
+
+    for(int i = 0; i < 5; ++i) {
+        boolVec.push_back(b[i]);
+    }
+
+    return boolVec;
+}
 class AIGCase : public ::testing::Test {
 protected:
     void SetUp() override {
@@ -41,28 +72,11 @@ TEST_F(AIGCase, test1) {
 }
 
 TEST_F(AIGCase, test2){
-    cout << "INPUT: ";
-    for(int i = 0 ; i < aig.getInputNum() ; i++){
-        cout << aig.fromIndexToName(i) << ' ' ;
+    for(int i = 0; i < 32; ++i) {
+        vector<bool> input = intToBoolVector(i);
+        vector<bool> output = top(input[0], input[1], input[2], input[3], input[4]);
+        ASSERT_EQ(aig.generateOutput(input), output);
     }
-    cout << endl << "OUTPUT: ";
-    for(int q = aig.getInputNum() ; q < aig.getInputNum() + aig.getOutputNum() ; q++){
-        cout << aig.fromIndexToName(q) << ' ' ;
-    }
-    cout << endl;
-    vector<bool> input1{0,1,0,1,1};
-    vector<bool> input2{1,0,1,0,0};
-    vector<bool> input3{1,1,1,0,1};
-    vector<bool> input4{1,1,1,1,1};
-    vector<bool> input5{0,0,0,0,0};
-    vector<bool> output1{0,1,1,0};
-    vector<bool> output2{0,1,1,0};
-    vector<bool> output3{0,1,1,1};
-    vector<bool> output4{0,0,0,0};
-    vector<bool> output5{1,0,0,0};
-    ASSERT_EQ(aig.generateOutput(input1), output1);
-    ASSERT_EQ(aig.generateOutput(input2), output2);
-    ASSERT_EQ(aig.generateOutput(input3), output3);
 }
 
 int main(int argc, char **argv) {
