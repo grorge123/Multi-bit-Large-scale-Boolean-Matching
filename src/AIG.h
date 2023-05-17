@@ -7,6 +7,7 @@
 #include "aiger.h"
 #include <string.h>
 #include <map>
+#include <set>
 #include <iostream>
 #include <vector>
 
@@ -20,11 +21,13 @@ class AIG {
     vector<node> tree;
     string raw;
     int MAXIndex, inputNum, outputNum, latchNum, andNum;
-    map<string, int> nameMap; // verilog input name to AIG input order
-    map<int, string> nameMapInv;
+    map<string, int> nameMap; // verilog input name to AIG node index
+    map<int, string> nameMapInv; // node index to verilog input name
     vector<int> indexMap; // AIG input order to AIG node index
-    map<int, bool> invMap;
-    map<int, vector<int> > support;
+    vector<string> indexToName; // AIG input order to verilog name
+    map<int, int> indexMapInv; // AIG node index to AIG input order
+    map<int, bool> invMap; // AIG node index if is invert
+    map<int, set<int> > support;
     void parseRaw();
     void recursiveFindSupport(int output, int now);
     bool recursiveGenerateOutput(int now, vector<int>& signal, vector<bool>& input);
@@ -49,11 +52,16 @@ public:
         aiger_reset(input);
         parseRaw();
         findSupport();
+        return;
     }
-    int getidx(string name);
-    vector<string> getSupport(int idx);
-    vector<string> getSupport(string name);
+    string fromIndexToName(int idx);
+    int getInputNum();
+    int getOutputNum();
+    int getIdx(string name);
+    set<string> getSupport(int idx);
+    set<string> getSupport(string name);
     vector<bool> generateOutput(vector<bool> input);
+    void Debug();
 };
 
 

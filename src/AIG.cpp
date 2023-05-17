@@ -3,6 +3,7 @@
 //
 
 #include "AIG.h"
+#include "utility.h"
 #include <sstream>
 
 void AIG::parseRaw() {
@@ -21,12 +22,14 @@ void AIG::parseRaw() {
         tree[inpNum / 2].isInput = true;
 
         indexMap.push_back(inpNum / 2);
+        indexMapInv[inpNum / 2] = indexMap.size() - 1;
         invMap[inpNum / 2] = inpNum % 2;
     }
     for(int i = 0 ; i < outputNum ; i++){
         int outNum;
         ss >> outNum;
         indexMap.push_back(outNum / 2);
+        indexMapInv[outNum / 2] = indexMap.size() - 1;
         invMap[outNum / 2] = outNum % 2;
     }
     for(int i = 0 ; i < andNum ; i++){
@@ -48,15 +51,16 @@ void AIG::parseRaw() {
         }else{
             break;
         }
-        nameMap[b] = idx;
-        nameMapInv[idx] = b;
+        nameMap[b] = indexMap[idx];
+        nameMapInv[indexMap[idx]] = b;
+        indexToName.push_back(b);
         idx++;
     }
     return;
 }
 
 void AIG::findSupport() {
-    for(int i = inputNum ; i < outputNum ; i++){
+    for(int i = inputNum ; i < outputNum + inputNum; i++){
         int idx = indexMap[i];
         recursiveFindSupport(idx, idx);
     }
@@ -64,8 +68,8 @@ void AIG::findSupport() {
 
 void AIG::recursiveFindSupport(int output, int now) {
     if(tree[now].isInput){
-        support[now].push_back(output);
-        support[output].push_back(now);
+        support[now].insert(output);
+        support[output].insert(now);
     }else{
         recursiveFindSupport(output, tree[now].l);
         recursiveFindSupport(output, tree[now].r);
@@ -78,7 +82,7 @@ vector<bool> AIG::generateOutput(vector<bool> input) {
     signal.resize(MAXIndex + 1, -1);
     output.resize(outputNum);
     for(int i = inputNum ; i < outputNum ; i++){
-        signal[indexMap[i]] = recursiveGenerateOutput(indexMap[i], signal, output);
+        signal[indexMap[i]] = recursiveGenerateOutput(indexMap[i], signal, input);
         output[i - inputNum] = (invMap[indexMap[i]] ? !signal[indexMap[i]] : signal[indexMap[i]]);
     }
     return output;
@@ -99,19 +103,45 @@ bool AIG::recursiveGenerateOutput(int now, vector<int> &signal, vector<bool> &in
     return (tree[now].inv[0] ? !(lvalue & rvalue) : (lvalue & rvalue));
 }
 
-vector<string> AIG::getSupport(int idx) {
-    vector<string> re;
+set<string> AIG::getSupport(int idx) {
+    set<string> re;
     for(auto i : support[idx]){
-        re.push_back(nameMapInv[i]);
+        re.insert(nameMapInv[i]);
     }
     return re;
 }
-vector<string> AIG::getSupport(string name) {
-    return getSupport(getidx(name));
+set<string> AIG::getSupport(string name) {
+    return getSupport(getIdx(name));
 }
 
-int AIG::getidx(string name) {
-    return indexMap[nameMap[name]];
+int AIG::getIdx(string name) {
+    return nameMap[name];
 }
 
+void AIG::Debug() {
+    for(auto i : support){
+        cout << "Key:" << i.first << endl << "Value:";
+        for(auto q : i.second){
+            cout << q << ' ';
+        }
+        cout << endl;
+    }
+    for(auto i : nameMap){
+        cout << i.first << ' ' << i.second << endl;
+    }
+    for(auto i: nameMapInv){
+        cout << i.first << ' ' << i.second <<endl;
+    }
+}
 
+int AIG::getInputNum() {
+    return inputNum;
+}
+
+string AIG::fromIndexToName(int idx) {
+    return indexToName[idx];
+}
+
+int AIG::getOutputNum() {
+    return outputNum;
+}
