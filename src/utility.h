@@ -71,6 +71,36 @@ using namespace ABC_NAMESPACE;
 extern Abc_Frame_t * pAbc;
 
 template <typename T>
+int compareSets(const std::set<T>& set1, const std::set<T>& set2) {
+    // 獲取較小的 set 大小
+    size_t minSize = std::min(set1.size(), set2.size());
+
+    // 建立兩個迭代器
+    auto it1 = set1.begin();
+    auto it2 = set2.begin();
+
+    // 逐個比較元素
+    for (size_t i = 0; i < minSize; ++i) {
+        if (*it1 < *it2) {
+            return -1;  // set1 比 set2 小
+        } else if (*it1 > *it2) {
+            return 1;   // set1 比 set2 大
+        }
+        ++it1;
+        ++it2;
+    }
+
+    // 如果兩個 set 的前 minSize 個元素相等，則根據大小判斷兩個 set 的關係
+    if (set1.size() < set2.size()) {
+        return -1;  // set1 比 set2 小
+    } else if (set1.size() > set2.size()) {
+        return 1;   // set1 比 set2 大
+    }
+
+    return 0;       // 兩個 set 相等
+}
+
+template <typename T>
 int compareVectors(const std::vector<T>& vector1, const std::vector<T>& vector2) {
     // 獲取較小的向量大小
     size_t minSize = std::min(vector1.size(), vector2.size());

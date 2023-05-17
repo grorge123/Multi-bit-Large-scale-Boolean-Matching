@@ -17,7 +17,10 @@ public:
 private:
     vector<vector<string> > outputClusters;
     void intialRefineCluster(vector<vector<string> > &clusters);
+    int dependencyAnalysisCluster(vector<vector<string> > &clusters, vector<vector<string> > &anotherClusters);
+    int findClusterIndex(string name, vector<vector<string> > &clusters);
 public:
+    Partition(){};
     Partition(string fileName) : AIG(fileName){
         vector<string> ve;
         for(int i = 0 ; i < getInputNum() ; i++){
@@ -32,6 +35,7 @@ public:
     }
     void initialRefinement();
     void dependencyAnalysis();
+    void print();
 };
 
 

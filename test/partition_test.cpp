@@ -4,16 +4,28 @@
 #include <gtest/gtest.h>
 #include <set>
 #include "../src/Partition.h"
-Partition pa("cir1.aig");
+class ParCase : public ::testing::Test {
+protected:
+    void SetUp() override {
+        pa = Partition("cir1.aig");
+    }
+    Partition pa;
+};
 
-
-TEST(testCase, test1) {
+TEST_F(ParCase, Test1) {
     pa.initialRefinement();
     vector<vector<string> > input{{"a1"},{"a0", "b1", "c"},{"b0"}};
     vector<vector<string> > output{{"h0","m1"},{"m0"},{"h1"}};
     ASSERT_EQ(pa.getInputClusters(), input);
     ASSERT_EQ(pa.getOutputClusters(), output);
 }
+
+TEST_F(ParCase, Test2){
+    pa.initialRefinement();
+    pa.dependencyAnalysis();
+    pa.print();
+}
+
 
 int main(int argc, char **argv) {
     testing::InitGoogleTest(&argc, argv);

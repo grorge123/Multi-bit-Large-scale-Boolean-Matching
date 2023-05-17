@@ -33,6 +33,7 @@ class AIG {
     bool recursiveGenerateOutput(int now, vector<int>& signal, vector<bool>& input);
     void findSupport();
 public:
+    AIG(){};
     AIG(string name){
         aiger *input = aiger_init();
         const char *err_msg = aiger_open_and_read_from_file(input, name.c_str());

@@ -1,13 +1,16 @@
 #include <gtest/gtest.h>
 #include <set>
 #include "../src/AIG.h"
-AIG aig("cir1.aig");
-template<typename T>
-std::set<T> vectorToSet(const std::vector<T>& vec) {
-    return std::set<T>(vec.begin(), vec.end());
-}
+class AIGCase : public ::testing::Test {
+protected:
+    void SetUp() override {
+        aig = AIG("cir1.aig");
+    }
+    AIG aig;
+};
 
-TEST(testCase, test1) {
+
+TEST_F(AIGCase, test1) {
     set<string> a0 = aig.getSupport("a0");
     set<string> a1 = aig.getSupport("a1");
     set<string> b0 = aig.getSupport("b0");
