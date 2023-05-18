@@ -13,8 +13,8 @@ class Partition : AIG{
     int dependencyAnalysisCluster(vector<vector<string> > &clusters, vector<vector<string> > &anotherClusters);
     int findClusterIndex(string name, vector<vector<string> > &clusters);
     int simulationType1(vector<bool> output);
-    int simulationType2(vector<bool> input, vector<bool> originalOutput, vector<vector<bool>> outputVector);
-    int simulationType3(vector<bool> input, vector<bool> originalOutput, vector<vector<bool>> outputVector);
+    int simulationType2(vector<bool> originalOutput, vector<vector<bool>> outputVector);
+    int simulationType3(vector<bool> originalOutput, vector<vector<bool>> outputVector);
 public:
     Partition(){};
     Partition(string fileName) : AIG(fileName){

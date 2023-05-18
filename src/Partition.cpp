@@ -106,9 +106,9 @@ void Partition::randomSimulation() {
         vector<bool> output = generateOutput(input);
         vector<vector<bool>> outputVector;
         change += simulationType1(output);
-        for(int i = 0 ; i < input.size() ; i++){
+        for(unsigned int i = 0 ; i < input.size() ; i++){
             vector<bool> tmpInput;
-            for(int q = 0 ; q < input.size() ; q++){
+            for(unsigned int q = 0 ; q < input.size() ; q++){
                 if(i == q){
                     tmpInput.push_back(!input[q]);
                 }else{
@@ -119,8 +119,8 @@ void Partition::randomSimulation() {
             change += simulationType1(tmpOutput);
             outputVector.push_back(tmpOutput);
         }
-        simulationType2(input, output, outputVector);
-        simulationType3(input, output, outputVector);
+        simulationType2(output, outputVector);
+        simulationType3(output, outputVector);
         if(change == 0 )noChangeNum--;
         else noChangeNum = stopNum;
     }
@@ -154,11 +154,11 @@ int Partition::simulationType1(vector<bool> output) {
     return change;
 }
 
-int Partition::simulationType2(vector<bool> input, vector<bool> originalOutput, vector<vector<bool>> outputVector) {
+int Partition::simulationType2(vector<bool> originalOutput, vector<vector<bool>> outputVector) {
     vector<int> obs;
     obs.resize(getInputNum());
-    for(int outputIdx = 0 ; outputIdx < outputVector.size() ; outputIdx++){
-        for(int i = 0 ; i < outputVector[outputIdx].size() ; i++){
+    for(unsigned int outputIdx = 0 ; outputIdx < outputVector.size() ; outputIdx++){
+        for(unsigned int i = 0 ; i < outputVector[outputIdx].size() ; i++){
             if(outputVector[outputIdx][i] != originalOutput[i]){
                 obs[outputIdx]++;
             }
@@ -180,11 +180,11 @@ int Partition::simulationType2(vector<bool> input, vector<bool> originalOutput, 
     return change;
 }
 
-int Partition::simulationType3(vector<bool> input, vector<bool> originalOutput, vector<vector<bool>> outputVector) {
+int Partition::simulationType3(vector<bool> originalOutput, vector<vector<bool>> outputVector) {
     vector<int> ctrl;
     ctrl.resize(getOutputNum());
     for(auto output : outputVector){
-        for(int i = 0 ; i < output.size() ; i++){
+        for(unsigned int i = 0 ; i < output.size() ; i++){
             if(output[i] != originalOutput[i]){
                 ctrl[i]++;
             }
