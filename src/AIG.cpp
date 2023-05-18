@@ -145,3 +145,7 @@ string AIG::fromIndexToName(int idx) {
 int AIG::getOutputNum() {
     return outputNum;
 }
+
+int AIG::idxToOrder(int idx) {
+    return indexMapInv[idx];
+}

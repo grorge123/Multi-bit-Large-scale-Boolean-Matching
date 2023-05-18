@@ -24,8 +24,8 @@ class AIG {
     map<string, int> nameMap; // verilog input name to AIG node index
     map<int, string> nameMapInv; // node index to verilog input name
     vector<int> indexMap; // AIG input order to AIG node index
-    vector<string> indexToName; // AIG input order to verilog name
     map<int, int> indexMapInv; // AIG node index to AIG input order
+    vector<string> indexToName; // AIG input order to verilog name
     map<int, bool> invMap; // AIG node index if is invert
     map<int, set<int> > support;
     void parseRaw();
@@ -59,6 +59,7 @@ public:
     int getInputNum();
     int getOutputNum();
     int getIdx(string name);
+    int idxToOrder(int idx);
     set<string> getSupport(int idx);
     set<string> getSupport(string name);
     vector<bool> generateOutput(vector<bool> input);

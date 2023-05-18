@@ -7,18 +7,14 @@
 #include "AIG.h"
 
 class Partition : AIG{
-
     vector<vector<string> > inputClusters;
-public:
-    const vector<vector<string>> &getInputClusters() const;
-
-    const vector<vector<string>> &getOutputClusters() const;
-
-private:
     vector<vector<string> > outputClusters;
     void intialRefineCluster(vector<vector<string> > &clusters);
     int dependencyAnalysisCluster(vector<vector<string> > &clusters, vector<vector<string> > &anotherClusters);
     int findClusterIndex(string name, vector<vector<string> > &clusters);
+    int simulationType1(vector<bool> output);
+    int simulationType2(vector<bool> input, vector<bool> originalOutput, vector<vector<bool>> outputVector);
+    int simulationType3(vector<bool> input, vector<bool> originalOutput, vector<vector<bool>> outputVector);
 public:
     Partition(){};
     Partition(string fileName) : AIG(fileName){
@@ -33,8 +29,12 @@ public:
         }
         outputClusters.push_back(ve);
     }
+    const vector<vector<string>> &getInputClusters() const;
+    const vector<vector<string>> &getOutputClusters() const;
+    vector<bool> generateInput();
     void initialRefinement();
     void dependencyAnalysis();
+    void randomSimulation();
     void print();
 };
 
