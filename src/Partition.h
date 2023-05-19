@@ -7,19 +7,18 @@
 #include "AIG.h"
 #include <random>
 class Partition : public AIG {
-    default_random_engine generator;
-    uniform_int_distribution<int> distribution;
+
     vector<vector<string> > inputClusters;
     vector<vector<string> > outputClusters;
-    void intialRefineCluster(vector<vector<string> > &clusters);
-    int dependencyAnalysisCluster(vector<vector<string> > &clusters, vector<vector<string> > &anotherClusters);
+    vector<size_t> inputRecord;
+    vector<size_t> outputRecord;
+    void intialRefineCluster(vector<vector<string> > &clusters, vector<size_t> record);
+    int dependencyAnalysisCluster(vector<vector<string> > &clusters, vector<vector<string> > &anotherClusters,
+                                  vector<size_t> record);
     int findClusterIndex(string name, vector<vector<string> > &clusters);
-    int simulationType1(vector<bool> output);
-    int simulationType2(vector<bool> originalOutput, vector<vector<bool>> outputVector);
-    int simulationType3(vector<bool> originalOutput, vector<vector<bool>> outputVector);
 public:
     Partition(){};
-    Partition(string fileName) : AIG(fileName), generator(7122), distribution(0,1) {
+    Partition(string fileName) : AIG(fileName) {
         vector<string> ve;
         for(int i = 0 ; i < getInputNum() ; i++){
             ve.push_back(fromIndexToName(i));
@@ -33,11 +32,28 @@ public:
     }
     const vector<vector<string>> &getInputClusters() const;
     const vector<vector<string>> &getOutputClusters() const;
-    vector<bool> generateInput();
     void initialRefinement();
     void dependencyAnalysis();
-    void randomSimulation(int only = 0);
+    int simulationType1(vector<bool> output);
+    int simulationType2(vector<bool> originalOutput, vector<vector<bool>> outputVector);
+    int simulationType3(vector<bool> originalOutput, vector<vector<bool>> outputVector);
+
     void print();
+
+    template<typename T>
+    size_t calculateHash(const T& variable)
+    {
+        std::hash<T> hasher;
+        return hasher(variable);
+    }
+    size_t calculateHash(const set<int>& container)
+    {
+        size_t seed = 0;
+        for (const auto& element : container) {
+            seed ^= std::hash<typename set<int>::value_type>{}(element) + 0x9e3779b9 + (seed << 6) + (seed >> 2);
+        }
+        return seed;
+    }
 };
 
 
