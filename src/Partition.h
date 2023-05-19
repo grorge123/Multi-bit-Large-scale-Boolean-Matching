@@ -6,7 +6,7 @@
 #define MULTI_BIT_LARGE_SCALE_BOOLEAN_MATCHING_PARTITION_H
 #include "AIG.h"
 
-class Partition : AIG{
+class Partition : public AIG{
     vector<vector<string> > inputClusters;
     vector<vector<string> > outputClusters;
     void intialRefineCluster(vector<vector<string> > &clusters);
@@ -34,7 +34,7 @@ public:
     vector<bool> generateInput();
     void initialRefinement();
     void dependencyAnalysis();
-    void randomSimulation();
+    void randomSimulation(int only = 0);
     void print();
 };
 

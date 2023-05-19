@@ -119,18 +119,8 @@ int AIG::getIdx(string name) {
 }
 
 void AIG::Debug() {
-    for(auto i : support){
-        cout << "Key:" << i.first << endl << "Value:";
-        for(auto q : i.second){
-            cout << q << ' ';
-        }
-        cout << endl;
-    }
-    for(auto i : nameMap){
-        cout << i.first << ' ' << i.second << endl;
-    }
-    for(auto i: nameMapInv){
-        cout << i.first << ' ' << i.second <<endl;
+    for(int i = 0 ; i < inputNum + outputNum ; i++){
+        cout << i << ' ' << indexMap[i] << ' ' << indexMapInv[indexMap[i]] << endl;
     }
 }
 

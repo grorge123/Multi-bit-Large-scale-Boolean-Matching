@@ -29,6 +29,26 @@ TEST_F(ParCase, Test2){
     ASSERT_EQ(output, pa.getOutputClusters());
 }
 
+TEST_F(ParCase, TestSim1){
+    pa.randomSimulation(1);
+    ASSERT_EQ(pa.getOutputClusters().size(), pa.getOutputNum());
+}
+
+TEST_F(ParCase, TestSim2){
+    pa.randomSimulation(2);
+    ASSERT_EQ(pa.getInputClusters().size(), pa.getInputNum());
+}
+
+TEST_F(ParCase, TestSim3){
+    pa.randomSimulation(3);
+    ASSERT_EQ(pa.getOutputClusters().size(), pa.getOutputNum());
+}
+
+TEST_F(ParCase, Test3){
+    pa.randomSimulation();
+    ASSERT_EQ(pa.getInputClusters().size(), pa.getInputNum());
+    ASSERT_EQ(pa.getOutputClusters().size(), pa.getOutputNum());
+}
 
 int main(int argc, char **argv) {
     testing::InitGoogleTest(&argc, argv);

@@ -97,7 +97,7 @@ void Partition::print() {
     cout << endl;
 }
 
-void Partition::randomSimulation() {
+void Partition::randomSimulation(int only) {
     int stopNum = 10;
     int noChangeNum = stopNum;
     while (noChangeNum > 0){
@@ -105,7 +105,7 @@ void Partition::randomSimulation() {
         vector<bool> input = generateInput();
         vector<bool> output = generateOutput(input);
         vector<vector<bool>> outputVector;
-        change += simulationType1(output);
+        if(!only || only == 1)change += simulationType1(output);
         for(unsigned int i = 0 ; i < input.size() ; i++){
             vector<bool> tmpInput;
             for(unsigned int q = 0 ; q < input.size() ; q++){
@@ -116,11 +116,11 @@ void Partition::randomSimulation() {
                 }
             }
             vector<bool> tmpOutput = generateOutput(tmpInput);
-            change += simulationType1(tmpOutput);
+            if(!only || only == 1)change += simulationType1(tmpOutput);
             outputVector.push_back(tmpOutput);
         }
-        simulationType2(output, outputVector);
-        simulationType3(output, outputVector);
+        if(!only || only == 2)simulationType2(output, outputVector);
+        if(!only || only == 3)simulationType3(output, outputVector);
         if(change == 0 )noChangeNum--;
         else noChangeNum = stopNum;
     }
@@ -166,7 +166,7 @@ int Partition::simulationType2(vector<bool> originalOutput, vector<vector<bool>>
     }
     vector<vector<string> > newClusters;
     int change = 0;
-    for(auto cluster : outputClusters){
+    for(auto cluster : inputClusters){
         map<int, vector<string> > obsMap;
         for(auto port : cluster){
             obsMap[obs[idxToOrder(getIdx(port))]].push_back(port);
@@ -176,7 +176,7 @@ int Partition::simulationType2(vector<bool> originalOutput, vector<vector<bool>>
             newClusters.push_back(newCluster.second);
         }
     }
-    outputClusters = newClusters;
+    inputClusters = newClusters;
     return change;
 }
 
@@ -195,7 +195,7 @@ int Partition::simulationType3(vector<bool> originalOutput, vector<vector<bool>>
     for(auto cluster : outputClusters){
         map<int, vector<string> > ctrlMap;
         for(auto port : cluster){
-            ctrlMap[ctrl[idxToOrder(getIdx(port))]].push_back(port);
+            ctrlMap[ctrl[idxToOrder(getIdx(port)) - getInputNum()]].push_back(port);
         }
         change += ctrlMap.size() - 1;
         for(auto newCluster : ctrlMap){
