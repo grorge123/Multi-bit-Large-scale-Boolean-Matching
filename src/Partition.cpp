@@ -127,12 +127,10 @@ void Partition::randomSimulation(int only) {
 }
 
 vector<bool> Partition::generateInput() {
-    std::random_device rd;
-    std::mt19937 gen(rd());
     std::uniform_int_distribution<> dis(0, 1);
     std::vector<bool> result;
     for (int i = 0 ; i < getInputNum() ; i++) {
-        result.push_back(dis(gen));
+        result.push_back(distribution(generator));
     }
     return result;
 }

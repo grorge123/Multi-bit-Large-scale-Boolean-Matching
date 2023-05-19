@@ -5,8 +5,10 @@
 #ifndef MULTI_BIT_LARGE_SCALE_BOOLEAN_MATCHING_PARTITION_H
 #define MULTI_BIT_LARGE_SCALE_BOOLEAN_MATCHING_PARTITION_H
 #include "AIG.h"
-
-class Partition : public AIG{
+#include <random>
+class Partition : public AIG {
+    default_random_engine generator;
+    uniform_int_distribution<int> distribution;
     vector<vector<string> > inputClusters;
     vector<vector<string> > outputClusters;
     void intialRefineCluster(vector<vector<string> > &clusters);
@@ -17,7 +19,7 @@ class Partition : public AIG{
     int simulationType3(vector<bool> originalOutput, vector<vector<bool>> outputVector);
 public:
     Partition(){};
-    Partition(string fileName) : AIG(fileName){
+    Partition(string fileName) : AIG(fileName), generator(7122), distribution(0,1) {
         vector<string> ve;
         for(int i = 0 ; i < getInputNum() ; i++){
             ve.push_back(fromIndexToName(i));
