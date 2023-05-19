@@ -14,9 +14,11 @@ src = $(wildcard $(src_dir)/*.cpp)
 header = $(wildcard $(src_dir)/*.h)
 obj = $(patsubst $(src_dir)/%.cpp, $(obj_dir)/%.o, $(src))
 
-all:$(obj) $(LIB) $(header)
-	mkdir -p $(obj_dir)
+all:$(obj) $(LIB) $(header) initDir
 	$(CC) $(CFLAGS) -o $(exe) $(obj) $(LIB)
+
+initDir:
+	mkdir -p $(obj_dir)
 
 $(obj_dir)/%.o: $(src_dir)/%.cpp $(header)
 	$(CC) $(CFLAGS) -c $< -o $@
