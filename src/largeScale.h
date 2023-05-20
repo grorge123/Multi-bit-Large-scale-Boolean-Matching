@@ -20,6 +20,7 @@ public:
         cir1 = Partition(input.cir1AIGPath);
         cir2 = Partition(input.cir2AIGPath);
     }
+    void start();
     void randomSimulation(int only = 0);
     vector<bool> generateInput(int inputNum);
 };
