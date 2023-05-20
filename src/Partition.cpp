@@ -9,18 +9,20 @@ void Partition::initialRefinement() {
     intialRefineCluster(outputClusters, outputRecord);
 }
 
-void Partition::intialRefineCluster(vector<vector<string> > &clusters, vector<size_t> record) {
+void Partition::intialRefineCluster(vector<vector<string> > &clusters, vector<vector<size_t>> record) {
+    record.clear();
     vector<vector<string> > newClusters;
     for(auto cluster : clusters){
         map<int, vector<string>> Dmap;
         for(auto port : cluster){
             Dmap[getSupport(port).size()].push_back(port);
         }
-        record.clear();
+        vector<size_t> recordVector;
         for(auto newCluster : Dmap){
             newClusters.push_back(newCluster.second);
-            record.push_back(calculateHash(newCluster.first));
+            recordVector.push_back(calculateHash(newCluster.first));
         }
+        record.push_back(recordVector);
     }
     clusters = newClusters;
     return;
@@ -45,7 +47,8 @@ void Partition::dependencyAnalysis() {
 }
 
 int Partition::dependencyAnalysisCluster(vector<vector<string> > &clusters, vector<vector<string> > &anotherClusters,
-                                         vector<size_t> record) {
+                                         vector<vector<size_t>> record) {
+    record.clear();
     int change = 0;
     vector<vector<string > > newClusters;
     for(auto cluster : clusters){
@@ -59,11 +62,12 @@ int Partition::dependencyAnalysisCluster(vector<vector<string> > &clusters, vect
             Smap[indexSet].push_back(port);
         }
         change += Smap.size() - 1;
-        record.clear();
+        vector<size_t> recordVector;
         for(auto newCluster : Smap){
             newClusters.push_back(newCluster.second);
-            record.push_back(calculateHash(newCluster.first));
+            recordVector.push_back(calculateHash(newCluster.first));
         }
+        record.push_back(recordVector);
     }
     clusters = newClusters;
     return change;
@@ -105,6 +109,7 @@ void Partition::print() {
 
 
 int Partition::simulationType1(vector<bool> output) {
+    outputRecord.clear();
     vector<vector<string> > newClusters;
     int change = 0;
     for(auto cluster : outputClusters){
@@ -113,17 +118,19 @@ int Partition::simulationType1(vector<bool> output) {
             Bmap[output[idxToOrder(getIdx(port)) - getInputNum()]].push_back(port);
         }
         change += Bmap.size() - 1;
-        outputRecord.clear();
+        vector<size_t> recordVector;
         for(auto newCluster : Bmap){
             newClusters.push_back(newCluster.second);
-            outputRecord.push_back(calculateHash(newCluster.first));
+            recordVector.push_back(calculateHash(newCluster.first));
         }
+        outputRecord.push_back(recordVector);
     }
     outputClusters = newClusters;
     return change;
 }
 
 int Partition::simulationType2(vector<bool> originalOutput, vector<vector<bool>> outputVector) {
+    inputRecord.clear();
     vector<int> obs;
     obs.resize(getInputNum());
     for(unsigned int outputIdx = 0 ; outputIdx < outputVector.size() ; outputIdx++){
@@ -141,17 +148,19 @@ int Partition::simulationType2(vector<bool> originalOutput, vector<vector<bool>>
             obsMap[obs[idxToOrder(getIdx(port))]].push_back(port);
         }
         change += obsMap.size() - 1;
-        inputRecord.clear();
+        vector<size_t> recordVector;
         for(auto newCluster : obsMap){
             newClusters.push_back(newCluster.second);
-            inputRecord.push_back(calculateHash(newCluster.first));
+            recordVector.push_back(calculateHash(newCluster.first));
         }
+        inputRecord.push_back(recordVector);
     }
     inputClusters = newClusters;
     return change;
 }
 
 int Partition::simulationType3(vector<bool> originalOutput, vector<vector<bool>> outputVector) {
+    outputRecord.clear();
     vector<int> ctrl;
     ctrl.resize(getOutputNum());
     for(auto output : outputVector){
@@ -169,11 +178,12 @@ int Partition::simulationType3(vector<bool> originalOutput, vector<vector<bool>>
             ctrlMap[ctrl[idxToOrder(getIdx(port)) - getInputNum()]].push_back(port);
         }
         change += ctrlMap.size() - 1;
-        outputRecord.clear();
+        vector<size_t> recordVector;
         for(auto newCluster : ctrlMap){
             newClusters.push_back(newCluster.second);
-            outputRecord.push_back(calculateHash(newCluster.first));
+            recordVector.push_back(calculateHash(newCluster.first));
         }
+        outputRecord.push_back(recordVector);
     }
     outputClusters = newClusters;
     return change;

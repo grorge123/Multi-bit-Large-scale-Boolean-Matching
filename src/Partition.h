@@ -10,11 +10,11 @@ class Partition : public AIG {
 
     vector<vector<string> > inputClusters;
     vector<vector<string> > outputClusters;
-    vector<size_t> inputRecord;
-    vector<size_t> outputRecord;
-    void intialRefineCluster(vector<vector<string> > &clusters, vector<size_t> record);
+    vector<vector<size_t > > inputRecord;
+    vector<vector<size_t > > outputRecord;
+    void intialRefineCluster(vector<vector<string> > &clusters, vector<vector<size_t>> record);
     int dependencyAnalysisCluster(vector<vector<string> > &clusters, vector<vector<string> > &anotherClusters,
-                                  vector<size_t> record);
+                                  vector<vector<size_t>> record);
     int findClusterIndex(string name, vector<vector<string> > &clusters);
 public:
     Partition(){};
