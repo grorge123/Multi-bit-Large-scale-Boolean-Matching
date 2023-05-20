@@ -7,8 +7,9 @@
 
 
 #include <fstream>
-extern Abc_Frame_t * pAbc;
 using namespace std;
+
+extern Abc_Frame_t * pAbc;
 
 inputStructure parseInput(string inputPath) {
     inputStructure result;

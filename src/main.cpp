@@ -5,7 +5,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-Abc_Frame_t * pAbc;
+
 
 int main (){
 

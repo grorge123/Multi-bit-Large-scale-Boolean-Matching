@@ -6,7 +6,7 @@
 #include <fstream>
 #include <chrono>
 #include <ctime>
-
+Abc_Frame_t * pAbc;
 ifstream* readFile(string fileName){
     ifstream* file = new ifstream;
     file->open(fileName, std::ios::in);

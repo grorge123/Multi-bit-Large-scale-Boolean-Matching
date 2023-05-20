@@ -17,7 +17,6 @@ using namespace std;
 
 ifstream* readFile(string fileName);
 
-
 #define debug(...) do{\
     fprintf(stderr,"%s - %d (%s) = ",__PRETTY_FUNCTION__,__LINE__,#__VA_ARGS__);\
     _do(__VA_ARGS__);\
@@ -68,7 +67,7 @@ using namespace ABC_NAMESPACE;
 #elif defined(__cplusplus)
 }
 #endif
-extern Abc_Frame_t * pAbc;
+
 
 template <typename T>
 int compareSets(const std::set<T>& set1, const std::set<T>& set2) {
@@ -124,5 +123,5 @@ int compareVectors(const std::vector<T>& vector1, const std::vector<T>& vector2)
 
     return 0;       // 兩個向量相等
 }
-
+extern Abc_Frame_t * pAbc;
 #endif //JUDGE_UTILITY_H
