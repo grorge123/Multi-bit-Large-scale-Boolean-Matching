@@ -22,7 +22,8 @@ vector<bool> generateInput(int inputNum) {
     return result;
 }
 TEST_F(ParCase, Test1) {
-    pa.initialRefinement();
+    vector<vector<int>> a, b;
+    pa.initialRefinement(a, b);
     vector<vector<string> > input{{"a1"},{"a0", "b1", "c"},{"b0"}};
     vector<vector<string> > output{{"h0","m1"},{"m0"},{"h1"}};
     ASSERT_EQ(pa.getInputClusters(), input);
@@ -30,8 +31,10 @@ TEST_F(ParCase, Test1) {
 }
 
 TEST_F(ParCase, Test2){
-    pa.initialRefinement();
-    pa.dependencyAnalysis();
+    vector<vector<int>> a, b;
+    pa.initialRefinement(a, b);
+    vector<vector<set<int> > > c, d;
+    pa.dependencyAnalysis(c, d);
     vector<vector<string> > input{{"a1"},{"c"}, {"a0"}, {"b1"}, {"b0"}};
     vector<vector<string> > output{{"m1"},{"h0"},{"m0"},{"h1"}};
     ASSERT_EQ(input, pa.getInputClusters());
@@ -46,7 +49,8 @@ TEST_F(ParCase, TestSim1){
         vector<bool> input = generateInput(pa.getInputNum());
         vector<bool> output = pa.generateOutput(input);
         vector<vector<bool>> outputVector;
-        change += pa.simulationType1(output);
+        vector<vector<bool> > a;
+        change += pa.simulationType1(output, a);
         if(change == 0 )noChangeNum--;
         else noChangeNum = stopNum;
     }
@@ -73,7 +77,8 @@ TEST_F(ParCase, TestSim2){
             vector<bool> tmpOutput = pa.generateOutput(tmpInput);
             outputVector.push_back(tmpOutput);
         }
-        change += pa.simulationType2(output, outputVector);
+        vector<vector<int> > a;
+        change += pa.simulationType2(output, outputVector, a);
         if(change == 0 )noChangeNum--;
         else noChangeNum = stopNum;
     }
@@ -100,11 +105,21 @@ TEST_F(ParCase, TestSim3){
             vector<bool> tmpOutput = pa.generateOutput(tmpInput);
             outputVector.push_back(tmpOutput);
         }
-        change += pa.simulationType3(output, outputVector);
+        vector<vector<int> > a;
+        change += pa.simulationType3(output, outputVector, a);
         if(change == 0 )noChangeNum--;
         else noChangeNum = stopNum;
     }
     ASSERT_EQ(pa.getOutputClusters().size(), pa.getOutputNum());
+}
+
+TEST_F(ParCase, Test4) {
+    vector<vector<int>> a, b;
+    pa.initialRefinement(a, b);
+    pa.eraseCluster(1, true);
+//    vector<vector<string> > originalInput{{"a1"},{"a0", "b1", "c"},{"b0"}};
+    vector<vector<string> > input{{"a1"},{"b0"}};
+    ASSERT_EQ(pa.getInputClusters(), input);
 }
 
 int main(int argc, char **argv) {

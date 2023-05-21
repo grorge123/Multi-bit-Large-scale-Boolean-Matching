@@ -10,11 +10,9 @@ class Partition : public AIG {
 
     vector<vector<string> > inputClusters;
     vector<vector<string> > outputClusters;
-    vector<vector<size_t > > inputRecord;
-    vector<vector<size_t > > outputRecord;
-    void intialRefineCluster(vector<vector<string> > &clusters, vector<vector<size_t>> record);
+    void intialRefineCluster(vector<vector<string> > &clusters, vector<vector<int>> &record);
     int dependencyAnalysisCluster(vector<vector<string> > &clusters, vector<vector<string> > &anotherClusters,
-                                  vector<vector<size_t>> record);
+                                  vector<vector<set<int>>> &record);
     int findClusterIndex(string name, vector<vector<string> > &clusters);
 public:
     Partition(){};
@@ -32,28 +30,17 @@ public:
     }
     const vector<vector<string>> &getInputClusters() const;
     const vector<vector<string>> &getOutputClusters() const;
-    void initialRefinement();
-    void dependencyAnalysis();
-    int simulationType1(vector<bool> output);
-    int simulationType2(vector<bool> originalOutput, vector<vector<bool>> outputVector);
-    int simulationType3(vector<bool> originalOutput, vector<vector<bool>> outputVector);
+    void initialRefinement(vector<vector<int> > &inputRecord, vector<vector<int> > &outputRecord);
+    void dependencyAnalysis(vector<vector<set<int> > > &inputRecord, vector<vector<set<int> > > &outputRecord);
+    int simulationType1(vector<bool> output, vector<vector<bool> > &record);
+    int simulationType2(vector<bool> originalOutput, vector<vector<bool>> outputVector, vector<vector<int> > &record);
+    int simulationType3(vector<bool> originalOutput, vector<vector<bool>> outputVector, vector<vector<int> > &record);
+
+    void eraseCluster(int clusterIdx, bool isInput);
+    void eraseSupportPort(string name);
 
     void print();
 
-    template<typename T>
-    size_t calculateHash(const T& variable)
-    {
-        std::hash<T> hasher;
-        return hasher(variable);
-    }
-    size_t calculateHash(const set<int>& container)
-    {
-        size_t seed = 0;
-        for (const auto& element : container) {
-            seed ^= std::hash<typename set<int>::value_type>{}(element) + 0x9e3779b9 + (seed << 6) + (seed >> 2);
-        }
-        return seed;
-    }
 };
 
 
