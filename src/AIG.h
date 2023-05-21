@@ -13,20 +13,23 @@
 
 using namespace std;
 class AIG {
-    struct node{
+    struct Node{
         bool inv[3] = {}; // self, l, r if invert
         int l = -1, r = -1;
         bool isInput = false;
+        bool exist = false;
     };
-    vector<node> tree;
+    vector<Node> tree;
     string raw;
+
+private:
     int MAXIndex, inputNum, outputNum, latchNum, andNum;
-    map<string, int> nameMap; // verilog input name to AIG node index
-    map<int, string> nameMapInv; // node index to verilog input name
-    vector<int> indexMap; // AIG input order to AIG node index
-    map<int, int> indexMapInv; // AIG node index to AIG input order
+    map<string, int> nameMap; // verilog input name to AIG Node index
+    map<int, string> nameMapInv; // Node index to verilog input name
+    vector<int> indexMap; // AIG input order to AIG Node index
+    map<int, int> indexMapInv; // AIG Node index to AIG input order
     vector<string> indexToName; // AIG input order to verilog name
-    map<int, bool> invMap; // AIG node index if is invert
+    map<int, bool> invMap; // AIG Node index if is invert
     map<int, set<int> > support;
     void parseRaw();
     void recursiveFindSupport(int output, int now);
@@ -63,6 +66,8 @@ public:
     set<string> getSupport(int idx);
     set<string> getSupport(string name);
     vector<bool> generateOutput(vector<bool> input);
+    const string &getRaw();
+    void changeName(string oldName, string newName);
     void Debug();
 };
 

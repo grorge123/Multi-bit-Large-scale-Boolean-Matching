@@ -79,6 +79,43 @@ TEST_F(AIGCase, test2){
     }
 }
 
+
+const string raw = "aag 18 5 0 4 13\n"
+                   "2\n"
+                   "4\n"
+                   "6\n"
+                   "8\n"
+                   "10\n"
+                   "12\n"
+                   "23\n"
+                   "30\n"
+                   "37\n"
+                   "12 8 2\n"
+                   "14 8 4\n"
+                   "16 6 2\n"
+                   "18 17 14\n"
+                   "20 16 15\n"
+                   "22 21 19\n"
+                   "24 10 8\n"
+                   "26 24 6\n"
+                   "28 25 7\n"
+                   "30 29 27\n"
+                   "32 10 9\n"
+                   "34 11 8\n"
+                   "36 35 33\n"
+                   "i0 a0\n"
+                   "i1 a1\n"
+                   "i2 b1\n"
+                   "i3 b0\n"
+                   "i4 c\n"
+                   "o0 h0\n"
+                   "o1 h1\n"
+                   "o2 m0\n"
+                   "o3 m1\n"
+                   "c\n";
+TEST_F(AIGCase, test3){
+    ASSERT_EQ(aig.getRaw(), raw);
+}
 int main(int argc, char **argv) {
     testing::InitGoogleTest(&argc, argv);
     return RUN_ALL_TESTS();

@@ -3,6 +3,10 @@
 //
 
 #include "largeScale.h"
+#include "utility.h"
+#include "aiger.h"
+#include "aigtocnf.h"
+#include "satsolver.h"
 #include <fstream>
 
 using namespace std;
@@ -85,8 +89,23 @@ void LargeScale::start() {
     vector<pair<string, string>> outputMatchPair = removeNonSingleton(cir1.getOutputClusters(),
                                                                       cir2.getOutputClusters());
     removeNonSupport(inputMatchPair, outputMatchPair);
-    SAT_Solver(vector<pair<string, string>>(), vector<pair<string, string>>());
-    //TODO output result
+    SAT_Solver(inputMatchPair, outputMatchPair);
+    OutputStructure outputStructure;
+    for(auto match : inputMatchPair){
+        Group group;
+        group.cir1 = match.first;
+        group.cir2.push_back(match.second);
+        group.invVector.push_back(false);
+        outputStructure.inputGroups.push_back(group);
+    }
+    for(auto match : outputMatchPair){
+        Group group;
+        group.cir1 = match.first;
+        group.cir2.push_back(match.second);
+        group.invVector.push_back(false);
+        outputStructure.outputGroups.push_back(group);
+    }
+    parseOutput(outputFilePath, outputStructure);
 }
 
 
@@ -96,7 +115,7 @@ LargeScale::removeNonSingleton(const vector<vector<string>> &par1, const vector<
         cout << "[LargeScale] ERROR: removeNonSingleton size are not equal!" << endl;
     }
     vector<pair<string, string> > result;
-    for(int i = 0 ; i < min(par1.size(), par2.size()) ; i++){
+    for(unsigned int i = 0 ; i < min(par1.size(), par2.size()) ; i++){
         if(par1[i].size() == 1 && par2[i].size() == 1){
             result.push_back(pair<string,string> (par1[i][0], par2[i][0]));
         }
@@ -168,8 +187,82 @@ void LargeScale::removeNonSupport(vector<pair<string, string>> &inputMatch, vect
     return;
 }
 
-void LargeScale::SAT_Solver(vector<pair<string, string> > inputMatch, vector<pair<string, string> > outputMatch) {
-    //TODO implement
+void LargeScale::SAT_Solver(vector<pair<string, string> > &inputMatch, vector<pair<string, string> > &outputMatch) {
+    //TODO implement reduce redundancy
+    string savePath1 = getNowTime() + ".aig";
+    string savePath2 = getNowTime() + "-2.aig";
+
+    produceMatchAIG(inputMatch, outputMatch, savePath1, savePath2);
+    //TODO optimize abc command
+    string abcCmd = "miter " + savePath1 + " " + savePath2 + "; write_aiger miter.aig;";
+    string resultPath = "stdoutOutput.txt";
+    cout.flush();
+    FILE *saveStdout = stdout;
+    stdout = fopen(resultPath.c_str(), "a");
+    if (stdout != NULL) {
+        if (Cmd_CommandExecute(pAbc, abcCmd.c_str())){
+            cout << "[LargeScale] ERROR:Cannot execute command \"" << abcCmd << "\".\n";
+            exit(1);
+        }
+        fflush(stdout);
+        fclose(stdout);
+        stdout = saveStdout;
+    } else {
+        cout << "[LargeScale] ERROR:Can't write file:" << resultPath << endl;
+        exit(1);
+    }
+    char miterAIG[]{"miter.aig"};
+    char miterCNF[]{"miter.cnf"};
+    aigtocnf(miterAIG, miterCNF);
+    solverResult result = SAT_solver(miterCNF);
+    if(result.satisfiable){
+        // TODO remove non-match output and reduce redundancy
+        return SAT_Solver(inputMatch, outputMatch);
+    }else{
+        return;
+    }
+}
+
+void LargeScale::produceMatchAIG(vector<pair<string, string> > inputMatch, vector<pair<string, string> > outputMatch,
+                                 string savePath1,
+                                 string savePath2) {
+    AIG newAIG = cir2;
+    for(auto match : inputMatch){
+        newAIG.changeName(match.second, match.first);
+    }
+    for(auto match : outputMatch){
+        newAIG.changeName(match.second, match.first);
+    }
+    aiger *aig = aiger_init();
+    string  tmpFilePath = "tmp1.aig";
+    FILE *fp = nullptr;
+    fp = fopen(tmpFilePath.c_str(), "w+");
+    fputs(newAIG.getRaw().c_str(), fp);
+    fclose(fp);
+    const char *err_msg = aiger_open_and_read_from_file(aig, tmpFilePath.c_str());
+    if(err_msg != nullptr){
+        cout << "[LargeScale]ERROR: " << err_msg << endl;
+        exit(1);
+    }
+    fp = fopen(savePath2.c_str(), "w");
+    aiger_write_to_file(aig, aiger_binary_mode, fp);
+    fclose(fp);
+    aiger_reset(aig);
+
+
+    fp = fopen(tmpFilePath.c_str(), "w+");
+    fputs(cir1.getRaw().c_str(), fp);
+    fclose(fp);
+    const char *err_msg2 = aiger_open_and_read_from_file(aig, tmpFilePath.c_str());
+    if(err_msg2 != nullptr){
+        cout << "[LargeScale]ERROR: " << err_msg2 << endl;
+        exit(1);
+    }
+    fp = fopen(savePath1.c_str(), "w");
+    aiger_write_to_file(aig, aiger_binary_mode, fp);
+    fclose(fp);
+
+    aiger_reset(aig);
 }
 
 
