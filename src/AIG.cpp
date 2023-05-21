@@ -41,6 +41,7 @@ void AIG::parseRaw() {
         tree[idx].inv[0] = out % 2;
         tree[idx].inv[1] = l % 2;
         tree[idx].inv[2] = r % 2;
+        tree[idx].exist = true;
     }
     int idx = 0;
     while (true){
@@ -120,7 +121,7 @@ int AIG::getIdx(string name) {
 
 void AIG::Debug() {
     for(int i = 0 ; i < inputNum + outputNum ; i++){
-        cout << i << ' ' << indexMap[i] << ' ' << indexMapInv[indexMap[i]] << endl;
+        cout << i << ' ' << invMap[i] << endl;
     }
 }
 
@@ -138,4 +139,43 @@ int AIG::getOutputNum() {
 
 int AIG::idxToOrder(int idx) {
     return indexMapInv[idx];
+}
+
+const string &AIG::getRaw() {
+//    if(raw.size() != 0)return raw;
+    raw = "aag " + to_string(MAXIndex) + " " + to_string(inputNum) + " 0 " + to_string(outputNum) + " " +
+            to_string(andNum) + "\n";
+    for(int i = 0 ; i < inputNum + outputNum ; i++){
+        raw += (invMap[indexMap[i]] ? to_string(indexMap[i] * 2 + 1) : to_string(indexMap[i] * 2)) + "\n";
+    }
+    for(int i = 1 ; i <= MAXIndex ; i++){
+        Node node = tree[i];
+        if(node.exist){
+            raw += to_string(node.inv[0] ? i * 2 + 1 : i * 2) + " " + to_string((node.inv[1] ? node.l * 2 + 1 : node.l * 2))
+                    + " " + to_string((node.inv[2] ? node.r * 2 + 1 : node.r * 2)) + "\n";
+        }
+    }
+    for(int q = 0 ; q < inputNum ; q++){
+        raw += "i" + to_string(q) + " " + indexToName[q] + "\n";
+    }
+    for(int q = inputNum ; q < inputNum + outputNum; q++){
+        raw += "o" + to_string(q - inputNum) + " " + indexToName[q] + "\n";
+    }
+    raw += "c\n";
+
+    return raw;
+}
+
+void AIG::changeName(string oldName, string newName) {
+    raw = "";
+    for(unsigned int i = 0 ; i < indexToName.size() ; i++){
+        if(indexToName[i] == oldName){
+            indexToName[i] = newName;
+            int tmpIdx = nameMap[oldName];
+            nameMap[newName] = tmpIdx;
+            nameMapInv[tmpIdx] = newName;
+            nameMap.erase(oldName);
+            break;
+        }
+    }
 }

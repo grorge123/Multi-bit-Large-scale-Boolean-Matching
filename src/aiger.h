@@ -343,7 +343,7 @@ int aiger_lit2tag(aiger *, unsigned lit);
  * 'input', 'latch' or 'and'.  The command returns a zero pointer if the
  * literal was not defined as 'input', 'latch', or 'and' respectively.
  * Otherwise a pointer to the corresponding input or latch symbol is returned.
- * In the case of an 'and' the AND node is returned.  The returned symbol
+ * In the case of an 'and' the AND Node is returned.  The returned symbol
  * if non zero is in the respective array of 'inputs', 'latches' and 'ands'.
  * It thus also allows to extract the position of an input or latch literal.
  * For outputs this is not possible, since the same literal may be used for

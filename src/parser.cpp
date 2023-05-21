@@ -11,8 +11,8 @@ using namespace std;
 
 extern Abc_Frame_t * pAbc;
 
-inputStructure parseInput(string inputPath) {
-    inputStructure result;
+InputStructure parseInput(string inputPath) {
+    InputStructure result;
     ifstream inputFile;
     inputFile.open(inputPath);
     string cir1VerilogPath, cir2VerilogPath;
@@ -72,5 +72,37 @@ inputStructure parseInput(string inputPath) {
 
 string produceABCCommand(string inputPath, string outputPath) {
     //TODO test which command can reduce most network space
-    return "read " + inputPath +"; strash; write_aiger " + outputPath;
+    return "read " + inputPath +"; strash; write_aiger -s " + outputPath;
+}
+
+void parseOutput(string outputPath, OutputStructure result) {
+    ofstream outputFile;
+    outputFile.open(outputPath);
+    for(auto group : result.inputGroups){
+        outputFile << "INGROUP\n";
+        outputFile << "1 " << (group.inv ? "-" : "+") << " " << group.cir1 << "\n";
+        for(unsigned int i = 0 ; i < group.cir2.size() ; i++){
+            outputFile << "2 " << (group.invVector[i] ? "-" : "+") << " " << group.cir2[i] << "\n";
+        }
+        outputFile << "END\n";
+    }
+    for(auto group : result.outputGroups){
+        outputFile << "OUTGROUP\n";
+        outputFile << "1 " << (group.inv ? "-" : "+") << " " << group.cir1 << "\n";
+        for(unsigned int i = 0 ; i < group.cir2.size() ; i++){
+            outputFile << "2 " << (group.invVector[i] ? "-" : "+") << " " << group.cir2[i] << "\n";
+        }
+        outputFile << "END\n";
+    }
+    if(result.one.size() != 0 || result.zero.size() != 0){
+        outputFile << "CONSTGROUP\n";
+        for(auto group: result.one){
+            outputFile << "- " << group << "\n";
+        }
+        for(auto group: result.zero){
+            outputFile << "+ " << group << "\n";
+        }
+        outputFile << "END\n";
+    }
+    outputFile.close();
 }
