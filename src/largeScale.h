@@ -14,6 +14,7 @@ class LargeScale {
     default_random_engine generator;
     uniform_int_distribution<int> distribution;
     Partition cir1, cir2;
+    string outputFilePath;
 
     template<typename T>
     int compare(const T& a, const T& b){
@@ -54,14 +55,18 @@ public:
     LargeScale(): generator(7122), distribution(0,1){
 
     }
-    LargeScale(inputStructure input) : generator(7122), distribution(0,1){
+    LargeScale(inputStructure input, string outputFilePath) :outputFilePath(outputFilePath), generator(7122), distribution(0,1){
         //TODO assert IO port equal
         cir1 = Partition(input.cir1AIGPath);
         cir2 = Partition(input.cir2AIGPath);
     }
     void start();
-    void randomSimulation(int only = 0);
     vector<bool> generateInput(int inputNum);
+    void randomSimulation(int only = 0);
+    vector<pair<string, string>> removeNonSingleton(const vector<vector<string>> &par1, const vector<vector<string>> &par2);
+    void removeNonSupport(vector<pair<string, string> > &inputMatch, vector<pair<string, string> > &outputMatch);
+    void SAT_Solver(vector<pair<string, string> > inputMatch, vector<pair<string, string> > outputMatch);
+
     template<typename T>
     void reduceCluster(const vector<vector<T>> &record1, const vector<vector<T>> &record2, bool isInput) {
         pair<vector<int>, vector<int> > erasePortVector = matchPartition(record1, record2);

@@ -14,7 +14,16 @@ struct inputStructure{
     vector<vector<string> > cir1Bus;
     vector<vector<string> > cir2Bus;
 };
+struct group{
+    string cir1;
+    vector<string> cir2;
+};
+struct outputStructure{
+    vector<group> inputGroups;
+    vector<group> outputGroups;
+    vector<string> one, zero;
+};
 string produceABCCommand(string inputPath, string outputPath);
 inputStructure parseInput(string inputPath);
-
+void parseOutput(string outputPath, outputStructure result);
 #endif //MULTI_BIT_LARGE_SCALE_BOOLEAN_MATCHING_PARSER_H
