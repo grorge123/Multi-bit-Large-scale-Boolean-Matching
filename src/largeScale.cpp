@@ -197,8 +197,8 @@ void LargeScale::removeNonSupport(vector<pair<string, string>> &inputMatch, vect
 
 void LargeScale::SAT_Solver(vector<pair<string, string> > &inputMatch, vector<pair<string, string> > &outputMatch) {
     //TODO implement reduce redundancy
-    string savePath1 = getNowTime() + ".aig";
-    string savePath2 = getNowTime() + "-2.aig";
+    string savePath1 = "save1.aig";
+    string savePath2 = "save2.aig";
 
     produceMatchAIG(inputMatch, outputMatch, savePath1, savePath2);
     //TODO optimize abc command
