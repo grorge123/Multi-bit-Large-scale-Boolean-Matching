@@ -48,9 +48,8 @@ void LargeScale::randomSimulation(int only) {
         if(!only || only == 2)change += cir1.simulationType2(output1, outputVector1, stRecord1);
         if(!only || only == 2)change += cir2.simulationType2(output2, outputVector2, stRecord2);
         reduceCluster(stRecord1, stRecord2, true);
-
         stRecord1.clear();
-        st1Record2.clear();
+        stRecord2.clear();
         if(!only || only == 3)change += cir1.simulationType3(output1, outputVector1, stRecord1);
         if(!only || only == 3)change += cir2.simulationType3(output2, outputVector2, stRecord2);
         reduceCluster(stRecord1, stRecord2, false);
@@ -141,18 +140,18 @@ void LargeScale::removeNonSupport(vector<pair<string, string>> &inputMatch, vect
     }
     do{
         change = 0;
-        for(auto match = inputMatch.begin() ; match != inputMatch.end() ; match++){
+        for(auto match = inputMatch.begin() ; match != inputMatch.end() ; ){
             bool flag1 = false, flag2 = false;
             auto supportSet1 = cir1.getSupport(match->first);
             for(auto supportVar : supportSet1){
-                if(outputMap1.find(supportVar) == outputMap1.end()){
+                if(outputMap1.find(supportVar) != outputMap1.end()){
                     flag1 = true;
                     break;
                 }
             }
             auto supportSet2 = cir2.getSupport(match->second);
             for(auto supportVar : supportSet2){
-                if(outputMap2.find(supportVar) == outputMap2.end()){
+                if(outputMap2.find(supportVar) != outputMap2.end()){
                     flag2 = true;
                     break;
                 }
@@ -161,21 +160,23 @@ void LargeScale::removeNonSupport(vector<pair<string, string>> &inputMatch, vect
                 change++;
                 inputMap1.erase(match->first);
                 inputMap2.erase(match->second);
-                inputMatch.erase(match);
+                match = inputMatch.erase(match);
+            }else{
+                match++;
             }
         }
-        for(auto match = outputMatch.begin() ; match != outputMatch.end() ; match++){
+        for(auto match = outputMatch.begin() ; match != outputMatch.end() ; ){
             bool flag1 = false, flag2 = false;
             auto supportSet1 = cir1.getSupport(match->first);
             for(auto supportVar : supportSet1){
-                if(inputMap1.find(supportVar) != inputMap1.end()){
+                if(inputMap1.find(supportVar) == inputMap1.end()){
                     flag1 = true;
                     break;
                 }
             }
             auto supportSet2 = cir2.getSupport(match->second);
             for(auto supportVar : supportSet2){
-                if(inputMap2.find(supportVar) != inputMap2.end()){
+                if(inputMap2.find(supportVar) == inputMap2.end()){
                     flag2 = true;
                     break;
                 }
@@ -184,7 +185,10 @@ void LargeScale::removeNonSupport(vector<pair<string, string>> &inputMatch, vect
                 change++;
                 outputMap1.erase(match->first);
                 outputMap2.erase(match->second);
-                outputMatch.erase(match);
+                match = outputMatch.erase(match);
+
+            }else{
+                match++;
             }
         }
     } while (change != 0);
@@ -253,7 +257,7 @@ void LargeScale::produceMatchAIG(vector<pair<string, string> > inputMatch, vecto
     fclose(fp);
     aiger_reset(aig);
 
-
+    aig = aiger_init();
     fp = fopen(tmpFilePath.c_str(), "w+");
     fputs(cir1.getRaw().c_str(), fp);
     fclose(fp);

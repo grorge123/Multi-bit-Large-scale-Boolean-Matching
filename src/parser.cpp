@@ -72,7 +72,7 @@ InputStructure parseInput(string inputPath) {
 
 string produceABCCommand(string inputPath, string outputPath) {
     //TODO test which command can reduce most network space
-    return "read " + inputPath +"; strash; write_aiger " + outputPath;
+    return "read " + inputPath +"; strash; write_aiger -s " + outputPath;
 }
 
 void parseOutput(string outputPath, OutputStructure result) {

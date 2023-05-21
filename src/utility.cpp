@@ -6,7 +6,12 @@
 #include <fstream>
 #include <chrono>
 #include <ctime>
+
+#ifndef pAbcMain
+#define pAbcMain
 Abc_Frame_t * pAbc;
+#endif
+
 ifstream* readFile(string fileName){
     ifstream* file = new ifstream;
     file->open(fileName, std::ios::in);

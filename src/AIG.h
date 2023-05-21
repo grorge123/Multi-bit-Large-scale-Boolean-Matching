@@ -56,7 +56,6 @@ public:
         aiger_reset(input);
         parseRaw();
         findSupport();
-        return;
     }
     string fromIndexToName(int idx);
     int getInputNum();
