@@ -80,7 +80,7 @@ void parseOutput(string outputPath, OutputStructure result) {
     outputFile.open(outputPath);
     for(auto group : result.inputGroups){
         outputFile << "INGROUP\n";
-        outputFile << "1 " << (group.inv ? "+" : "-") << " " << group.cir1 << "\n";
+        outputFile << "1 " << (group.inv ? "-" : "+") << " " << group.cir1 << "\n";
         for(unsigned int i = 0 ; i < group.cir2.size() ; i++){
             outputFile << "2 " << (group.invVector[i] ? "-" : "+") << " " << group.cir2[i] << "\n";
         }
@@ -88,7 +88,7 @@ void parseOutput(string outputPath, OutputStructure result) {
     }
     for(auto group : result.outputGroups){
         outputFile << "OUTGROUP\n";
-        outputFile << "1 " << (group.inv ? "+" : "-") << " " << group.cir1 << "\n";
+        outputFile << "1 " << (group.inv ? "-" : "+") << " " << group.cir1 << "\n";
         for(unsigned int i = 0 ; i < group.cir2.size() ; i++){
             outputFile << "2 " << (group.invVector[i] ? "-" : "+") << " " << group.cir2[i] << "\n";
         }
