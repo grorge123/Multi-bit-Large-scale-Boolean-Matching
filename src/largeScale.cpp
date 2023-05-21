@@ -83,6 +83,7 @@ int LargeScale::start() {
     reduceCluster(dependencyOutputRecord1, dependencyOutputRecord2, false);
 
     randomSimulation();
+
     vector<pair<string, string>> inputMatchPair = removeNonSingleton(cir1.getInputClusters(),
                                                                      cir2.getInputClusters());
     vector<pair<string, string>> outputMatchPair = removeNonSingleton(cir1.getOutputClusters(),
@@ -225,6 +226,8 @@ void LargeScale::SAT_Solver(vector<pair<string, string> > &inputMatch, vector<pa
     solverResult result = SAT_solver(miterCNF);
     if(result.satisfiable){
         // TODO remove non-match output and reduce redundancy
+        cout << "Have not implement!" << endl;
+        exit(1);
         return SAT_Solver(inputMatch, outputMatch);
     }else{
         return;
@@ -242,12 +245,13 @@ void LargeScale::produceMatchAIG(vector<pair<string, string> > inputMatch, vecto
         newAIG.changeName(match.second, match.first);
     }
     aiger *aig = aiger_init();
-    string  tmpFilePath = "tmp1.aig";
+    string  tmpFilePath1 = "tmp1.aig";
+    string  tmpFilePath2 = "tmp2.aig";
     FILE *fp = nullptr;
-    fp = fopen(tmpFilePath.c_str(), "w+");
+    fp = fopen(tmpFilePath1.c_str(), "w+");
     fputs(newAIG.getRaw().c_str(), fp);
     fclose(fp);
-    const char *err_msg = aiger_open_and_read_from_file(aig, tmpFilePath.c_str());
+    const char *err_msg = aiger_open_and_read_from_file(aig, tmpFilePath1.c_str());
     if(err_msg != nullptr){
         cout << "[LargeScale]ERROR: " << err_msg << endl;
         exit(1);
@@ -258,10 +262,10 @@ void LargeScale::produceMatchAIG(vector<pair<string, string> > inputMatch, vecto
     aiger_reset(aig);
 
     aig = aiger_init();
-    fp = fopen(tmpFilePath.c_str(), "w+");
+    fp = fopen(tmpFilePath2.c_str(), "w+");
     fputs(cir1.getRaw().c_str(), fp);
     fclose(fp);
-    const char *err_msg2 = aiger_open_and_read_from_file(aig, tmpFilePath.c_str());
+    const char *err_msg2 = aiger_open_and_read_from_file(aig, tmpFilePath2.c_str());
     if(err_msg2 != nullptr){
         cout << "[LargeScale]ERROR: " << err_msg2 << endl;
         exit(1);

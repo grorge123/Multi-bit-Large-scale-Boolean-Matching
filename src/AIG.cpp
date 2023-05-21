@@ -44,7 +44,7 @@ void AIG::parseRaw() {
         tree[idx].exist = true;
     }
     int idx = 0;
-    while (true){
+    while (!ss.eof()){
         string a, b;
         ss >> a;
         if(a != "c"){
