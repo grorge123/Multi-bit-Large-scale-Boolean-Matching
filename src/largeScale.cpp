@@ -12,7 +12,7 @@ void LargeScale::randomSimulation(int only) {
     int noChangeNum = stopNum;
     while (noChangeNum > 0){
         int change = 0;
-        vector<bool> input = generateInput(cir1.getInputNum());
+        vector<bool> input = generateInput(max(cir1.getInputNum(), cir2.getInputNum()));
         vector<bool> output1 = cir1.generateOutput(input);
         vector<bool> output2 = cir2.generateOutput(input);
         vector<vector<bool>> outputVector1;
@@ -51,4 +51,13 @@ vector<bool> LargeScale::generateInput(int inputNum) {
         result.push_back(distribution(generator));
     }
     return result;
+}
+
+void LargeScale::start() {
+    cir1.initialRefinement();
+    cir2.initialRefinement();
+    cir1.dependencyAnalysis();
+    cir2.dependencyAnalysis();
+    randomSimulation();
+    //TODO SAT solver
 }

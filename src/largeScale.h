@@ -14,6 +14,11 @@ class LargeScale {
     default_random_engine generator;
     uniform_int_distribution<int> distribution;
     Partition cir1, cir2;
+    void matchPartition();
+    void erasePort();
+    void eraseSupportPort();
+    void reduceInput();
+    void reduceOutput();
 public:
     LargeScale(inputStructure input) : generator(7122), distribution(0,1){
         //TODO assert IO port equal
