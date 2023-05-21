@@ -68,7 +68,7 @@ vector<bool> LargeScale::generateInput(int inputNum) {
     return result;
 }
 
-void LargeScale::start() {
+int LargeScale::start() {
     vector<vector<int>> initialInputRecord1, initialOutputRecord1;
     cir1.initialRefinement(initialInputRecord1, initialOutputRecord1);
     vector<vector<int> > initialInputRecord2, initialOutputRecord2;
@@ -91,6 +91,7 @@ void LargeScale::start() {
     removeNonSupport(inputMatchPair, outputMatchPair);
     SAT_Solver(inputMatchPair, outputMatchPair);
     OutputStructure outputStructure;
+    int matchNumber = 0;
     for(auto match : inputMatchPair){
         Group group;
         group.cir1 = match.first;
@@ -104,8 +105,11 @@ void LargeScale::start() {
         group.cir2.push_back(match.second);
         group.invVector.push_back(false);
         outputStructure.outputGroups.push_back(group);
+        matchNumber += 2;
     }
     parseOutput(outputFilePath, outputStructure);
+    if(matchNumber == allOutputNumber)return -1;
+    return  matchNumber;
 }
 
 

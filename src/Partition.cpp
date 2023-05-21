@@ -188,15 +188,14 @@ int Partition::simulationType3(vector<bool> originalOutput, vector<vector<bool>>
 
 void Partition::eraseCluster(int clusterIdx, bool isInput) {
     if(isInput){
-        for(auto port : inputClusters[clusterIdx]){
-            eraseSupportPort(port);
-        }
+        //TODO finish eraseSupportPort
+//        for(auto port : inputClusters[clusterIdx]){
+//            eraseSupportPort(port);
+//        }
         inputClusters.erase(inputClusters.begin() + clusterIdx);
     }else{
         outputClusters.erase(outputClusters.begin() + clusterIdx);
     }
 }
 
-void Partition::eraseSupportPort(string name) {
-    //TODO finish eraseSupportPort
-}
+

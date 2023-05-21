@@ -15,6 +15,7 @@ class LargeScale {
     default_random_engine generator;
     uniform_int_distribution<int> distribution;
     Partition cir1, cir2;
+    int allOutputNumber;
 
     template<typename T>
     int compare(const T& a, const T& b){
@@ -58,8 +59,9 @@ public:
     LargeScale(InputStructure input, string outputFilePath) : outputFilePath(outputFilePath), generator(7122), distribution(0, 1){
         cir1 = Partition(input.cir1AIGPath);
         cir2 = Partition(input.cir2AIGPath);
+        allOutputNumber = cir2.getOutputNum() + cir1.getOutputNum();
     }
-    void start();
+    int start();
     void produceMatchAIG(vector<pair<string, string> > inputMatch, vector<pair<string, string> > outputMatch,
                          string savePath1,
                          string savePath2);
