@@ -40,4 +40,7 @@ test:$(obj) $(LIB) $(header)
 
 clean:
 	rm -rf $(obj) $(exe)
+run:
+	./main input.txt output.txt
+	rm save* miter* tmp* stdoutOutput.txt *.v.aig
 
