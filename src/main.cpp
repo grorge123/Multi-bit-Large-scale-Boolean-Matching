@@ -14,7 +14,7 @@ int main (int argc, char *argv[]){
         exit(1);
     }
     InputStructure input = parseInput(argv[1]);
-    LargeScale lg(inputcerr, argv[2]);
+    LargeScale lg(input, argv[2]);
     int lgMatch = lg.start();
     if(lgMatch == -1){
         return 0;
