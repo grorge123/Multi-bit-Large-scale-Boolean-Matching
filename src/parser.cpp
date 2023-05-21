@@ -82,7 +82,7 @@ void parseOutput(string outputPath, OutputStructure result) {
         outputFile << "INGROUP\n";
         outputFile << "1 " << (group.inv ? "+" : "-") << " " << group.cir1 << "\n";
         for(unsigned int i = 0 ; i < group.cir2.size() ; i++){
-            outputFile << "2 " << (group.invVector[i] ? "+" : "-") << " " << group.cir2[i] << "\n";
+            outputFile << "2 " << (group.invVector[i] ? "-" : "+") << " " << group.cir2[i] << "\n";
         }
         outputFile << "END\n";
     }
@@ -90,17 +90,19 @@ void parseOutput(string outputPath, OutputStructure result) {
         outputFile << "OUTGROUP\n";
         outputFile << "1 " << (group.inv ? "+" : "-") << " " << group.cir1 << "\n";
         for(unsigned int i = 0 ; i < group.cir2.size() ; i++){
-            outputFile << "2 " << (group.invVector[i] ? "+" : "-") << " " << group.cir2[i] << "\n";
+            outputFile << "2 " << (group.invVector[i] ? "-" : "+") << " " << group.cir2[i] << "\n";
         }
         outputFile << "END\n";
     }
-    outputFile << "CONSTGROUP\n";
-    for(auto group: result.one){
-        outputFile << "- " << group << "\n";
+    if(result.one.size() != 0 || result.zero.size() != 0){
+        outputFile << "CONSTGROUP\n";
+        for(auto group: result.one){
+            outputFile << "- " << group << "\n";
+        }
+        for(auto group: result.zero){
+            outputFile << "+ " << group << "\n";
+        }
+        outputFile << "END\n";
     }
-    for(auto group: result.zero){
-        outputFile << "+ " << group << "\n";
-    }
-    outputFile << "END\n";
     outputFile.close();
 }
