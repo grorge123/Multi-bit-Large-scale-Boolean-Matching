@@ -116,6 +116,20 @@ const string raw = "aag 18 5 0 4 13\n"
 TEST_F(AIGCase, test3){
     ASSERT_EQ(aig.getRaw(), raw);
 }
+const string raw2 = "aag 18 2 0 1 1\n"
+                    "2\n"
+                    "8\n"
+                    "12\n"
+                    "12 8 2\n"
+                    "i0 a0\n"
+                    "i1 b0\n"
+                    "o0 h0\n"
+                    "c\n";
+TEST_F(AIGCase, test4){
+    aig.erasePort(vector<string>{"h1", "m0", "m1", "a1", "b1", "c"});
+    ASSERT_EQ(aig.getRaw(), raw2);
+}
+
 int main(int argc, char **argv) {
     testing::InitGoogleTest(&argc, argv);
     return RUN_ALL_TESTS();

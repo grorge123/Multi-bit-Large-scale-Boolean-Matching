@@ -17,6 +17,7 @@ class AIG {
         bool inv[3] = {}; // self, l, r if invert
         int l = -1, r = -1;
         bool isInput = false;
+        bool isOutput = false;
         bool exist = false;
     };
     vector<Node> tree;
@@ -30,7 +31,7 @@ private:
     map<int, int> indexMapInv; // AIG Node index to AIG input order
     vector<string> indexToName; // AIG input order to verilog name
     map<int, bool> invMap; // AIG Node index if is invert
-    map<int, set<int> > support;
+    map<int, set<int> > support; // AIG Node index to support set
     void parseRaw();
     void recursiveFindSupport(int output, int now);
     bool recursiveGenerateOutput(int now, vector<int>& signal, vector<bool>& input);
@@ -67,6 +68,7 @@ public:
     vector<bool> generateOutput(vector<bool> input);
     const string &getRaw();
     void changeName(string oldName, string newName);
+    void erasePort(vector<string> nameList);
     void Debug();
 };
 

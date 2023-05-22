@@ -5,6 +5,7 @@
 #include "AIG.h"
 #include "utility.h"
 #include <sstream>
+#include <queue>
 
 void AIG::parseRaw() {
     stringstream ss;
@@ -24,13 +25,16 @@ void AIG::parseRaw() {
         indexMap.push_back(inpNum / 2);
         indexMapInv[inpNum / 2] = indexMap.size() - 1;
         invMap[inpNum / 2] = inpNum % 2;
+        tree[inpNum / 2].exist = true;
     }
     for(int i = 0 ; i < outputNum ; i++){
         int outNum;
         ss >> outNum;
+        tree[outNum / 2].isOutput = true;
         indexMap.push_back(outNum / 2);
         indexMapInv[outNum / 2] = indexMap.size() - 1;
         invMap[outNum / 2] = outNum % 2;
+        tree[outNum / 2].exist = true;
     }
     for(int i = 0 ; i < andNum ; i++){
         int out, l, r;
@@ -44,7 +48,7 @@ void AIG::parseRaw() {
         tree[idx].exist = true;
     }
     int idx = 0;
-    while (!ss.eof()){
+    while (!ss.eof() && idx < inputNum + outputNum){
         string a, b;
         ss >> a;
         if(a != "c"){
@@ -150,7 +154,7 @@ const string &AIG::getRaw() {
     }
     for(int i = 1 ; i <= MAXIndex ; i++){
         Node node = tree[i];
-        if(node.exist){
+        if(node.exist && !node.isInput){
             raw += to_string(node.inv[0] ? i * 2 + 1 : i * 2) + " " + to_string((node.inv[1] ? node.l * 2 + 1 : node.l * 2))
                     + " " + to_string((node.inv[2] ? node.r * 2 + 1 : node.r * 2)) + "\n";
         }
@@ -178,4 +182,60 @@ void AIG::changeName(string oldName, string newName) {
             break;
         }
     }
+}
+
+void AIG::erasePort(vector<string> nameList) {
+    int removeAnd = 0;
+    for(auto name : nameList){
+        if(tree[nameMap[name]].isInput){
+            for(auto supportVar: support[nameMap[name]]){
+                if(tree[supportVar].exist){
+                    cout << "[AIG] Warning: erase input port, but support output still exist!" << endl;
+                }
+            }
+        }
+        if(nameMap.find(name) == nameMap.end()){
+            cout << "[AIG] ERROR: not found port" << endl;
+        }
+        if(tree[nameMap[name]].isInput){
+            inputNum--;
+        }else if(tree[nameMap[name]].isOutput){
+            outputNum--;
+            removeAnd++;
+        }
+        int nodeIdx = nameMap[name];
+        int inputOrder = indexMapInv[nodeIdx];
+        tree[nodeIdx].exist = false;
+        nameMap.erase(name);
+        nameMapInv.erase(nodeIdx);
+        while (indexToName[inputOrder] != name)inputOrder--;
+        indexMap.erase(indexMap.begin() + inputOrder);
+        indexMapInv.erase(nodeIdx);
+        indexToName.erase(indexToName.begin() + inputOrder);
+        invMap.erase(nodeIdx);
+    }
+    vector<bool> exist;
+    exist.resize(tree.size());
+    queue<int> existQueue;
+    for(int idx = inputNum ; idx < inputNum + outputNum ; idx++){
+        existQueue.push(indexMap[idx]);
+    }
+    while (!existQueue.empty()){
+        int now = existQueue.front();
+        existQueue.pop();
+        exist[now] = true;
+        if(!tree[now].isInput){
+            existQueue.push(tree[now].l);
+            existQueue.push(tree[now].r);
+        }
+    }
+    for(unsigned int idx = 1 ; idx < tree.size() ; idx++){
+        if(tree[idx].exist && !exist[idx]){
+            removeAnd++;
+            tree[idx].exist = exist[idx];
+        }
+    }
+    andNum -= removeAnd;
+    support.clear();
+    findSupport();
 }
