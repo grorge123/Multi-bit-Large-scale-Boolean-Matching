@@ -113,14 +113,9 @@ TEST_F(ParCase, TestSim3){
     ASSERT_EQ(pa.getOutputClusters().size(), pa.getOutputNum());
 }
 
-TEST_F(ParCase, Test4) {
-    vector<vector<int>> a, b;
-    pa.initialRefinement(a, b);
-    pa.eraseCluster(1, true);
-//    vector<vector<string> > originalInput{{"a1"},{"a0", "b1", "c"},{"b0"}};
-    vector<vector<string> > input{{"a1"},{"b0"}};
-    ASSERT_EQ(pa.getInputClusters(), input);
-}
+//TEST_F(ParCase, Test4) {
+//
+//}
 
 int main(int argc, char **argv) {
     testing::InitGoogleTest(&argc, argv);

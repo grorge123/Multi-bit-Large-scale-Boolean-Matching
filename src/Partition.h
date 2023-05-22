@@ -31,13 +31,11 @@ public:
     const vector<vector<string>> &getInputClusters() const;
     const vector<vector<string>> &getOutputClusters() const;
     void initialRefinement(vector<vector<int> > &inputRecord, vector<vector<int> > &outputRecord);
-    void dependencyAnalysis(vector<vector<set<int> > > &inputRecord, vector<vector<set<int> > > &outputRecord);
+    int dependencyAnalysis(vector<vector<set<int> > > &inputRecord, vector<vector<set<int> > > &outputRecord);
     int simulationType1(vector<bool> output, vector<vector<bool> > &record);
     int simulationType2(vector<bool> originalOutput, vector<vector<bool>> outputVector, vector<vector<int> > &record);
     int simulationType3(vector<bool> originalOutput, vector<vector<bool>> outputVector, vector<vector<int> > &record);
 
-    void eraseCluster(int clusterIdx, bool isInput);
-    void eraseSupportPort(string name);
 
     void print();
 

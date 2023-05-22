@@ -35,14 +35,11 @@ const vector<vector<string>> &Partition::getOutputClusters() const {
     return outputClusters;
 }
 
-void Partition::dependencyAnalysis(vector<vector<set<int> > > &inputRecord, vector<vector<set<int> > > &outputRecord) {
+int Partition::dependencyAnalysis(vector<vector<set<int> > > &inputRecord, vector<vector<set<int> > > &outputRecord) {
     int change = 0;
-    do {
-        change = 0;
-        change += dependencyAnalysisCluster(inputClusters, outputClusters, inputRecord);
-        change += dependencyAnalysisCluster(outputClusters, inputClusters, outputRecord);
-    } while (change != 0);
-    return;
+    change += dependencyAnalysisCluster(inputClusters, outputClusters, inputRecord);
+    change += dependencyAnalysisCluster(outputClusters, inputClusters, outputRecord);
+    return change;
 }
 
 int Partition::dependencyAnalysisCluster(vector<vector<string> > &clusters, vector<vector<string> > &anotherClusters,
@@ -82,26 +79,24 @@ int Partition::findClusterIndex(string name, vector<vector<string> > &clusters) 
 }
 
 void Partition::print() {
-    cout << "INPUT" << endl;
-    cout << "START: ";
+    cout << "INPUT: { ";
     for(auto cluster : inputClusters){
         cout << " { ";
         for(auto port: cluster){
-            cout << port << ' ';
+            cout << port << ", ";
         }
         cout << " } ";
     }
-    cout << endl;
-    cout << "OUTPUT" << endl;
-    cout << "START: ";
+    cout << " }" << endl;
+    cout << "OUTPUT: { ";
     for(auto cluster : outputClusters){
         cout << " { ";
         for(auto port: cluster){
-            cout << port << ' ';
+            cout << port << ", ";
         }
         cout << " } ";
     }
-    cout << endl;
+    cout <<" }"<< endl;
 }
 
 
@@ -186,16 +181,6 @@ int Partition::simulationType3(vector<bool> originalOutput, vector<vector<bool>>
     return change;
 }
 
-void Partition::eraseCluster(int clusterIdx, bool isInput) {
-    if(isInput){
-        //TODO finish eraseSupportPort
-//        for(auto port : inputClusters[clusterIdx]){
-//            eraseSupportPort(port);
-//        }
-        inputClusters.erase(inputClusters.begin() + clusterIdx);
-    }else{
-        outputClusters.erase(outputClusters.begin() + clusterIdx);
-    }
-}
+
 
 

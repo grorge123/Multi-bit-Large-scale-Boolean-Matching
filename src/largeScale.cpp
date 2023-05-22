@@ -24,7 +24,6 @@ void LargeScale::randomSimulation(int only) {
         vector<vector<bool> > st1Record1, st1Record2;
         if(!only || only == 1)change += cir1.simulationType1(output1, st1Record1);
         if(!only || only == 1)change += cir2.simulationType1(output2, st1Record2);
-        reduceCluster(st1Record1, st1Record2, false);
         for(unsigned int i = 0 ; i < input.size() ; i++){
             vector<bool> tmpInput;
             for(unsigned int q = 0 ; q < input.size() ; q++){
@@ -40,19 +39,19 @@ void LargeScale::randomSimulation(int only) {
             st1Record2.clear();
             if(!only || only == 1)change += cir1.simulationType1(tmpOutput1, st1Record1);
             if(!only || only == 1)change += cir2.simulationType1(tmpOutput2, st1Record2);
-            reduceCluster(st1Record1, st1Record2, false);
+            dealRecord(st1Record1, st1Record2, false);
             outputVector1.push_back(tmpOutput1);
             outputVector2.push_back(tmpOutput2);
         }
         vector<vector<int> > stRecord1, stRecord2;
         if(!only || only == 2)change += cir1.simulationType2(output1, outputVector1, stRecord1);
         if(!only || only == 2)change += cir2.simulationType2(output2, outputVector2, stRecord2);
-        reduceCluster(stRecord1, stRecord2, true);
+        dealRecord(stRecord1, stRecord2, true);
         stRecord1.clear();
         stRecord2.clear();
         if(!only || only == 3)change += cir1.simulationType3(output1, outputVector1, stRecord1);
         if(!only || only == 3)change += cir2.simulationType3(output2, outputVector2, stRecord2);
-        reduceCluster(stRecord1, stRecord2, false);
+        dealRecord(stRecord1, stRecord2, false);
         if(change == 0 )noChangeNum--;
         else noChangeNum = stopNum;
     }
@@ -72,15 +71,20 @@ int LargeScale::start() {
     cir1.initialRefinement(initialInputRecord1, initialOutputRecord1);
     vector<vector<int> > initialInputRecord2, initialOutputRecord2;
     cir2.initialRefinement(initialInputRecord2, initialOutputRecord2);
-    reduceCluster(initialInputRecord1, initialInputRecord2, true);
-    reduceCluster(initialOutputRecord1, initialOutputRecord2, false);
+    dealRecord(initialInputRecord1, initialInputRecord2, true);
+    dealRecord(initialOutputRecord1, initialOutputRecord2, false);
 
-    vector<vector<set<int> > > dependencyInputRecord1, dependencyOutputRecord1;
-    cir1.dependencyAnalysis(dependencyInputRecord1, dependencyOutputRecord1);
-    vector<vector<set<int> > > dependencyInputRecord2, dependencyOutputRecord2;
-    cir2.dependencyAnalysis(dependencyInputRecord2, dependencyOutputRecord2);
-    reduceCluster(dependencyInputRecord1, dependencyInputRecord2, true);
-    reduceCluster(dependencyOutputRecord1, dependencyOutputRecord2, false);
+    int change = 0;
+    do{
+        vector<vector<set<int> > > dependencyInputRecord1, dependencyOutputRecord1;
+        vector<vector<set<int> > > dependencyInputRecord2, dependencyOutputRecord2;
+        change = 0;
+        change += cir1.dependencyAnalysis(dependencyInputRecord1, dependencyOutputRecord1);
+        change += cir2.dependencyAnalysis(dependencyInputRecord2, dependencyOutputRecord2);
+        dealRecord(dependencyInputRecord1, dependencyInputRecord2, true);
+        dealRecord(dependencyOutputRecord1, dependencyOutputRecord2, false);
+    } while (change != 0);
+
 
     randomSimulation();
 
@@ -88,6 +92,7 @@ int LargeScale::start() {
                                                                      cir2.getInputClusters());
     vector<pair<string, string>> outputMatchPair = removeNonSingleton(cir1.getOutputClusters(),
                                                                       cir2.getOutputClusters());
+    //TODO removeNonSupport should be check on not to buf case
     removeNonSupport(inputMatchPair, outputMatchPair);
     SAT_Solver(inputMatchPair, outputMatchPair);
     OutputStructure outputStructure;
@@ -119,9 +124,49 @@ LargeScale::removeNonSingleton(const vector<vector<string>> &par1, const vector<
         cout << "[LargeScale] ERROR: removeNonSingleton size are not equal!" << endl;
     }
     vector<pair<string, string> > result;
-    for(unsigned int i = 0 ; i < min(par1.size(), par2.size()) ; i++){
-        if(par1[i].size() == 1 && par2[i].size() == 1){
-            result.push_back(pair<string,string> (par1[i][0], par2[i][0]));
+    vector<string> nonSingleton1, nonSingleton2;
+    for(unsigned int i = 0 ; i < par1.size() ; i++){
+        if(par1[i].size() == 1){
+            nonSingleton1.push_back(par1[i][0]);
+        }
+    }
+    for(unsigned int i = 0 ; i < par2.size() ; i++){
+        if(par2[i].size() == 1){
+            nonSingleton2.push_back(par2[i][0]);
+        }
+    }
+    vector<vector<int> > LCS, prev;
+    LCS.resize(nonSingleton1.size() + 1);
+    prev.resize(nonSingleton1.size() + 1);
+    for(unsigned int i = 0 ; i <= nonSingleton1.size() ; i++){
+        LCS[i].resize(nonSingleton2.size() + 1);
+        prev[i].resize(nonSingleton2.size() + 1);
+    }
+    for(unsigned int i = 1 ; i <= nonSingleton1.size() ; i++){
+        for(unsigned int q = 1 ; q <= nonSingleton2.size() ; q++){
+            if(hashTable[nonSingleton1[i - 1]] == hashTable[nonSingleton2[q - 1]]){
+                LCS[i][q] = LCS[i - 1][q - 1] + 1;
+                prev[i][q] = 0;
+            }else{
+                if(LCS[i - 1][q] > LCS[i][q - 1]){
+                    LCS[i][q] = LCS[i - 1][q];
+                    prev[i][q] = 1;
+                }else{
+                    LCS[i][q] = LCS[i][q - 1];
+                    prev[i][q] = 2;
+                }
+            }
+        }
+    }
+    unsigned int l = LCS[nonSingleton1.size()][nonSingleton2.size()], x = nonSingleton1.size(), y = nonSingleton2.size();
+    while (l > 0){
+        if(prev[x][y] == 0){
+            result.push_back(pair<string,string> (nonSingleton1[x - 1], nonSingleton2[y - 1]));
+            l--;x--;y--;
+        }else if(prev[x][y] == 1){
+            x--;
+        }else if(prev[x][y] == 2){
+            y--;
         }
     }
     return result;
