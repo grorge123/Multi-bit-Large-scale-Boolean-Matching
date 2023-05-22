@@ -94,6 +94,7 @@ int LargeScale::start() {
                                                                       cir2.getOutputClusters());
     //TODO removeNonSupport should be check on not to buf case
     removeNonSupport(inputMatchPair, outputMatchPair);
+    removeNonMatch(inputMatchPair, outputMatchPair);
     SAT_Solver(inputMatchPair, outputMatchPair);
     OutputStructure outputStructure;
     int matchNumber = 0;
@@ -242,7 +243,6 @@ void LargeScale::removeNonSupport(vector<pair<string, string>> &inputMatch, vect
 }
 
 void LargeScale::SAT_Solver(vector<pair<string, string> > &inputMatch, vector<pair<string, string> > &outputMatch) {
-    //TODO implement reduce redundancy
     string savePath1 = "save1.aig";
     string savePath2 = "save2.aig";
 
@@ -320,6 +320,22 @@ void LargeScale::produceMatchAIG(vector<pair<string, string> > inputMatch, vecto
     fclose(fp);
 
     aiger_reset(aig);
+}
+
+void LargeScale::removeNonMatch(const vector<pair<string, string>> &inputMatch,
+                                const vector<pair<string, string>> &outputMatch) {
+    set<string> inputSet1, outputSet1;
+    set<string> inputSet2, outputSet2;
+    for(auto matchPair : inputMatch){
+        inputSet1.insert(matchPair.first);
+        inputSet2.insert(matchPair.second);
+    }
+    for(auto matchPair : outputMatch){
+        outputSet1.insert(matchPair.first);
+        outputSet2.insert(matchPair.second);
+    }
+    cir1.removeNonMatch(inputSet1, outputSet1);
+    cir2.removeNonMatch(inputSet2, outputSet2);
 }
 
 

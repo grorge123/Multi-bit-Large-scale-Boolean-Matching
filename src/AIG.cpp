@@ -187,13 +187,6 @@ void AIG::changeName(string oldName, string newName) {
 void AIG::erasePort(vector<string> nameList) {
     int removeAnd = 0;
     for(auto name : nameList){
-        if(tree[nameMap[name]].isInput){
-            for(auto supportVar: support[nameMap[name]]){
-                if(tree[supportVar].exist){
-                    cout << "[AIG] Warning: erase input port, but support output still exist!" << endl;
-                }
-            }
-        }
         if(nameMap.find(name) == nameMap.end()){
             cout << "[AIG] ERROR: not found port" << endl;
         }

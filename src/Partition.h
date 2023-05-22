@@ -35,7 +35,7 @@ public:
     int simulationType1(vector<bool> output, vector<vector<bool> > &record);
     int simulationType2(vector<bool> originalOutput, vector<vector<bool>> outputVector, vector<vector<int> > &record);
     int simulationType3(vector<bool> originalOutput, vector<vector<bool>> outputVector, vector<vector<int> > &record);
-
+    void removeNonMatch(const set<string> & inputMatch, const set<string> & outputMatch);
 
     void print();
 

@@ -77,6 +77,7 @@ public:
             }
         }
     }
+    void removeNonMatch(const vector<pair<string, string> > & inputMatch, const vector<pair<string, string> > & outputMatch);
 };
 
 #endif //MULTI_BIT_LARGE_SCALE_BOOLEAN_MATCHING_LARGESCALE_H

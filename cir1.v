@@ -9,7 +9,7 @@ not ( m0, d );
 xor ( m1, b0, c );
 and ( a, a1, b0 );
 not ( na, a);
-not ( na0, a0 );
+buf ( na0, a0 );
 not ( nb1, b1 );
 or ( b, na0, nb1 );
 and ( e, b0, c);

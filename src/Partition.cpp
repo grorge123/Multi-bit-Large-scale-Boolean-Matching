@@ -181,6 +181,30 @@ int Partition::simulationType3(vector<bool> originalOutput, vector<vector<bool>>
     return change;
 }
 
+void Partition::removeNonMatch(const set<string> &inputMatch, const set<string> & outputMatch) {
+    vector<string> removeVector;
+    auto getPort = [&](set<string> match, vector<vector<string> > par) {
+        for (auto clusters = par.begin(); clusters != par.end();) {
+            for (auto cluster = clusters->begin(); cluster != clusters->end();) {
+                if (match.find(*cluster) == match.end()) {
+                    removeVector.push_back(*cluster);
+                    cluster = clusters->erase(cluster);
+                } else {
+                    cluster++;
+                }
+            }
+            if (clusters->size() == 0) {
+                clusters = par.erase(clusters);
+            } else {
+                clusters++;
+            }
+        }
+    };
+    getPort(inputMatch, inputClusters);
+    getPort(outputMatch, outputClusters);
+    erasePort(removeVector);
+}
+
 
 
 
