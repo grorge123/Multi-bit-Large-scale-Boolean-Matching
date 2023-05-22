@@ -29,7 +29,7 @@ private:
     map<int, string> nameMapInv; // Node index to verilog input name
     vector<int> indexMap; // AIG input order to AIG Node index
     map<int, int> indexMapInv; // AIG Node index to AIG input order
-    vector<string> indexToName; // AIG input order to verilog name
+    vector<string> orderToName; // AIG input order to verilog name
     map<int, bool> invMap; // AIG Node index if is invert
     map<int, set<int> > support; // AIG Node index to support set
     void parseRaw();
@@ -58,7 +58,8 @@ public:
         parseRaw();
         findSupport();
     }
-    string fromIndexToName(int idx);
+    const string &fromIndexToName(int index);
+    const string &fromOrderToName(int idx);
     int getInputNum();
     int getOutputNum();
     int getIdx(string name);

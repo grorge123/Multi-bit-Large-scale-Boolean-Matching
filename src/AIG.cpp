@@ -58,7 +58,7 @@ void AIG::parseRaw() {
         }
         nameMap[b] = indexMap[idx];
         nameMapInv[indexMap[idx]] = b;
-        indexToName.push_back(b);
+        orderToName.push_back(b);
         idx++;
     }
     return;
@@ -133,8 +133,8 @@ int AIG::getInputNum() {
     return inputNum;
 }
 
-string AIG::fromIndexToName(int idx) {
-    return indexToName[idx];
+string AIG::fromOrderToName(int idx) {
+    return orderToName[idx];
 }
 
 int AIG::getOutputNum() {
@@ -160,10 +160,10 @@ const string &AIG::getRaw() {
         }
     }
     for(int q = 0 ; q < inputNum ; q++){
-        raw += "i" + to_string(q) + " " + indexToName[q] + "\n";
+        raw += "i" + to_string(q) + " " + orderToName[q] + "\n";
     }
     for(int q = inputNum ; q < inputNum + outputNum; q++){
-        raw += "o" + to_string(q - inputNum) + " " + indexToName[q] + "\n";
+        raw += "o" + to_string(q - inputNum) + " " + orderToName[q] + "\n";
     }
     raw += "c\n";
 
@@ -172,9 +172,9 @@ const string &AIG::getRaw() {
 
 void AIG::changeName(string oldName, string newName) {
     raw = "";
-    for(unsigned int i = 0 ; i < indexToName.size() ; i++){
-        if(indexToName[i] == oldName){
-            indexToName[i] = newName;
+    for(unsigned int i = 0 ; i < orderToName.size() ; i++){
+        if(orderToName[i] == oldName){
+            orderToName[i] = newName;
             int tmpIdx = nameMap[oldName];
             nameMap[newName] = tmpIdx;
             nameMapInv[tmpIdx] = newName;
@@ -201,10 +201,10 @@ void AIG::erasePort(vector<string> nameList) {
         tree[nodeIdx].exist = false;
         nameMap.erase(name);
         nameMapInv.erase(nodeIdx);
-        while (indexToName[inputOrder] != name)inputOrder--;
+        while (orderToName[inputOrder] != name)inputOrder--;
         indexMap.erase(indexMap.begin() + inputOrder);
         indexMapInv.erase(nodeIdx);
-        indexToName.erase(indexToName.begin() + inputOrder);
+        orderToName.erase(orderToName.begin() + inputOrder);
         invMap.erase(nodeIdx);
     }
     vector<bool> exist;
@@ -231,4 +231,8 @@ void AIG::erasePort(vector<string> nameList) {
     andNum -= removeAnd;
     support.clear();
     findSupport();
+}
+
+const string &AIG::fromIndexToName(int index) {
+    return nameMapInv[index];
 }

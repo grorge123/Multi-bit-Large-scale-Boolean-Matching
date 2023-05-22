@@ -19,12 +19,12 @@ public:
     Partition(string fileName) : AIG(fileName) {
         vector<string> ve;
         for(int i = 0 ; i < getInputNum() ; i++){
-            ve.push_back(fromIndexToName(i));
+            ve.push_back(fromOrderToName(i));
         }
         inputClusters.push_back(ve);
         ve.clear();
         for(int i = getInputNum() ; i < getInputNum() + getOutputNum() ; i++){
-            ve.push_back(fromIndexToName(i));
+            ve.push_back(fromOrderToName(i));
         }
         outputClusters.push_back(ve);
     }
