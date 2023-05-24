@@ -70,12 +70,15 @@ int Partition::dependencyAnalysisCluster(vector<vector<string> > &clusters, vect
 }
 
 
-void Partition::print() {
+void Partition::print(map<string, size_t> hashTable) {
     cout << "INPUT: { ";
     for(auto cluster : inputClusters){
         cout << " { ";
         for(auto port: cluster){
-            cout << port << ", ";
+            string hashName = "(" + hashTable[port] ;
+            hashName += ")";
+            if(hashTable.size() == 0)hashName = "";
+            cout << port<< hashName << ", ";
         }
         cout << " } ";
     }
@@ -84,7 +87,10 @@ void Partition::print() {
     for(auto cluster : outputClusters){
         cout << " { ";
         for(auto port: cluster){
-            cout << port << ", ";
+            string hashName = "(" + hashTable[port] ;
+            hashName += ")";
+            if(hashTable.size() == 0)hashName = "";
+            cout << port << hashName << ", ";
         }
         cout << " } ";
     }

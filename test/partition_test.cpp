@@ -33,10 +33,11 @@ TEST_F(ParCase, Test1) {
 TEST_F(ParCase, Test2){
     vector<vector<int>> a, b;
     pa.initialRefinement(a, b);
-    vector<vector<set<int> > > c, d;
-    pa.dependencyAnalysis(c, d);
+    vector<vector<set<size_t> > > c, d;
+    map<string,size_t> hashMap{{"a1",0},{"a0",1},{"b1",1},{"c",1},{"b0",2},{"h0",0},{"m1",0},{"m0",1},{"h1",2}};
+    pa.dependencyAnalysis(c, d, hashMap);
     vector<vector<string> > input{{"a1"},{"c"}, {"a0"}, {"b1"}, {"b0"}};
-    vector<vector<string> > output{{"m1"},{"h0"},{"m0"},{"h1"}};
+    vector<vector<string> > output{{"h0","m1"},{"m0"},{"h1"}};
     ASSERT_EQ(input, pa.getInputClusters());
     ASSERT_EQ(output, pa.getOutputClusters());
 }

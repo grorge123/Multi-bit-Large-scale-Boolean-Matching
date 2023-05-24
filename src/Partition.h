@@ -37,7 +37,7 @@ public:
     int simulationType3(vector<bool> originalOutput, vector<vector<bool>> outputVector, vector<vector<int> > &record);
     void removeNonMatch(const set<string> & inputMatch, const set<string> & outputMatch);
 
-    void print();
+    void print(map<string, size_t> hashTable = map<string,size_t>{});
 
 };
 
