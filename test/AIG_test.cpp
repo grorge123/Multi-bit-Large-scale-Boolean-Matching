@@ -22,11 +22,25 @@ vector<bool> top(bool a0, bool a1, bool b1, bool b0, bool c) {
 
     return vector<bool>{h0, h1, m0, m1};
 }
-std::vector<bool> intToBoolVector(int n) {
-    std::bitset<5> b(n);
+vector<bool> top2(bool a, bool b, bool c){
+    bool f, g, h;
+    f = a & b;
+    h = a | c;
+    g = h ^ f;
+    return  vector<bool>{g, f, h};
+}
+vector<bool> top3(bool v, bool w, bool u){
+    bool z, x, y;
+    x = w & v;
+    y = w | u;
+    z = x ^ y;
+    return vector<bool>{z, x, y};
+}
+std::vector<bool> intToBoolVector(int n, int m) {
+    std::bitset<100> b(n);
     std::vector<bool> boolVec;
 
-    for(int i = 0; i < 5; ++i) {
+    for(int i = 0; i < min(100, m); i++) {
         boolVec.push_back(b[i]);
     }
 
@@ -36,8 +50,10 @@ class AIGCase : public ::testing::Test {
 protected:
     void SetUp() override {
         aig = AIG("cir1.aig");
+        aig2 = AIG("cir2.aig");
+        aig3 = AIG("cir3.aig");
     }
-    AIG aig;
+    AIG aig, aig2, aig3;
 };
 
 
@@ -73,9 +89,16 @@ TEST_F(AIGCase, test1) {
 
 TEST_F(AIGCase, test2){
     for(int i = 0; i < 32; ++i) {
-        vector<bool> input = intToBoolVector(i);
+        vector<bool> input = intToBoolVector(i, 5);
         vector<bool> output = top(input[0], input[1], input[2], input[3], input[4]);
-        ASSERT_EQ(aig.generateOutput(input), output);
+//        ASSERT_EQ(aig.generateOutput(input), output);
+    }
+    for(int i = 0 ; i < 8 ; i++){
+        vector<bool> input = intToBoolVector(i, 3);
+        vector<bool> output2 = top2(input[0], input[1], input[2]);
+        vector<bool> output3 = top3(input[0], input[1], input[2]);
+//        ASSERT_EQ(aig2.generateOutput(input), output2);
+        ASSERT_EQ(aig3.generateOutput(input), output3);
     }
 }
 

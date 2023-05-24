@@ -11,9 +11,8 @@ class Partition : public AIG {
     vector<vector<string> > inputClusters;
     vector<vector<string> > outputClusters;
     void intialRefineCluster(vector<vector<string> > &clusters, vector<vector<int>> &record);
-    int dependencyAnalysisCluster(vector<vector<string> > &clusters, vector<vector<string> > &anotherClusters,
-                                  vector<vector<set<int>>> &record);
-    int findClusterIndex(string name, vector<vector<string> > &clusters);
+    int dependencyAnalysisCluster(vector<vector<string> > &clusters, vector<vector<set<size_t>>> &record,
+                                  map<string, size_t> &hashTable);
 public:
     Partition(){};
     Partition(string fileName) : AIG(fileName) {
@@ -31,7 +30,8 @@ public:
     const vector<vector<string>> &getInputClusters() const;
     const vector<vector<string>> &getOutputClusters() const;
     void initialRefinement(vector<vector<int> > &inputRecord, vector<vector<int> > &outputRecord);
-    int dependencyAnalysis(vector<vector<set<int> > > &inputRecord, vector<vector<set<int> > > &outputRecord);
+    int dependencyAnalysis(vector<vector<set<size_t>>> &inputRecord, vector<vector<set<size_t>>> &outputRecord,
+                           map<string, size_t> &hashTable);
     int simulationType1(vector<bool> output, vector<vector<bool> > &record);
     int simulationType2(vector<bool> originalOutput, vector<vector<bool>> outputVector, vector<vector<int> > &record);
     int simulationType3(vector<bool> originalOutput, vector<vector<bool>> outputVector, vector<vector<int> > &record);

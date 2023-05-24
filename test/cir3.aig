@@ -1,0 +1,14 @@
+aig 8 3 0 3 5
+17
+10
+9
+i0 v
+i1 w
+i2 u
+o0 z
+o1 x
+o2 y
+c
+top
+This file was written by ABC on Wed May 24 09:54:02 2023
+For information about AIGER format, refer to http://fmv.jku.at/aiger

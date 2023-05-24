@@ -43,8 +43,8 @@ InputStructure parseInput(string inputPath) {
         }
         result.cir2Bus.push_back(busVector);
     }
-    result.cir2AIGPath = cir1VerilogPath + ".aig";
-    result.cir1AIGPath = cir2VerilogPath + ".aig";
+    result.cir1AIGPath = cir1VerilogPath + ".aig";
+    result.cir2AIGPath = cir2VerilogPath + ".aig";
     string resultPath = "stdoutOutput.txt";
     cout.flush();
     FILE *saveStdout = stdout;

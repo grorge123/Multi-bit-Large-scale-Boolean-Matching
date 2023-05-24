@@ -35,29 +35,30 @@ const vector<vector<string>> &Partition::getOutputClusters() const {
     return outputClusters;
 }
 
-int Partition::dependencyAnalysis(vector<vector<set<int> > > &inputRecord, vector<vector<set<int> > > &outputRecord) {
+int Partition::dependencyAnalysis(vector<vector<set<size_t>>> &inputRecord, vector<vector<set<size_t>>> &outputRecord,
+                                  map<string, size_t> &hashTable) {
     int change = 0;
-    change += dependencyAnalysisCluster(inputClusters, outputClusters, inputRecord);
-    change += dependencyAnalysisCluster(outputClusters, inputClusters, outputRecord);
+    change += dependencyAnalysisCluster(inputClusters, inputRecord, hashTable);
+    change += dependencyAnalysisCluster(outputClusters, outputRecord, hashTable);
     return change;
 }
 
-int Partition::dependencyAnalysisCluster(vector<vector<string> > &clusters, vector<vector<string> > &anotherClusters,
-                                         vector<vector<set<int>>> &record) {
+int Partition::dependencyAnalysisCluster(vector<vector<string> > &clusters, vector<vector<set<size_t>>> &record,
+                                         map<string, size_t> &hashTable) {
     int change = 0;
     vector<vector<string > > newClusters;
     for(auto cluster : clusters){
-        map<set<int>, vector<string> > Smap;
+        map<set<size_t>, vector<string> > Smap;
         for(auto port : cluster){
             set<string> supportSet = getSupport(port);
-            set<int> indexSet;
+            set<size_t> indexSet;
             for(auto supportVar : supportSet){
-                indexSet.insert(findClusterIndex(supportVar, anotherClusters));
+                indexSet.insert(hashTable[supportVar]);
             }
             Smap[indexSet].push_back(port);
         }
         change += Smap.size() - 1;
-        vector<set<int> > recordVector;
+        vector<set<size_t> > recordVector;
         for(auto newCluster : Smap){
             newClusters.push_back(newCluster.second);
             recordVector.push_back(newCluster.first);
@@ -68,15 +69,6 @@ int Partition::dependencyAnalysisCluster(vector<vector<string> > &clusters, vect
     return change;
 }
 
-int Partition::findClusterIndex(string name, vector<vector<string> > &clusters) {
-    for(unsigned int i = 0 ; i < clusters.size() ; i++){
-        for(auto port : clusters[i]){
-            if(port == name) return i;
-        }
-    }
-    cout << "[Partition] ERROR: Can not find port." << endl;
-    return -1;
-}
 
 void Partition::print() {
     cout << "INPUT: { ";

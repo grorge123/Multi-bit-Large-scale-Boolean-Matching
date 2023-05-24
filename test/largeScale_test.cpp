@@ -7,12 +7,14 @@
 class largeCase : public ::testing::Test {
 protected:
     void SetUp() override {
-        lc = LargeScale();
+        cir1 = Partition("cir2.aig");
+        cir2 = Partition("cir3.aig");
+        lc = LargeScale(cir1, cir2);
     }
+    Partition cir1;
+    Partition cir2;
     LargeScale lc;
 };
-
-
 
 int main(int argc, char **argv) {
     testing::InitGoogleTest(&argc, argv);

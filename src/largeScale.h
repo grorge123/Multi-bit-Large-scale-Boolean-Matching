@@ -25,7 +25,7 @@ class LargeScale {
         return hasher(input);
     }
 
-    std::size_t computeHash(const std::set<int>& s) {
+    std::size_t computeHash(const std::set<size_t>& s) {
         std::size_t seed = s.size();
         for(auto& i : s) {
             seed ^= i + 0x9e3779b9 + (seed << 6) + (seed >> 2);
@@ -41,6 +41,9 @@ public:
     LargeScale(){
 
     }
+    LargeScale(Partition cir1, Partition cir2): cir1(cir1), cir2(cir2){
+
+    }
     LargeScale(InputStructure input, string outputFilePath) : outputFilePath(outputFilePath), generator(7122), distribution(0, 1){
         cir1 = Partition(input.cir1AIGPath);
         cir2 = Partition(input.cir2AIGPath);
@@ -50,7 +53,7 @@ public:
     void produceMatchAIG(vector<pair<string, string> > inputMatch, vector<pair<string, string> > outputMatch,
                          string savePath1,
                          string savePath2);
-    vector<bool> generateInput(int inputNum);
+    pair<vector<bool>, vector<bool>> generateInput();
     void randomSimulation(int only = 0);
     vector<pair<string, string>> removeNonSingleton(const vector<vector<string>> &par1, const vector<vector<string>> &par2);
     void removeNonSupport(vector<pair<string, string> > &inputMatch, vector<pair<string, string> > &outputMatch);

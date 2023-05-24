@@ -16,31 +16,37 @@ void LargeScale::randomSimulation(int only) {
     int noChangeNum = stopNum;
     while (noChangeNum > 0){
         int change = 0;
-        vector<bool> input = generateInput(max(cir1.getInputNum(), cir2.getInputNum()));
-        vector<bool> output1 = cir1.generateOutput(input);
-        vector<bool> output2 = cir2.generateOutput(input);
+        pair<vector<bool>, vector<bool>> input = generateInput();
+        vector<bool> output1 = cir1.generateOutput(input.first);
+        vector<bool> output2 = cir2.generateOutput(input.second);
         vector<vector<bool>> outputVector1;
         vector<vector<bool>> outputVector2;
         vector<vector<bool> > st1Record1, st1Record2;
         if(!only || only == 1)change += cir1.simulationType1(output1, st1Record1);
         if(!only || only == 1)change += cir2.simulationType1(output2, st1Record2);
-        for(unsigned int i = 0 ; i < input.size() ; i++){
+        dealRecord(st1Record1, st1Record2, false);
+        for(unsigned int i = 0 ; i < input.first.size() ; i++){
             vector<bool> tmpInput;
-            for(unsigned int q = 0 ; q < input.size() ; q++){
+            for(unsigned int q = 0 ; q < input.first.size() ; q++){
                 if(i == q){
-                    tmpInput.push_back(!input[q]);
+                    tmpInput.push_back(!input.first[q]);
                 }else{
-                    tmpInput.push_back(input[q]);
+                    tmpInput.push_back(input.first[q]);
                 }
             }
             vector<bool> tmpOutput1 = cir1.generateOutput(tmpInput);
-            vector<bool> tmpOutput2 = cir2.generateOutput(tmpInput);
-            st1Record1.clear();
-            st1Record2.clear();
-            if(!only || only == 1)change += cir1.simulationType1(tmpOutput1, st1Record1);
-            if(!only || only == 1)change += cir2.simulationType1(tmpOutput2, st1Record2);
-            dealRecord(st1Record1, st1Record2, false);
             outputVector1.push_back(tmpOutput1);
+        }
+        for(unsigned int i = 0 ; i < input.second.size() ; i++){
+            vector<bool> tmpInput;
+            for(unsigned int q = 0 ; q < input.second.size() ; q++){
+                if(i == q){
+                    tmpInput.push_back(!input.second[q]);
+                }else{
+                    tmpInput.push_back(input.second[q]);
+                }
+            }
+            vector<bool> tmpOutput2 = cir2.generateOutput(tmpInput);
             outputVector2.push_back(tmpOutput2);
         }
         vector<vector<int> > stRecord1, stRecord2;
@@ -57,12 +63,39 @@ void LargeScale::randomSimulation(int only) {
     }
 }
 
-vector<bool> LargeScale::generateInput(int inputNum) {
+pair<vector<bool>, vector<bool>>
+LargeScale::generateInput() {
+    vector<bool> input1, input2, set1, set2;
+    input1.resize(cir1.getInputNum());
+    set1.resize(cir1.getInputNum());
+    input2.resize(cir2.getInputNum());
+    set2.resize(cir2.getInputNum());
     std::uniform_int_distribution<> dis(0, 1);
-    std::vector<bool> result;
-    for (int i = 0 ; i < inputNum ; i++) {
-        result.push_back(distribution(generator));
+    for(auto cluster1 : cir1.getInputClusters()){
+        for(auto cluster2 : cir2.getInputClusters()){
+            if(hashTable[cluster1[0]] == hashTable[cluster2[0]]){
+                bool genBool = distribution(generator);
+                for(auto port : cluster1){
+                    int order = cir1.idxToOrder(cir1.getIdx(port));
+                    input1[order] = genBool;
+                    set1[order] = true;
+                }
+                for(auto port : cluster2){
+                    int order = cir2.idxToOrder(cir2.getIdx(port));
+                    input2[order] = genBool;
+                    set2[order] = true;
+                }
+                break;
+            }
+        }
     }
+    for(unsigned int i = 0 ; i < input1.size() ; i++){
+        if(!set1[i])input1[i] = distribution(generator);
+    }
+    for(unsigned int i = 0 ; i < input2.size() ; i++){
+        if(!set2[i])input2[i] = distribution(generator);
+    }
+    pair<vector<bool>, vector<bool>> result{input1, input2};
     return result;
 }
 
@@ -73,26 +106,21 @@ int LargeScale::start() {
     cir2.initialRefinement(initialInputRecord2, initialOutputRecord2);
     dealRecord(initialInputRecord1, initialInputRecord2, true);
     dealRecord(initialOutputRecord1, initialOutputRecord2, false);
-
     int change = 0;
     do{
-        vector<vector<set<int> > > dependencyInputRecord1, dependencyOutputRecord1;
-        vector<vector<set<int> > > dependencyInputRecord2, dependencyOutputRecord2;
+        vector<vector<set<size_t> > > dependencyInputRecord1, dependencyOutputRecord1;
+        vector<vector<set<size_t> > > dependencyInputRecord2, dependencyOutputRecord2;
         change = 0;
-        change += cir1.dependencyAnalysis(dependencyInputRecord1, dependencyOutputRecord1);
-        change += cir2.dependencyAnalysis(dependencyInputRecord2, dependencyOutputRecord2);
+        change += cir1.dependencyAnalysis(dependencyInputRecord1, dependencyOutputRecord1, hashTable);
+        change += cir2.dependencyAnalysis(dependencyInputRecord2, dependencyOutputRecord2, hashTable);
         dealRecord(dependencyInputRecord1, dependencyInputRecord2, true);
         dealRecord(dependencyOutputRecord1, dependencyOutputRecord2, false);
     } while (change != 0);
-
-
     randomSimulation();
-
     vector<pair<string, string>> inputMatchPair = removeNonSingleton(cir1.getInputClusters(),
                                                                      cir2.getInputClusters());
     vector<pair<string, string>> outputMatchPair = removeNonSingleton(cir1.getOutputClusters(),
                                                                       cir2.getOutputClusters());
-    //TODO removeNonSupport should be check on not to buf case
     removeNonSupport(inputMatchPair, outputMatchPair);
     removeNonMatch(inputMatchPair, outputMatchPair);
     SAT_Solver(inputMatchPair, outputMatchPair);
@@ -113,6 +141,7 @@ int LargeScale::start() {
         outputStructure.outputGroups.push_back(group);
         matchNumber += 2;
     }
+    cout << "Large Scale matching port number: " << matchNumber << "(" << (float)matchNumber / allOutputNumber * 100 << "%)" << endl;
     parseOutput(outputFilePath, outputStructure);
     if(matchNumber == allOutputNumber)return -1;
     return  matchNumber;
@@ -121,9 +150,6 @@ int LargeScale::start() {
 
 vector<pair<string, string>>
 LargeScale::removeNonSingleton(const vector<vector<string>> &par1, const vector<vector<string>> &par2) {
-    if(par1.size() != par2.size()){
-        cout << "[LargeScale] ERROR: removeNonSingleton size are not equal!" << endl;
-    }
     vector<pair<string, string> > result;
     vector<string> nonSingleton1, nonSingleton2;
     for(unsigned int i = 0 ; i < par1.size() ; i++){
@@ -272,6 +298,8 @@ void LargeScale::SAT_Solver(vector<pair<string, string> > &inputMatch, vector<pa
     solverResult result = SAT_solver(miterCNF);
     if(result.satisfiable){
         // TODO Not test
+        cout << "Not Implement" << endl;
+        exit(1);
         AIG miter("miter.aig");
         ifstream pf("miter.cnf");
         string symbol;
@@ -281,7 +309,7 @@ void LargeScale::SAT_Solver(vector<pair<string, string> > &inputMatch, vector<pa
             int AIGIdx, CNFIdx;
             string tmp;
             pf >> AIGIdx >> tmp >> CNFIdx;
-            CNFToAIG[CNFIdx] = miter.fromIndexToName(AIGIdx);
+            CNFToAIG[CNFIdx] = miter.fromIndexToName(AIGIdx/2);
         }
         pf.close();
         vector<bool> inputVector1, inputVector2;

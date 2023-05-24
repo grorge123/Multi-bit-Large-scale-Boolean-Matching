@@ -95,7 +95,7 @@ vector<bool> AIG::generateOutput(vector<bool> input) {
 
 bool AIG::recursiveGenerateOutput(int now, vector<int> &signal, vector<bool> &input) {
     if(tree[now].isInput){
-        return (invMap[now] ? !input[now - 1] : input[now - 1]);
+        return (invMap[now] ? !input[indexMapInv[now]] : input[indexMapInv[now]]);
     }
     if(signal[tree[now].l] == -1){
         signal[tree[now].l] = recursiveGenerateOutput(tree[now].l, signal, input);
@@ -133,7 +133,7 @@ int AIG::getInputNum() {
     return inputNum;
 }
 
-string AIG::fromOrderToName(int idx) {
+const string &AIG::fromOrderToName(int idx) {
     return orderToName[idx];
 }
 
@@ -225,8 +225,10 @@ void AIG::erasePort(vector<string> nameList) {
     for(unsigned int idx = 1 ; idx < tree.size() ; idx++){
         if(tree[idx].exist && !exist[idx]){
             removeAnd++;
-            tree[idx].exist = exist[idx];
+        }else if( !tree[idx].exist && exist[idx]){
+            removeAnd--;
         }
+        tree[idx].exist = exist[idx];
     }
     andNum -= removeAnd;
     support.clear();
