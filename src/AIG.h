@@ -10,6 +10,7 @@
 #include <set>
 #include <iostream>
 #include <vector>
+#include <fstream>
 
 using namespace std;
 class AIG {
@@ -46,15 +47,20 @@ public:
             cout << "[AIG]ERROR: " << err_msg << endl;
             exit(1);
         }
-        const int MAXLen = 100000;
-        char tmp[MAXLen] = {};
+        ifstream ifs;
+        ifs.open (name.c_str(), ios::binary );
+        ifs.seekg (0, ios::end);
+        int length = ifs.tellg();
+        length = length * 8 + 1000;
+        char* tmp = (char*)malloc(sizeof(char ) * length);
         aiger_mode mode = aiger_ascii_mode;
-        int err = aiger_write_to_string(input, mode, tmp, MAXLen);
+        int err = aiger_write_to_string(input, mode, tmp, length);
         if(err != 1){
             cout << "[AIG]ERROR: AIG write error" << endl;
             exit(1);
         }
         raw = tmp;
+        free(tmp);
         aiger_reset(input);
         parseRaw();
         findSupport();
