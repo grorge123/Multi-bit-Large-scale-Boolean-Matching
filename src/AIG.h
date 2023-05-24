@@ -33,12 +33,13 @@ private:
     map<int, bool> invMap; // AIG Node index if is invert
     map<int, set<int> > support; // AIG Node index to support set
     void parseRaw();
-    void recursiveFindSupport(int output, int now);
+    void recursiveFindSupport(int output, int now, vector<bool> &visit);
     bool recursiveGenerateOutput(int now, vector<int>& signal, vector<bool>& input);
     void findSupport();
 public:
+    string cirName;
     AIG(){};
-    AIG(string name){
+    AIG(string name, string cirName = "") : cirName(cirName){
         aiger *input = aiger_init();
         const char *err_msg = aiger_open_and_read_from_file(input, name.c_str());
         if(err_msg != NULL){

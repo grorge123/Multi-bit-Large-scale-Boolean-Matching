@@ -45,8 +45,8 @@ public:
 
     }
     LargeScale(InputStructure input, string outputFilePath) : outputFilePath(outputFilePath), generator(7122), distribution(0, 1){
-        cir1 = Partition(input.cir1AIGPath);
-        cir2 = Partition(input.cir2AIGPath);
+        cir1 = Partition(input.cir1AIGPath, "@");
+        cir2 = Partition(input.cir2AIGPath, "!");
         allOutputNumber = cir2.getOutputNum() + cir1.getOutputNum();
     }
     int start();

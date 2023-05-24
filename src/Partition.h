@@ -15,7 +15,7 @@ class Partition : public AIG {
                                   map<string, size_t> &hashTable);
 public:
     Partition(){};
-    Partition(string fileName) : AIG(fileName) {
+    Partition(string fileName, string cirName="") : AIG(fileName, cirName) {
         vector<string> ve;
         for(int i = 0 ; i < getInputNum() ; i++){
             ve.push_back(fromOrderToName(i));

@@ -56,9 +56,10 @@ void AIG::parseRaw() {
         }else{
             break;
         }
-        nameMap[b] = indexMap[idx];
-        nameMapInv[indexMap[idx]] = b;
-        orderToName.push_back(b);
+        string portName = cirName + b;
+        nameMap[portName] = indexMap[idx];
+        nameMapInv[indexMap[idx]] = portName;
+        orderToName.push_back(portName);
         idx++;
     }
     return;
@@ -67,17 +68,22 @@ void AIG::parseRaw() {
 void AIG::findSupport() {
     for(int i = inputNum ; i < outputNum + inputNum; i++){
         int idx = indexMap[i];
-        recursiveFindSupport(idx, idx);
+        vector<bool> visit;
+        if(idx == 0)continue;
+        visit.resize(MAXIndex + 1);
+        recursiveFindSupport(idx, idx, visit);
     }
 }
 
-void AIG::recursiveFindSupport(int output, int now) {
+void AIG::recursiveFindSupport(int output, int now, vector<bool> &visit) {
+    if(visit[now])return;
+    visit[now] = true;
     if(tree[now].isInput){
         support[now].insert(output);
         support[output].insert(now);
     }else{
-        recursiveFindSupport(output, tree[now].l);
-        recursiveFindSupport(output, tree[now].r);
+        recursiveFindSupport(output, tree[now].l, visit);
+        recursiveFindSupport(output, tree[now].r, visit);
     }
 }
 
@@ -96,6 +102,9 @@ vector<bool> AIG::generateOutput(vector<bool> input) {
 bool AIG::recursiveGenerateOutput(int now, vector<int> &signal, vector<bool> &input) {
     if(tree[now].isInput){
         return (invMap[now] ? !input[indexMapInv[now]] : input[indexMapInv[now]]);
+    }
+    if(tree[now].l == -1 && tree[now].r == -1){
+        return false;
     }
     if(signal[tree[now].l] == -1){
         signal[tree[now].l] = recursiveGenerateOutput(tree[now].l, signal, input);
@@ -211,7 +220,8 @@ void AIG::erasePort(vector<string> nameList) {
     exist.resize(tree.size());
     queue<int> existQueue;
     for(int idx = inputNum ; idx < inputNum + outputNum ; idx++){
-        existQueue.push(indexMap[idx]);
+        if(indexMap[idx] != 0)
+            existQueue.push(indexMap[idx]);
     }
     while (!existQueue.empty()){
         int now = existQueue.front();
