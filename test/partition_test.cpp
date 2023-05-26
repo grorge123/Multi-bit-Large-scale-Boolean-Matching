@@ -31,6 +31,7 @@ TEST_F(ParCase, Test1) {
 }
 
 TEST_F(ParCase, Test2){
+    //TODO create robust test
     vector<vector<int>> a, b;
     pa.initialRefinement(a, b);
     vector<vector<set<size_t> > > c, d;

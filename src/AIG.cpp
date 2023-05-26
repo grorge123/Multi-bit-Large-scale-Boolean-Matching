@@ -21,20 +21,23 @@ void AIG::parseRaw() {
         int inpNum;
         ss >> inpNum;
         tree[inpNum / 2].isInput = true;
-
         indexMap.push_back(inpNum / 2);
-        indexMapInv[inpNum / 2] = indexMap.size() - 1;
-        invMap[inpNum / 2] = inpNum % 2;
+        inputIndexMapInv[inpNum / 2] = indexMap.size() - 1;
+        invMap.push_back(inpNum % 2);
         tree[inpNum / 2].exist = true;
     }
     for(int i = 0 ; i < outputNum ; i++){
         int outNum;
         ss >> outNum;
-        tree[outNum / 2].isOutput = true;
+
+
         indexMap.push_back(outNum / 2);
-        indexMapInv[outNum / 2] = indexMap.size() - 1;
-        invMap[outNum / 2] = outNum % 2;
-        tree[outNum / 2].exist = true;
+        invMap.push_back(outNum % 2);
+        if(outNum / 2 != 0 && !tree[outNum / 2].isInput){
+            tree[outNum / 2].isOutput = true;
+            outputIndexMapInv[outNum / 2].push_back(indexMap.size() - 1);
+            tree[outNum / 2].exist = true;
+        }
     }
     for(int i = 0 ; i < andNum ; i++){
         int out, l, r;
@@ -58,10 +61,24 @@ void AIG::parseRaw() {
         }
         string portName = cirName + b;
         nameMap[portName] = indexMap[idx];
-        nameMapInv[indexMap[idx]] = portName;
+        if(idx < inputNum){
+            inputNameMapInv[indexMap[idx]] = portName;
+        }else{
+            outputNameMapInv[indexMap[idx]].push_back(portName);
+        }
         orderToName.push_back(portName);
+        if(indexMap[idx] == 0){
+            if(invMap[idx]){
+                one.push_back(portName);
+            }else{
+                zero.push_back(portName);
+            }
+        }else if(idx >= inputNum && tree[indexMap[idx]].isInput){
+            wire.push_back(pair<string,string>(portName, inputNameMapInv[indexMap[idx]]));
+        }
         idx++;
     }
+
     return;
 }
 
@@ -94,14 +111,14 @@ vector<bool> AIG::generateOutput(vector<bool> input) {
     output.resize(outputNum);
     for(int i = inputNum ; i < outputNum + inputNum ; i++){
         signal[indexMap[i]] = recursiveGenerateOutput(indexMap[i], signal, input);
-        output[i - inputNum] = (invMap[indexMap[i]] ? !signal[indexMap[i]] : signal[indexMap[i]]);
+        output[i - inputNum] = (invMap[i] ? !signal[indexMap[i]] : signal[indexMap[i]]);
     }
     return output;
 }
 
 bool AIG::recursiveGenerateOutput(int now, vector<int> &signal, vector<bool> &input) {
     if(tree[now].isInput){
-        return (invMap[now] ? !input[indexMapInv[now]] : input[indexMapInv[now]]);
+        return (invMap[inputIndexMapInv[now]] ? !input[inputIndexMapInv[now]] : input[inputIndexMapInv[now]]);
     }
     if(tree[now].l == -1 && tree[now].r == -1){
         return false;
@@ -120,7 +137,13 @@ bool AIG::recursiveGenerateOutput(int now, vector<int> &signal, vector<bool> &in
 set<string> AIG::getSupport(int idx) {
     set<string> re;
     for(auto i : support[idx]){
-        re.insert(nameMapInv[i]);
+        if(tree[i].isInput){
+            re.insert(inputNameMapInv[i]);
+        }else{
+            for(auto outputName : outputNameMapInv[i]){
+                re.insert(outputName);
+            }
+        }
     }
     return re;
 }
@@ -150,8 +173,8 @@ int AIG::getOutputNum() {
     return outputNum;
 }
 
-int AIG::idxToOrder(int idx) {
-    return indexMapInv[idx];
+int AIG::inputIdxToOrder(int idx) {
+    return inputIndexMapInv[idx];
 }
 
 const string &AIG::getRaw() {
@@ -159,7 +182,7 @@ const string &AIG::getRaw() {
     raw = "aag " + to_string(MAXIndex) + " " + to_string(inputNum) + " 0 " + to_string(outputNum) + " " +
             to_string(andNum) + "\n";
     for(int i = 0 ; i < inputNum + outputNum ; i++){
-        raw += (invMap[indexMap[i]] ? to_string(indexMap[i] * 2 + 1) : to_string(indexMap[i] * 2)) + "\n";
+        raw += (invMap[i] ? to_string(indexMap[i] * 2 + 1) : to_string(indexMap[i] * 2)) + "\n";
     }
     for(int i = 1 ; i <= MAXIndex ; i++){
         Node node = tree[i];
@@ -186,7 +209,15 @@ void AIG::changeName(string oldName, string newName) {
             orderToName[i] = newName;
             int tmpIdx = nameMap[oldName];
             nameMap[newName] = tmpIdx;
-            nameMapInv[tmpIdx] = newName;
+            if(tree[tmpIdx].isInput){
+                inputNameMapInv[tmpIdx] = newName;
+            }else{
+                for(auto &outputName : outputNameMapInv[tmpIdx]){
+                    if(outputName == oldName){
+                        outputName = newName;
+                    }
+                }
+            }
             nameMap.erase(oldName);
             break;
         }
@@ -203,25 +234,71 @@ void AIG::erasePort(vector<string> nameList) {
             inputNum--;
         }else if(tree[nameMap[name]].isOutput){
             outputNum--;
-            removeAnd++;
         }
-        int nodeIdx = nameMap[name];
-        int inputOrder = indexMapInv[nodeIdx];
-        tree[nodeIdx].exist = false;
-        nameMap.erase(name);
-        nameMapInv.erase(nodeIdx);
-        while (orderToName[inputOrder] != name)inputOrder--;
-        indexMap.erase(indexMap.begin() + inputOrder);
-        indexMapInv.erase(nodeIdx);
-        orderToName.erase(orderToName.begin() + inputOrder);
-        invMap.erase(nodeIdx);
+        unsigned int nodeIdx = nameMap[name];
+        if(tree[nodeIdx].isInput){
+            unsigned int inputOrder = min(inputIndexMapInv[nodeIdx], (int)orderToName.size() - 1);
+            tree[nodeIdx].exist = false;
+            nameMap.erase(name);
+            inputNameMapInv.erase(nodeIdx);
+            while (orderToName[inputOrder] != name){
+                if(inputOrder == 0){
+                    cout << "[AIG] ERROR: Can not found input Name" << "(" << name << ")" << "from orderToName" << endl;
+                    exit(1);
+                }
+                inputOrder--;
+            }
+            indexMap.erase(indexMap.begin() + inputOrder);
+            inputIndexMapInv.erase(nodeIdx);
+            orderToName.erase(orderToName.begin() + inputOrder);
+            invMap.erase(invMap.begin() + inputOrder);
+        }else{
+            unsigned int inputOrder = orderToName.size() - 1;
+            for(auto order : outputIndexMapInv[nodeIdx]){
+                inputOrder = min((int)inputOrder, order);
+            }
+            while (orderToName[inputOrder] != name){
+                if(inputOrder == 0){
+                    cout << "[AIG] ERROR: Can not found input Name" << "(" << name << ")" << "from orderToName" << endl;
+                    exit(1);
+                }
+                inputOrder--;
+            }
+            nameMap.erase(name);
+            indexMap.erase(indexMap.begin() + inputOrder);
+            orderToName.erase(orderToName.begin() + inputOrder);
+            invMap.erase(invMap.begin() + inputOrder);
+            for(auto it = outputNameMapInv[nodeIdx].begin() ; it != outputNameMapInv[nodeIdx].end() ; it++){
+                if(*it == name){
+                    outputNameMapInv[nodeIdx].erase(it);
+                    break;
+                }
+            }
+            for(auto it = outputIndexMapInv[nodeIdx].begin() ; it != outputIndexMapInv[nodeIdx].end() ; it++){
+                if(*it == (int)inputOrder){
+                    outputIndexMapInv[nodeIdx].erase(it);
+                    break;
+                }
+            }
+        }
     }
+    inputIndexMapInv.clear();
+    outputIndexMapInv.clear();
+    for(unsigned int order = 0 ; order < indexMap.size() ; order++){
+        if((int)order < inputNum){
+            inputIndexMapInv[indexMap[order]] = order;
+        }else{
+            outputIndexMapInv[indexMap[order]].push_back(order);
+        }
+    }
+
     vector<bool> exist;
     exist.resize(tree.size());
     queue<int> existQueue;
     for(int idx = inputNum ; idx < inputNum + outputNum ; idx++){
-        if(indexMap[idx] != 0)
+        if(indexMap[idx] != 0){
             existQueue.push(indexMap[idx]);
+        }
     }
     while (!existQueue.empty()){
         int now = existQueue.front();
@@ -245,6 +322,30 @@ void AIG::erasePort(vector<string> nameList) {
     findSupport();
 }
 
-const string &AIG::fromIndexToName(int index) {
-    return nameMapInv[index];
+const string &AIG::inputFromIndexToName(int index) {
+    return inputNameMapInv[index];
+}
+
+int AIG::fromOrderToIndex(int order) const {
+    return indexMap[order];
+}
+
+const vector<string> &AIG::getZero() const {
+    return zero;
+}
+
+const vector<string> &AIG::getOne() const {
+    return one;
+}
+
+bool AIG::isInput(int idx) {
+    return tree[idx].isInput;
+}
+
+const vector<string> &AIG::outputFromIndexToName(int idx) {
+    return outputNameMapInv[idx];
+}
+
+const vector<int> &AIG::outputIdxToOrder(int idx) {
+    return outputIndexMapInv[idx];
 }

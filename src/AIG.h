@@ -27,16 +27,21 @@ class AIG {
 private:
     int MAXIndex, inputNum, outputNum, latchNum, andNum;
     map<string, int> nameMap; // verilog input name to AIG Node index
-    map<int, string> nameMapInv; // Node index to verilog input name
+    map<int, string> inputNameMapInv; // AIG Node index to verilog input name
+    map<int, vector<string> > outputNameMapInv; // AIG Node index to verilog input name
     vector<int> indexMap; // AIG input order to AIG Node index
-    map<int, int> indexMapInv; // AIG Node index to AIG input order
+    map<int, int> inputIndexMapInv; // AIG Node index to AIG input order
+    map<int, vector<int> > outputIndexMapInv; // AIG Node index to AIG input order
     vector<string> orderToName; // AIG input order to verilog name
-    map<int, bool> invMap; // AIG Node index if is invert
+    vector<bool> invMap; // AIG input order if is inverted
     map<int, set<int> > support; // AIG Node index to support set
     void parseRaw();
     void recursiveFindSupport(int output, int now, vector<bool> &visit);
     bool recursiveGenerateOutput(int now, vector<int>& signal, vector<bool>& input);
     void findSupport();
+    vector<string> zero, one;
+    vector<pair<string,string>> wire; // <output name, input name>
+
 public:
     string cirName;
     AIG(){};
@@ -65,18 +70,24 @@ public:
         parseRaw();
         findSupport();
     }
-    const string &fromIndexToName(int index);
+    const string &inputFromIndexToName(int index);
+    const vector<string> &outputFromIndexToName(int idx);
     const string &fromOrderToName(int idx);
+    int fromOrderToIndex(int order) const;
     int getInputNum();
     int getOutputNum();
     int getIdx(string name);
-    int idxToOrder(int idx);
+    int inputIdxToOrder(int idx);
+    const vector<int> &outputIdxToOrder(int idx);
+    bool isInput(int idx);
     set<string> getSupport(int idx);
     set<string> getSupport(string name);
     vector<bool> generateOutput(vector<bool> input);
     const string &getRaw();
     void changeName(string oldName, string newName);
     void erasePort(vector<string> nameList);
+    const vector<string> &getZero() const;
+    const vector<string> &getOne() const;
     void Debug();
 };
 

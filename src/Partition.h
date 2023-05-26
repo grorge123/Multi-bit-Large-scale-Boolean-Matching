@@ -18,12 +18,14 @@ public:
     Partition(string fileName, string cirName="") : AIG(fileName, cirName) {
         vector<string> ve;
         for(int i = 0 ; i < getInputNum() ; i++){
-            ve.push_back(fromOrderToName(i));
+            if(fromOrderToIndex(i) != 0)
+                ve.push_back(fromOrderToName(i));
         }
         inputClusters.push_back(ve);
         ve.clear();
         for(int i = getInputNum() ; i < getInputNum() + getOutputNum() ; i++){
-            ve.push_back(fromOrderToName(i));
+            if(fromOrderToIndex(i) != 0 && !isInput(fromOrderToIndex(i)))
+                ve.push_back(fromOrderToName(i));
         }
         outputClusters.push_back(ve);
     }
