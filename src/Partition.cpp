@@ -75,7 +75,7 @@ void Partition::print(map<string, size_t> hashTable) {
     for(auto cluster : inputClusters){
         cout << " { ";
         for(auto port: cluster){
-            string hashName = "(" + hashTable[port] ;
+            string hashName = "(" + to_string(hashTable[port]) ;
             hashName += ")";
             if(hashTable.size() == 0)hashName = "";
             cout << port<< hashName << ", ";
@@ -87,7 +87,7 @@ void Partition::print(map<string, size_t> hashTable) {
     for(auto cluster : outputClusters){
         cout << " { ";
         for(auto port: cluster){
-            string hashName = "(" + hashTable[port] ;
+            string hashName = "(" + to_string(hashTable[port]) ;
             hashName += ")";
             if(hashTable.size() == 0)hashName = "";
             cout << port << hashName << ", ";
@@ -96,7 +96,6 @@ void Partition::print(map<string, size_t> hashTable) {
     }
     cout <<" }"<< endl;
 }
-
 
 
 int Partition::simulationType1(vector<bool> output, vector<vector<bool> > &record) {

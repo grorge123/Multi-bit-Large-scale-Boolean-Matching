@@ -30,14 +30,11 @@ void AIG::parseRaw() {
         int outNum;
         ss >> outNum;
 
-
         indexMap.push_back(outNum / 2);
         invMap.push_back(outNum % 2);
-        if(outNum / 2 != 0 && !tree[outNum / 2].isInput){
-            tree[outNum / 2].isOutput = true;
-            outputIndexMapInv[outNum / 2].push_back(indexMap.size() - 1);
-            tree[outNum / 2].exist = true;
-        }
+        outputIndexMapInv[outNum / 2].push_back(indexMap.size() - 1);
+        tree[outNum / 2].isOutput = true;
+        tree[outNum / 2].exist = true;
     }
     for(int i = 0 ; i < andNum ; i++){
         int out, l, r;
@@ -230,13 +227,10 @@ void AIG::erasePort(vector<string> nameList) {
         if(nameMap.find(name) == nameMap.end()){
             cout << "[AIG] ERROR: not found port" << endl;
         }
-        if(tree[nameMap[name]].isInput){
-            inputNum--;
-        }else if(tree[nameMap[name]].isOutput){
-            outputNum--;
-        }
+
         unsigned int nodeIdx = nameMap[name];
-        if(tree[nodeIdx].isInput){
+        if(tree[nodeIdx].isInput && name == inputNameMapInv[nodeIdx]){
+            inputNum--;
             unsigned int inputOrder = min(inputIndexMapInv[nodeIdx], (int)orderToName.size() - 1);
             tree[nodeIdx].exist = false;
             nameMap.erase(name);
@@ -253,10 +247,12 @@ void AIG::erasePort(vector<string> nameList) {
             orderToName.erase(orderToName.begin() + inputOrder);
             invMap.erase(invMap.begin() + inputOrder);
         }else{
-            unsigned int inputOrder = orderToName.size() - 1;
+            outputNum--;
+            unsigned int inputOrder = 0;
             for(auto order : outputIndexMapInv[nodeIdx]){
-                inputOrder = min((int)inputOrder, order);
+                inputOrder = max((int)inputOrder, order);
             }
+            inputOrder = min((unsigned int)orderToName.size() - 1, inputOrder);
             while (orderToName[inputOrder] != name){
                 if(inputOrder == 0){
                     cout << "[AIG] ERROR: Can not found input Name" << "(" << name << ")" << "from orderToName" << endl;
@@ -303,6 +299,7 @@ void AIG::erasePort(vector<string> nameList) {
     while (!existQueue.empty()){
         int now = existQueue.front();
         existQueue.pop();
+        if(exist[now])continue;
         exist[now] = true;
         if(!tree[now].isInput){
             existQueue.push(tree[now].l);

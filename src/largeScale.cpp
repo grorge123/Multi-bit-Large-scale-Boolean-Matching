@@ -131,6 +131,13 @@ int LargeScale::start() {
             outputMatchPair.push_back(pair<string,string>{port, port2});
         }
     }
+    cir1.erasePort(cir1.getZero());
+    cir2.erasePort(cir2.getZero());
+    cir1.erasePort(cir1.getOne());
+    cir2.erasePort(cir2.getOne());
+
+//    cir1.print(hashTable);
+//    cir2.print(hashTable);
     cout << cir1.getZero().size() << ' ' << cir2.getZero().size() << ' ' << cir1.getOne().size() << ' ' << cir2.getOne().size() << endl;
     cout << "First matching:" << inputMatchPair.size() << ' ' << outputMatchPair.size() <<endl;
     removeNonSupport(inputMatchPair, outputMatchPair);

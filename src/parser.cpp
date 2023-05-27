@@ -2,14 +2,35 @@
 // Created by grorge on 5/19/23.
 //
 #include <iostream>
+#include <regex>
 #include "utility.h"
 #include "parser.h"
 
-
+#include <string>
 #include <fstream>
 using namespace std;
 
 extern Abc_Frame_t * pAbc;
+
+
+void removeGateNames(const std::string& filePath) {
+    std::ifstream inputFile(filePath);
+    std::string outputFilePath = filePath + ".modified";
+    std::ofstream outputFile(outputFilePath);
+
+    std::regex gateNameRegex("(\\bnot\\b|\\band\\b|\\bnand\\b|\\bor\\b|\\bxor\\b|\\bxnor\\b|\\bbuf\\b|\\bnor\\b)\\s*(\\w+)");
+
+    for (std::string line; std::getline(inputFile, line); ) {
+        std::string modifiedLine = std::regex_replace(line, gateNameRegex, "$1");
+
+        outputFile << modifiedLine << std::endl;
+    }
+
+    inputFile.close();
+    outputFile.close();
+    rename(outputFilePath.c_str(), filePath.c_str());
+}
+
 
 InputStructure parseInput(string inputPath) {
     InputStructure result;
@@ -43,6 +64,8 @@ InputStructure parseInput(string inputPath) {
         }
         result.cir2Bus.push_back(busVector);
     }
+    removeGateNames(cir1VerilogPath);
+    removeGateNames(cir2VerilogPath);
     result.cir1AIGPath = cir1VerilogPath + ".aig";
     result.cir2AIGPath = cir2VerilogPath + ".aig";
     string resultPath = "stdoutOutput.txt";

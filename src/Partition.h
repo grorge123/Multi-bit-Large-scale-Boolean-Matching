@@ -24,7 +24,7 @@ public:
         inputClusters.push_back(ve);
         ve.clear();
         for(int i = getInputNum() ; i < getInputNum() + getOutputNum() ; i++){
-            if(fromOrderToIndex(i) != 0 && !isInput(fromOrderToIndex(i)))
+            if(fromOrderToIndex(i) != 0)
                 ve.push_back(fromOrderToName(i));
         }
         outputClusters.push_back(ve);
