@@ -42,5 +42,5 @@ clean:
 	rm -rf $(obj) $(exe)
 run: all
 	./main input.txt output.txt
-	rm save* miter* tmp* stdoutOutput.txt *.v.aig
+	rm -f save* miter* tmp* stdoutOutput.txt *.v.aig
 

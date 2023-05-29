@@ -133,11 +133,11 @@ bool AIG::recursiveGenerateOutput(int now, vector<int> &signal, vector<bool> &in
 
 set<string> AIG::getSupport(int idx) {
     set<string> re;
-    for(auto i : support[idx]){
+    for(auto &i : support[idx]){
         if(tree[i].isInput){
             re.insert(inputNameMapInv[i]);
         }else{
-            for(auto outputName : outputNameMapInv[i]){
+            for(auto &outputName : outputNameMapInv[i]){
                 re.insert(outputName);
             }
         }
@@ -223,7 +223,7 @@ void AIG::changeName(string oldName, string newName) {
 
 void AIG::erasePort(vector<string> nameList) {
     int removeAnd = 0;
-    for(auto name : nameList){
+    for(auto &name : nameList){
         if(nameMap.find(name) == nameMap.end()){
             cout << "[AIG] ERROR: not found port" << endl;
         }
@@ -249,7 +249,7 @@ void AIG::erasePort(vector<string> nameList) {
         }else{
             outputNum--;
             unsigned int inputOrder = 0;
-            for(auto order : outputIndexMapInv[nodeIdx]){
+            for(auto &order : outputIndexMapInv[nodeIdx]){
                 inputOrder = max((int)inputOrder, order);
             }
             inputOrder = min((unsigned int)orderToName.size() - 1, inputOrder);

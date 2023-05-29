@@ -121,13 +121,13 @@ int LargeScale::start() {
                                                                      cir2.getInputClusters());
     vector<pair<string, string>> outputMatchPair = removeNonSingleton(cir1.getOutputClusters(),
                                                                       cir2.getOutputClusters());
-    for(auto port : cir1.getZero()){
-        for(auto port2 : cir2.getZero()){
+    for(auto &port : cir1.getZero()){
+        for(auto &port2 : cir2.getZero()){
             outputMatchPair.push_back(pair<string,string>{port, port2});
         }
     }
-    for(auto port : cir1.getOne()){
-        for(auto port2 : cir2.getOne()){
+    for(auto &port : cir1.getOne()){
+        for(auto &port2 : cir2.getOne()){
             outputMatchPair.push_back(pair<string,string>{port, port2});
         }
     }
@@ -145,14 +145,14 @@ int LargeScale::start() {
     SAT_Solver(inputMatchPair, outputMatchPair);
     OutputStructure outputStructure;
     int matchNumber = 0;
-    for(auto match : inputMatchPair){
+    for(auto &match : inputMatchPair){
         Group group;
         group.cir1 = match.first;
         group.cir2.push_back(match.second);
         group.invVector.push_back(false);
         outputStructure.inputGroups.push_back(group);
     }
-    for(auto match : outputMatchPair){
+    for(auto &match : outputMatchPair){
         Group group;
         group.cir1 = match.first;
         group.cir2.push_back(match.second);
@@ -222,11 +222,11 @@ void LargeScale::removeNonSupport(vector<pair<string, string>> &inputMatch, vect
     int change = 0;
     set<string> inputMap1, outputMap1;
     set<string> inputMap2, outputMap2;
-    for(auto match: inputMatch){
+    for(auto &match: inputMatch){
         inputMap1.insert(match.first);
         inputMap2.insert(match.second);
     }
-    for(auto match: outputMatch){
+    for(auto &match: outputMatch){
         outputMap1.insert(match.first);
         outputMap2.insert(match.second);
     }
@@ -235,14 +235,14 @@ void LargeScale::removeNonSupport(vector<pair<string, string>> &inputMatch, vect
         for(auto match = inputMatch.begin() ; match != inputMatch.end() ; ){
             bool flag1 = false, flag2 = false;
             auto supportSet1 = cir1.getSupport(match->first);
-            for(auto supportVar : supportSet1){
+            for(auto &supportVar : supportSet1){
                 if(outputMap1.find(supportVar) != outputMap1.end()){
                     flag1 = true;
                     break;
                 }
             }
             auto supportSet2 = cir2.getSupport(match->second);
-            for(auto supportVar : supportSet2){
+            for(auto &supportVar : supportSet2){
                 if(outputMap2.find(supportVar) != outputMap2.end()){
                     flag2 = true;
                     break;
@@ -260,14 +260,14 @@ void LargeScale::removeNonSupport(vector<pair<string, string>> &inputMatch, vect
         for(auto match = outputMatch.begin() ; match != outputMatch.end() ; ){
             bool flag1 = false, flag2 = false;
             auto supportSet1 = cir1.getSupport(match->first);
-            for(auto supportVar : supportSet1){
+            for(auto &supportVar : supportSet1){
                 if(inputMap1.find(supportVar) == inputMap1.end()){
                     flag1 = true;
                     break;
                 }
             }
             auto supportSet2 = cir2.getSupport(match->second);
-            for(auto supportVar : supportSet2){
+            for(auto &supportVar : supportSet2){
                 if(inputMap2.find(supportVar) == inputMap2.end()){
                     flag2 = true;
                     break;
@@ -369,10 +369,10 @@ void LargeScale::produceMatchAIG(vector<pair<string, string> > inputMatch, vecto
                                  string savePath1,
                                  string savePath2) {
     AIG newAIG = cir2;
-    for(auto match : inputMatch){
+    for(auto &match : inputMatch){
         newAIG.changeName(match.second, match.first);
     }
-    for(auto match : outputMatch){
+    for(auto &match : outputMatch){
         newAIG.changeName(match.second, match.first);
     }
     aiger *aig = aiger_init();
@@ -412,11 +412,11 @@ void LargeScale::removeNonMatch(const vector<pair<string, string>> &inputMatch,
                                 const vector<pair<string, string>> &outputMatch) {
     set<string> inputSet1, outputSet1;
     set<string> inputSet2, outputSet2;
-    for(auto matchPair : inputMatch){
+    for(auto &matchPair : inputMatch){
         inputSet1.insert(matchPair.first);
         inputSet2.insert(matchPair.second);
     }
-    for(auto matchPair : outputMatch){
+    for(auto &matchPair : outputMatch){
         outputSet1.insert(matchPair.first);
         outputSet2.insert(matchPair.second);
     }

@@ -11,13 +11,13 @@ void Partition::initialRefinement(vector<vector<int> > &inputRecord, vector<vect
 
 void Partition::intialRefineCluster(vector<vector<string> > &clusters, vector<vector<int>> &record) {
     vector<vector<string> > newClusters;
-    for(auto cluster : clusters){
+    for(auto &cluster : clusters){
         map<int, vector<string>> Dmap;
-        for(auto port : cluster){
+        for(auto &port : cluster){
             Dmap[getSupport(port).size()].push_back(port);
         }
         vector<int> recordVector;
-        for(auto newCluster : Dmap){
+        for(auto &newCluster : Dmap){
             newClusters.push_back(newCluster.second);
             recordVector.push_back(newCluster.first);
         }
@@ -47,19 +47,19 @@ int Partition::dependencyAnalysisCluster(vector<vector<string> > &clusters, vect
                                          map<string, size_t> &hashTable) {
     int change = 0;
     vector<vector<string > > newClusters;
-    for(auto cluster : clusters){
+    for(auto &cluster : clusters){
         map<set<size_t>, vector<string> > Smap;
-        for(auto port : cluster){
+        for(auto &port : cluster){
             set<string> supportSet = getSupport(port);
             set<size_t> indexSet;
-            for(auto supportVar : supportSet){
+            for(auto &supportVar : supportSet){
                 indexSet.insert(hashTable[supportVar]);
             }
             Smap[indexSet].push_back(port);
         }
         change += Smap.size() - 1;
         vector<set<size_t> > recordVector;
-        for(auto newCluster : Smap){
+        for(auto &newCluster : Smap){
             newClusters.push_back(newCluster.second);
             recordVector.push_back(newCluster.first);
         }
@@ -72,9 +72,9 @@ int Partition::dependencyAnalysisCluster(vector<vector<string> > &clusters, vect
 
 void Partition::print(map<string, size_t> hashTable) {
     cout << "INPUT: { ";
-    for(auto cluster : inputClusters){
+    for(auto &cluster : inputClusters){
         cout << " { ";
-        for(auto port: cluster){
+        for(auto &port: cluster){
             string hashName = "(" + to_string(hashTable[port]) ;
             hashName += ")";
             if(hashTable.size() == 0)hashName = "";
@@ -84,9 +84,9 @@ void Partition::print(map<string, size_t> hashTable) {
     }
     cout << " }" << endl;
     cout << "OUTPUT: { ";
-    for(auto cluster : outputClusters){
+    for(auto &cluster : outputClusters){
         cout << " { ";
-        for(auto port: cluster){
+        for(auto &port: cluster){
             string hashName = "(" + to_string(hashTable[port]) ;
             hashName += ")";
             if(hashTable.size() == 0)hashName = "";
@@ -101,10 +101,10 @@ void Partition::print(map<string, size_t> hashTable) {
 int Partition::simulationType1(vector<bool> output, vector<vector<bool> > &record) {
     vector<vector<string> > newClusters;
     int change = 0;
-    for(auto cluster : outputClusters){
+    for(auto &cluster : outputClusters){
         map<bool, vector<string> > Bmap;
-        for(auto port : cluster){
-            for(auto order : outputIdxToOrder(getIdx(port))){
+        for(auto &port : cluster){
+            for(auto &order : outputIdxToOrder(getIdx(port))){
                 if(fromOrderToName(order) == port){
                     Bmap[output[order - getInputNum()]].push_back(port);
                     break;
@@ -113,7 +113,7 @@ int Partition::simulationType1(vector<bool> output, vector<vector<bool> > &recor
         }
         change += Bmap.size() - 1;
         vector<bool> recordVector;
-        for(auto newCluster : Bmap){
+        for(auto &newCluster : Bmap){
             newClusters.push_back(newCluster.second);
             recordVector.push_back(newCluster.first);
         }
@@ -136,14 +136,14 @@ int Partition::simulationType2(vector<bool> originalOutput, vector<vector<bool>>
     }
     vector<vector<string> > newClusters;
     int change = 0;
-    for(auto cluster : inputClusters){
+    for(auto &cluster : inputClusters){
         map<int, vector<string> > obsMap;
-        for(auto port : cluster){
+        for(auto &port : cluster){
             obsMap[obs[inputIdxToOrder(getIdx(port))]].push_back(port);
         }
         change += obsMap.size() - 1;
         vector<int> recordVector;
-        for(auto newCluster : obsMap){
+        for(auto &newCluster : obsMap){
             newClusters.push_back(newCluster.second);
             recordVector.push_back(newCluster.first);
         }
@@ -157,7 +157,7 @@ int Partition::simulationType3(vector<bool> originalOutput, vector<vector<bool>>
                                vector<vector<int> > &record) {
     vector<int> ctrl;
     ctrl.resize(getOutputNum());
-    for(auto output : outputVector){
+    for(auto &output : outputVector){
         for(unsigned int i = 0 ; i < output.size() ; i++){
             if(output[i] != originalOutput[i]){
                 ctrl[i]++;
@@ -166,10 +166,10 @@ int Partition::simulationType3(vector<bool> originalOutput, vector<vector<bool>>
     }
     vector<vector<string> > newClusters;
     int change = 0;
-    for(auto cluster : outputClusters){
+    for(auto &cluster : outputClusters){
         map<int, vector<string> > ctrlMap;
-        for(auto port : cluster){
-            for(auto order : outputIdxToOrder(getIdx(port))){
+        for(auto &port : cluster){
+            for(auto &order : outputIdxToOrder(getIdx(port))){
                 if(fromOrderToName(order) == port){
                     ctrlMap[ctrl[order - getInputNum()]].push_back(port);
                     break;
@@ -178,7 +178,7 @@ int Partition::simulationType3(vector<bool> originalOutput, vector<vector<bool>>
         }
         change += ctrlMap.size() - 1;
         vector<int> recordVector;
-        for(auto newCluster : ctrlMap){
+        for(auto &newCluster : ctrlMap){
             newClusters.push_back(newCluster.second);
             recordVector.push_back(newCluster.first);
         }
