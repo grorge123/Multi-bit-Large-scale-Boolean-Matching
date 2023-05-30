@@ -23,6 +23,7 @@ public:
         }
         inputClusters.push_back(ve);
         ve.clear();
+        addNegativeOutput();
         for(int i = getInputNum() ; i < getInputNum() + getOutputNum() ; i++){
             if(fromOrderToIndex(i) != 0)
                 ve.push_back(fromOrderToName(i));

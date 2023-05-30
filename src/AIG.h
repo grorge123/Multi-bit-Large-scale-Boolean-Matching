@@ -88,6 +88,7 @@ public:
     void erasePort(vector<string> nameList);
     const vector<string> &getZero() const;
     const vector<string> &getOne() const;
+    void addNegativeOutput();
     void Debug();
 };
 

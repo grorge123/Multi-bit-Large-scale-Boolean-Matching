@@ -346,3 +346,19 @@ const vector<string> &AIG::outputFromIndexToName(int idx) {
 const vector<int> &AIG::outputIdxToOrder(int idx) {
     return outputIndexMapInv[idx];
 }
+
+void AIG::addNegativeOutput() {
+    int oldNum = inputNum + outputNum;
+    for(int i = inputNum ; i < oldNum ; i++){
+        int newOrder = indexMap[i];
+        indexMap.push_back(newOrder);
+        invMap.push_back(!invMap[i]);
+        outputIndexMapInv[newOrder].push_back(indexMap.size() - 1);
+        string newName = orderToName[i] + '\'';
+        nameMap[newName] = indexMap[indexMap.size() - 1];
+        outputNameMapInv[indexMap[indexMap.size() - 1]].push_back(newName);
+        orderToName.push_back(newName);
+        outputNum++;
+    }
+}
+
