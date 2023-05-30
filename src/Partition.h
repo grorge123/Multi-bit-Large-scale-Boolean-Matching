@@ -17,6 +17,7 @@ public:
     Partition(){};
     Partition(string fileName, string cirName="") : AIG(fileName, cirName) {
         vector<string> ve;
+        addNegative();
         for(int i = 0 ; i < getInputNum() ; i++){
             if(fromOrderToIndex(i) != 0)
                 ve.push_back(fromOrderToName(i));
@@ -24,8 +25,9 @@ public:
         inputClusters.push_back(ve);
         ve.clear();
         for(int i = getInputNum() ; i < getInputNum() + getOutputNum() ; i++){
-            if(fromOrderToIndex(i) != 0)
+            if(fromOrderToIndex(i) != 0){
                 ve.push_back(fromOrderToName(i));
+            }
         }
         outputClusters.push_back(ve);
     }

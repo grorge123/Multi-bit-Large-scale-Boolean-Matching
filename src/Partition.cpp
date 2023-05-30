@@ -139,7 +139,13 @@ int Partition::simulationType2(vector<bool> originalOutput, vector<vector<bool>>
     for(auto &cluster : inputClusters){
         map<int, vector<string> > obsMap;
         for(auto &port : cluster){
-            obsMap[obs[inputIdxToOrder(getIdx(port))]].push_back(port);
+            int order = -1;
+            for(auto _order : inputIdxToOrder(getIdx(port))){
+                if(fromOrderToName(_order) == port){
+                    order = _order;
+                }
+            }
+            obsMap[obs[order]].push_back(port);
         }
         change += obsMap.size() - 1;
         vector<int> recordVector;

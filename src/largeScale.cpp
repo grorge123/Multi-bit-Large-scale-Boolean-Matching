@@ -76,12 +76,22 @@ LargeScale::generateInput() {
             if(hashTable[cluster1[0]] == hashTable[cluster2[0]]){
                 bool genBool = distribution(generator);
                 for(auto port : cluster1){
-                    int order = cir1.inputIdxToOrder(cir1.getIdx(port));
+                    int order;
+                    for(auto _order : cir1.inputIdxToOrder(cir1.getIdx(port))){
+                        if(cir1.fromOrderToName(_order) == port){
+                            order = _order;
+                        }
+                    }
                     input1[order] = genBool;
                     set1[order] = true;
                 }
                 for(auto port : cluster2){
-                    int order = cir2.inputIdxToOrder(cir2.getIdx(port));
+                    int order;
+                    for(auto _order : cir2.inputIdxToOrder(cir2.getIdx(port))){
+                        if(cir2.fromOrderToName(_order) == port){
+                            order = _order;
+                        }
+                    }
                     input2[order] = genBool;
                     set2[order] = true;
                 }
@@ -138,7 +148,7 @@ int LargeScale::start() {
 
 //    cir1.print(hashTable);
 //    cir2.print(hashTable);
-    cout << cir1.getZero().size() << ' ' << cir2.getZero().size() << ' ' << cir1.getOne().size() << ' ' << cir2.getOne().size() << endl;
+    cout <<"[LargeScale]"<< cir1.getZero().size() << ' ' << cir2.getZero().size() << ' ' << cir1.getOne().size() << ' ' << cir2.getOne().size() << endl;
     cout << "First matching:" << inputMatchPair.size() << ' ' << outputMatchPair.size() <<endl;
     removeNonSupport(inputMatchPair, outputMatchPair);
     removeNonMatch(inputMatchPair, outputMatchPair);
@@ -329,15 +339,16 @@ void LargeScale::SAT_Solver(vector<pair<string, string> > &inputMatch, vector<pa
             string tmp;
             pf >> AIGIdx >> tmp >> CNFIdx;
             //TODO deal AIGIdx == 0 or 1 and new output format
-            CNFToAIG[CNFIdx] = miter.inputFromIndexToName(AIGIdx / 2);
+//            CNFToAIG[CNFIdx] = miter.inputFromIndexToName(AIGIdx / 2);
         }
         pf.close();
         vector<bool> inputVector1, inputVector2;
         inputVector1.resize(cir1.getInputNum());
         inputVector2.resize(cir1.getInputNum());
         for(int i = 0 ; i < result.inputSize ; i++){
-            inputVector1[cir1.inputIdxToOrder(cir1.getIdx(CNFToAIG[i + 1]))] = (result.input[i] > 0 ? 1 : 0);
-            inputVector2[cir2.inputIdxToOrder(cir2.getIdx(CNFToAIG[i + 1]))] = (result.input[i] > 0 ? 1 : 0);
+            // TODO need to fit new input format
+//            inputVector1[cir1.inputIdxToOrder(cir1.getIdx(CNFToAIG[i + 1]))] = (result.input[i] > 0 ? 1 : 0);
+//            inputVector2[cir2.inputIdxToOrder(cir2.getIdx(CNFToAIG[i + 1]))] = (result.input[i] > 0 ? 1 : 0);
         }
         vector<bool> outputVector1 = cir1.generateOutput(inputVector1);
         vector<bool> outputVector2 = cir2.generateOutput(inputVector2);

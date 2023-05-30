@@ -20,10 +20,10 @@ void AIG::parseRaw() {
     for(int i = 0 ; i < inputNum ; i++){
         int inpNum;
         ss >> inpNum;
-        tree[inpNum / 2].isInput = true;
         indexMap.push_back(inpNum / 2);
-        inputIndexMapInv[inpNum / 2] = indexMap.size() - 1;
         invMap.push_back(inpNum % 2);
+        inputIndexMapInv[inpNum / 2].push_back(indexMap.size() - 1);
+        tree[inpNum / 2].isInput = true;
         tree[inpNum / 2].exist = true;
     }
     for(int i = 0 ; i < outputNum ; i++){
@@ -59,7 +59,7 @@ void AIG::parseRaw() {
         string portName = cirName + b;
         nameMap[portName] = indexMap[idx];
         if(idx < inputNum){
-            inputNameMapInv[indexMap[idx]] = portName;
+            inputNameMapInv[indexMap[idx]].push_back(portName);
         }else{
             outputNameMapInv[indexMap[idx]].push_back(portName);
         }
@@ -71,12 +71,50 @@ void AIG::parseRaw() {
                 zero.push_back(portName);
             }
         }else if(idx >= inputNum && tree[indexMap[idx]].isInput){
-            wire.push_back(pair<string,string>(portName, inputNameMapInv[indexMap[idx]]));
+            string inputName;
+            for(auto _inputName : inputNameMapInv[indexMap[idx]]){
+                if(nameMap[_inputName] == idx){
+                    inputName = _inputName;
+                }
+            }
+            wire.push_back(pair<string,string>(portName, inputName));
         }
         idx++;
     }
 
     return;
+}
+
+void AIG::addNegative() {
+    int oldNum = inputNum;
+    for(int i = inputNum ; i < inputNum + outputNum ; i++){
+        for(auto &idx : outputIndexMapInv[indexMap[i]]){
+            idx += inputNum;
+        }
+    }
+    for(int i = 0 ; i < oldNum ; i++){
+        int newOrder = indexMap[i];
+        indexMap.insert(indexMap.begin() + inputNum, newOrder);
+        invMap.insert(invMap.begin() + inputNum, !invMap[i]);
+        inputIndexMapInv[newOrder].push_back(inputNum);
+        string newName = orderToName[i] + '\'';
+        nameMap[newName] = indexMap[inputNum];
+        inputNameMapInv[indexMap[inputNum]].push_back(newName);
+        orderToName.insert(orderToName.begin() + inputNum, newName);
+        inputNum++;
+    }
+    oldNum = inputNum + outputNum;
+    for(int i = inputNum ; i < oldNum ; i++){
+        int newOrder = indexMap[i];
+        indexMap.push_back(newOrder);
+        invMap.push_back(!invMap[i]);
+        outputIndexMapInv[newOrder].push_back(indexMap.size() - 1);
+        string newName = orderToName[i] + '\'';
+        nameMap[newName] = indexMap[indexMap.size() - 1];
+        outputNameMapInv[indexMap[indexMap.size() - 1]].push_back(newName);
+        orderToName.push_back(newName);
+        outputNum++;
+    }
 }
 
 void AIG::findSupport() {
@@ -115,7 +153,13 @@ vector<bool> AIG::generateOutput(vector<bool> input) {
 
 bool AIG::recursiveGenerateOutput(int now, vector<int> &signal, vector<bool> &input) {
     if(tree[now].isInput){
-        return (invMap[inputIndexMapInv[now]] ? !input[inputIndexMapInv[now]] : input[inputIndexMapInv[now]]);
+        int order;
+        for(auto _order : inputIndexMapInv[now]){
+            if(indexMap[_order] == now){
+                order = _order;
+            }
+        }
+        return (invMap[order] ? !input[order] : input[order]);
     }
     if(tree[now].l == -1 && tree[now].r == -1){
         return false;
@@ -135,7 +179,9 @@ set<string> AIG::getSupport(int idx) {
     set<string> re;
     for(auto &i : support[idx]){
         if(tree[i].isInput){
-            re.insert(inputNameMapInv[i]);
+            for(auto inputName : inputNameMapInv[i]){
+                re.insert(inputName);
+            }
         }else{
             for(auto &outputName : outputNameMapInv[i]){
                 re.insert(outputName);
@@ -153,8 +199,10 @@ int AIG::getIdx(string name) {
 }
 
 void AIG::Debug() {
-    for(int i = 0 ; i < inputNum + outputNum ; i++){
-        cout << i << ' ' << invMap[i] << endl;
+    for(auto supportVar : support){
+        for(auto port : supportVar.second){
+            cout << "SUP:" << supportVar.first << ' ' << port << endl;
+        }
     }
 }
 
@@ -170,7 +218,7 @@ int AIG::getOutputNum() {
     return outputNum;
 }
 
-int AIG::inputIdxToOrder(int idx) {
+const vector<int> & AIG::inputIdxToOrder(int idx) {
     return inputIndexMapInv[idx];
 }
 
@@ -207,7 +255,13 @@ void AIG::changeName(string oldName, string newName) {
             int tmpIdx = nameMap[oldName];
             nameMap[newName] = tmpIdx;
             if(tree[tmpIdx].isInput){
-                inputNameMapInv[tmpIdx] = newName;
+                string inputName;
+                for(auto &_inputName : inputNameMapInv[indexMap[tmpIdx]]){
+                    if(nameMap[_inputName] == tmpIdx){
+                        _inputName = newName;
+                        break;
+                    }
+                }
             }else{
                 for(auto &outputName : outputNameMapInv[tmpIdx]){
                     if(outputName == oldName){
@@ -229,10 +283,21 @@ void AIG::erasePort(vector<string> nameList) {
         }
 
         unsigned int nodeIdx = nameMap[name];
-        if(tree[nodeIdx].isInput && name == inputNameMapInv[nodeIdx]){
+        bool isInputName = false;
+        for(auto _name : inputNameMapInv[nodeIdx]){
+            if(name == _name){
+                isInputName = true;
+                break;
+            }
+        }
+        if(tree[nodeIdx].isInput && isInputName ){
             inputNum--;
-            unsigned int inputOrder = min(inputIndexMapInv[nodeIdx], (int)orderToName.size() - 1);
-            tree[nodeIdx].exist = false;
+
+            unsigned int inputOrder = 0;
+            for(auto &order : inputIndexMapInv[nodeIdx]){
+                inputOrder = max((int)inputOrder, order);
+            }
+            inputOrder = min((unsigned int)orderToName.size() - 1, inputOrder);
             nameMap.erase(name);
             inputNameMapInv.erase(nodeIdx);
             while (orderToName[inputOrder] != name){
@@ -255,7 +320,7 @@ void AIG::erasePort(vector<string> nameList) {
             inputOrder = min((unsigned int)orderToName.size() - 1, inputOrder);
             while (orderToName[inputOrder] != name){
                 if(inputOrder == 0){
-                    cout << "[AIG] ERROR: Can not found input Name" << "(" << name << ")" << "from orderToName" << endl;
+                    cout << "[AIG] ERROR: Can not found output Name" << "(" << name << ")" << "from orderToName" << endl;
                     exit(1);
                 }
                 inputOrder--;
@@ -282,7 +347,7 @@ void AIG::erasePort(vector<string> nameList) {
     outputIndexMapInv.clear();
     for(unsigned int order = 0 ; order < indexMap.size() ; order++){
         if((int)order < inputNum){
-            inputIndexMapInv[indexMap[order]] = order;
+            inputIndexMapInv[indexMap[order]].push_back(order);
         }else{
             outputIndexMapInv[indexMap[order]].push_back(order);
         }
@@ -319,7 +384,7 @@ void AIG::erasePort(vector<string> nameList) {
     findSupport();
 }
 
-const string &AIG::inputFromIndexToName(int index) {
+const vector<string> & AIG::inputFromIndexToName(int index) {
     return inputNameMapInv[index];
 }
 

@@ -27,10 +27,10 @@ class AIG {
 private:
     int MAXIndex, inputNum, outputNum, latchNum, andNum;
     map<string, int> nameMap; // verilog input name to AIG Node index
-    map<int, string> inputNameMapInv; // AIG Node index to verilog input name
+    map<int, vector<string> > inputNameMapInv; // AIG Node index to verilog input name
     map<int, vector<string> > outputNameMapInv; // AIG Node index to verilog input name
     vector<int> indexMap; // AIG input order to AIG Node index
-    map<int, int> inputIndexMapInv; // AIG Node index to AIG input order
+    map<int, vector<int> > inputIndexMapInv; // AIG Node index to AIG input order
     map<int, vector<int> > outputIndexMapInv; // AIG Node index to AIG input order
     vector<string> orderToName; // AIG input order to verilog name
     vector<bool> invMap; // AIG input order if is inverted
@@ -70,14 +70,14 @@ public:
         parseRaw();
         findSupport();
     }
-    const string &inputFromIndexToName(int index);
+    const vector<string> & inputFromIndexToName(int index);
     const vector<string> &outputFromIndexToName(int idx);
     const string &fromOrderToName(int idx);
     int fromOrderToIndex(int order) const;
     int getInputNum();
     int getOutputNum();
     int getIdx(string name);
-    int inputIdxToOrder(int idx);
+    const vector<int> & inputIdxToOrder(int idx);
     const vector<int> &outputIdxToOrder(int idx);
     bool isInput(int idx);
     set<string> getSupport(int idx);
@@ -88,6 +88,7 @@ public:
     void erasePort(vector<string> nameList);
     const vector<string> &getZero() const;
     const vector<string> &getOne() const;
+    void addNegative();
     void Debug();
 };
 
