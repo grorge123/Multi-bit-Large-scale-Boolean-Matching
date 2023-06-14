@@ -45,9 +45,9 @@ public:
 
     }
     LargeScale(InputStructure input, string outputFilePath) : outputFilePath(outputFilePath), generator(7122), distribution(0, 1){
-        cir1 = Partition(input.cir1AIGPath, "!");
-        cir2 = Partition(input.cir2AIGPath, "@");
-        allOutputNumber = cir2.getOutputNum() + cir1.getOutputNum();
+        cir1 = Partition(input.cir1AIGPath, "!", true);
+        cir2 = Partition(input.cir2AIGPath, "@", true);
+        allOutputNumber = (cir2.getOutputNum() + cir1.getOutputNum()) / 2;
     }
     int start();
     void produceMatchAIG(vector<pair<string, string> > inputMatch, vector<pair<string, string> > outputMatch,

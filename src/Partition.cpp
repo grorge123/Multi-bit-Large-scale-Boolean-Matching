@@ -191,19 +191,19 @@ int Partition::simulationType3(vector<bool> originalOutput, vector<vector<bool>>
 void Partition::removeNonMatch(const set<string> &inputMatch, const set<string> & outputMatch) {
     vector<string> removeVector;
     auto getPort = [&](set<string> match, vector<vector<string> > par) {
-        for (auto clusters = par.begin(); clusters != par.end();) {
-            for (auto cluster = clusters->begin(); cluster != clusters->end();) {
-                if (match.find(*cluster) == match.end()) {
-                    removeVector.push_back(*cluster);
-                    cluster = clusters->erase(cluster);
+        for (auto cluster = par.begin(); cluster != par.end();) {
+            for (auto port = cluster->begin(); port != cluster->end();) {
+                if (match.find(*port) == match.end()) {
+                    removeVector.push_back(*port);
+                    port = cluster->erase(port);
                 } else {
-                    cluster++;
+                    port++;
                 }
             }
-            if (clusters->size() == 0) {
-                clusters = par.erase(clusters);
+            if (cluster->size() == 0) {
+                cluster = par.erase(cluster);
             } else {
-                clusters++;
+                cluster++;
             }
         }
     };

@@ -15,7 +15,7 @@ class Partition : public AIG {
                                   map<string, size_t> &hashTable);
 public:
     Partition(){};
-    Partition(string fileName, string cirName="") : AIG(fileName, cirName) {
+    Partition(string fileName, string cirName = "", bool addNegative = false) : AIG(fileName, cirName) {
         vector<string> ve;
         for(int i = 0 ; i < getInputNum() ; i++){
             if(fromOrderToIndex(i) != 0)
@@ -23,7 +23,7 @@ public:
         }
         inputClusters.push_back(ve);
         ve.clear();
-        addNegativeOutput();
+        if(addNegative)addNegativeOutput();
         for(int i = getInputNum() ; i < getInputNum() + getOutputNum() ; i++){
             if(fromOrderToIndex(i) != 0)
                 ve.push_back(fromOrderToName(i));

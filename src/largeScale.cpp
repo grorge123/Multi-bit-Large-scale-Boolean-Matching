@@ -170,7 +170,8 @@ int LargeScale::start() {
 vector<pair<string, string>>
 LargeScale::removeNonSingleton(const vector<vector<string>> &par1, const vector<vector<string>> &par2) {
     vector<pair<string, string> > result;
-    vector<string> nonSingleton1, nonSingleton2;
+    vector<string> nonSingleton1;
+    map<size_t, string>nonSingleton2;
     for(unsigned int i = 0 ; i < par1.size() ; i++){
         if(par1[i].size() == 1){
             nonSingleton1.push_back(par1[i][0]);
@@ -178,41 +179,13 @@ LargeScale::removeNonSingleton(const vector<vector<string>> &par1, const vector<
     }
     for(unsigned int i = 0 ; i < par2.size() ; i++){
         if(par2[i].size() == 1){
-            nonSingleton2.push_back(par2[i][0]);
+            nonSingleton2.insert(pair<size_t ,string>(hashTable[par2[i][0]], par2[i][0]));
         }
     }
-    vector<vector<int> > LCS, prev;
-    LCS.resize(nonSingleton1.size() + 1);
-    prev.resize(nonSingleton1.size() + 1);
-    for(unsigned int i = 0 ; i <= nonSingleton1.size() ; i++){
-        LCS[i].resize(nonSingleton2.size() + 1);
-        prev[i].resize(nonSingleton2.size() + 1);
-    }
-    for(unsigned int i = 1 ; i <= nonSingleton1.size() ; i++){
-        for(unsigned int q = 1 ; q <= nonSingleton2.size() ; q++){
-            if(hashTable[nonSingleton1[i - 1]] == hashTable[nonSingleton2[q - 1]]){
-                LCS[i][q] = LCS[i - 1][q - 1] + 1;
-                prev[i][q] = 0;
-            }else{
-                if(LCS[i - 1][q] > LCS[i][q - 1]){
-                    LCS[i][q] = LCS[i - 1][q];
-                    prev[i][q] = 1;
-                }else{
-                    LCS[i][q] = LCS[i][q - 1];
-                    prev[i][q] = 2;
-                }
-            }
-        }
-    }
-    unsigned int l = LCS[nonSingleton1.size()][nonSingleton2.size()], x = nonSingleton1.size(), y = nonSingleton2.size();
-    while (l > 0){
-        if(prev[x][y] == 0){
-            result.push_back(pair<string,string> (nonSingleton1[x - 1], nonSingleton2[y - 1]));
-            l--;x--;y--;
-        }else if(prev[x][y] == 1){
-            x--;
-        }else if(prev[x][y] == 2){
-            y--;
+    for(auto port : nonSingleton1){
+        if(port.back() == '\'')continue;
+        if(nonSingleton2.find(hashTable[port]) != nonSingleton2.end()){
+            result.push_back(pair<string, string> (port, nonSingleton2[hashTable[port]]));
         }
     }
     return result;

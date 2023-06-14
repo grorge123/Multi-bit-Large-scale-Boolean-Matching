@@ -350,15 +350,25 @@ const vector<int> &AIG::outputIdxToOrder(int idx) {
 void AIG::addNegativeOutput() {
     int oldNum = inputNum + outputNum;
     for(int i = inputNum ; i < oldNum ; i++){
-        int newOrder = indexMap[i];
-        indexMap.push_back(newOrder);
+        int newIndex = indexMap[i];
+        indexMap.push_back(newIndex);
+        int newOrder = indexMap.size() - 1;
         invMap.push_back(!invMap[i]);
-        outputIndexMapInv[newOrder].push_back(indexMap.size() - 1);
+        outputIndexMapInv[newIndex].push_back(newOrder);
         string newName = orderToName[i] + '\'';
-        nameMap[newName] = indexMap[indexMap.size() - 1];
-        outputNameMapInv[indexMap[indexMap.size() - 1]].push_back(newName);
+        nameMap[newName] = indexMap[newOrder];
+        outputNameMapInv[indexMap[newOrder]].push_back(newName);
         orderToName.push_back(newName);
         outputNum++;
+        if(indexMap[newOrder] == 0){
+            if(invMap[newOrder]){
+                one.push_back(newName);
+            }else{
+                zero.push_back(newName);
+            }
+        }else if(tree[indexMap[newOrder]].isInput){
+            wire.push_back(pair<string,string>(newName, inputNameMapInv[indexMap[newOrder]]));
+        }
     }
 }
 
