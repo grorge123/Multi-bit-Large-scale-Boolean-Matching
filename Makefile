@@ -14,21 +14,21 @@ src = $(wildcard $(src_dir)/*.cpp)
 header = $(wildcard $(src_dir)/*.h)
 obj = $(patsubst $(src_dir)/%.cpp, $(obj_dir)/%.o, $(src))
 
-all:$(obj) $(LIB) $(header) initDir
+all:$(obj) $(LIB) $(header)
 	$(CC) $(CFLAGS) -o $(exe) $(obj) $(LIB)
 
 initDir:
 	mkdir -p $(obj_dir)
 
-$(obj_dir)/%.o: $(src_dir)/%.cpp $(header)
+$(obj_dir)/%.o: $(src_dir)/%.cpp $(header) initDir
 	$(CC) $(CFLAGS) -c $< -o $@
 
 lib/libabc.a:
-	$(MAKE) -C "lib/abc/" libabc.a ABC_USE_NO_PTHREADS=1 ABC_USE_NO_READLINE=1
+	$(MAKE) -j -C "lib/abc/" libabc.a ABC_USE_NO_PTHREADS=1 ABC_USE_NO_READLINE=1
 	mv lib/abc/libabc.a lib/
 
 lib/libkissat.a:
-	$(MAKE) -C "lib/SATsolver/build" libkissat.a
+	$(MAKE) -j -C "lib/SATsolver/build" libkissat.a
 	mv lib/SATsolver/build/libkissat.a lib/
 	$(MAKE) -C "lib/SATsolver/build" clean
 
