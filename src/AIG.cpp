@@ -12,10 +12,12 @@ void AIG::parseRaw() {
     ss << raw;
     string tag;
     ss >> tag >> MAXIndex >> inputNum >> latchNum >> outputNum >> andNum;
+#ifdef DBG
     if(tag != "aag" || latchNum != 0){
         cout << "ERROR: Can not parse AIG." << endl;
         exit(1);
     }
+#endif
     tree.resize(MAXIndex+1);
     for(int i = 0 ; i < inputNum ; i++){
         int inpNum;
@@ -224,10 +226,11 @@ void AIG::changeName(string oldName, string newName) {
 void AIG::erasePort(vector<string> nameList) {
     int removeAnd = 0;
     for(auto &name : nameList){
+#ifdef DBG
         if(nameMap.find(name) == nameMap.end()){
             cout << "[AIG] ERROR: not found port" << endl;
         }
-
+#endif
         unsigned int nodeIdx = nameMap[name];
         if(tree[nodeIdx].isInput && name == inputNameMapInv[nodeIdx]){
             inputNum--;
@@ -236,10 +239,12 @@ void AIG::erasePort(vector<string> nameList) {
             nameMap.erase(name);
             inputNameMapInv.erase(nodeIdx);
             while (orderToName[inputOrder] != name){
+#ifdef DBG
                 if(inputOrder == 0){
                     cout << "[AIG] ERROR: Can not found input Name" << "(" << name << ")" << "from orderToName" << endl;
                     exit(1);
                 }
+#endif
                 inputOrder--;
             }
             indexMap.erase(indexMap.begin() + inputOrder);
@@ -254,10 +259,12 @@ void AIG::erasePort(vector<string> nameList) {
             }
             inputOrder = min((unsigned int)orderToName.size() - 1, inputOrder);
             while (orderToName[inputOrder] != name){
+#ifdef DBG
                 if(inputOrder == 0){
                     cout << "[AIG] ERROR: Can not found input Name" << "(" << name << ")" << "from orderToName" << endl;
                     exit(1);
                 }
+#endif
                 inputOrder--;
             }
             nameMap.erase(name);

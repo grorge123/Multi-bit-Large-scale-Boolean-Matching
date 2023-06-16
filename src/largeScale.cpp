@@ -138,10 +138,10 @@ int LargeScale::start() {
     cir1.erasePort(cir1.getOne());
     cir2.erasePort(cir2.getOne());
 
-//    cir1.print(hashTable);
-//    cir2.print(hashTable);
+#ifdef INF
     cout << cir1.getZero().size() << ' ' << cir2.getZero().size() << ' ' << cir1.getOne().size() << ' ' << cir2.getOne().size() << endl;
     cout << "First matching:" << inputMatchPair.size() << ' ' << outputMatchPair.size() <<endl;
+#endif
     removeNonSupport(inputMatchPair, outputMatchPair);
     removeNonMatch(inputMatchPair, outputMatchPair);
     SAT_Solver(inputMatchPair, outputMatchPair);
@@ -162,7 +162,9 @@ int LargeScale::start() {
         outputStructure.outputGroups.push_back(group);
         matchNumber += 2;
     }
+#ifdef INF
     cout << "Large Scale matching port number: " << matchNumber << "(" << (float)matchNumber / allOutputNumber * 100 << "%)" << endl;
+#endif
     parseOutput(outputFilePath, outputStructure);
     if(matchNumber == allOutputNumber)return -1;
     return  matchNumber;
@@ -276,15 +278,19 @@ void LargeScale::SAT_Solver(vector<pair<string, string> > &inputMatch, vector<pa
     stdout = fopen(resultPath.c_str(), "a");
     if (stdout != NULL) {
         if (Cmd_CommandExecute(pAbc, abcCmd.c_str())){
+#ifdef DBG
             cout << "[LargeScale] ERROR:Cannot execute command \"" << abcCmd << "\".\n";
             exit(1);
+#endif
         }
         fflush(stdout);
         fclose(stdout);
         stdout = saveStdout;
     } else {
+#ifdef DBG
         cout << "[LargeScale] ERROR:Can't write file:" << resultPath << endl;
         exit(1);
+#endif
     }
     char miterAIG[]{"miter.aig"};
     char miterCNF[]{"miter.cnf"};
@@ -293,7 +299,7 @@ void LargeScale::SAT_Solver(vector<pair<string, string> > &inputMatch, vector<pa
     if(result.satisfiable){
         // TODO Not test
         cout << "Not Implement" << endl;
-        exit(1);
+        while (true);
         AIG miter("miter.aig");
         ifstream pf("miter.cnf");
         string symbol;
@@ -358,10 +364,12 @@ void LargeScale::produceMatchAIG(vector<pair<string, string> > inputMatch, vecto
     fputs(newAIG.getRaw().c_str(), fp);
     fclose(fp);
     const char *err_msg = aiger_open_and_read_from_file(aig, tmpFilePath1.c_str());
+#ifdef DBG
     if(err_msg != nullptr){
         cout << "[LargeScale]ERROR: " << err_msg << endl;
         exit(1);
     }
+#endif
     fp = fopen(savePath2.c_str(), "w");
     aiger_write_to_file(aig, aiger_binary_mode, fp);
     fclose(fp);
@@ -372,10 +380,12 @@ void LargeScale::produceMatchAIG(vector<pair<string, string> > inputMatch, vecto
     fputs(cir1.getRaw().c_str(), fp);
     fclose(fp);
     const char *err_msg2 = aiger_open_and_read_from_file(aig, tmpFilePath2.c_str());
+#ifdef DBG
     if(err_msg2 != nullptr){
         cout << "[LargeScale]ERROR: " << err_msg2 << endl;
         exit(1);
     }
+#endif
     fp = fopen(savePath1.c_str(), "w");
     aiger_write_to_file(aig, aiger_binary_mode, fp);
     fclose(fp);

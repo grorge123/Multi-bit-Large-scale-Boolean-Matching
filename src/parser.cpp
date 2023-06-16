@@ -76,19 +76,25 @@ InputStructure parseInput(string inputPath) {
         string cmd1 = produceABCCommand(cir1VerilogPath, result.cir1AIGPath);
         string cmd2 = produceABCCommand(cir2VerilogPath, result.cir2AIGPath);
         if (Cmd_CommandExecute(pAbc, cmd1.c_str())){
+#ifdef DBG
             cout << "[parser] ERROR:Cannot execute command \"" << cmd1 << "\".\n";
             exit(1);
+#endif
         }
         if (Cmd_CommandExecute(pAbc, cmd2.c_str())){
+#ifdef DBG
             cout << "[parser] ERROR:Cannot execute command \"" << cmd2 << "\".\n";
             exit(1);
+#endif
         }
         fflush(stdout);
         fclose(stdout);
         stdout = saveStdout;
     } else {
+#ifdef DBG
         cout << "[parser] ERROR:Can't write file:" << resultPath << endl;
         exit(1);
+#endif
     }
     return result;
 }
