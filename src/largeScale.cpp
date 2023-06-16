@@ -122,11 +122,13 @@ int LargeScale::start() {
     vector<pair<string, string>> outputMatchPair = removeNonSingleton(cir1.getOutputClusters(),
                                                                       cir2.getOutputClusters());
     for(auto &port : cir1.getZero()){
+        if(port.back() == '\'')continue;
         for(auto &port2 : cir2.getZero()){
             outputMatchPair.push_back(pair<string,string>{port, port2});
         }
     }
     for(auto &port : cir1.getOne()){
+        if(port.back() == '\'')continue;
         for(auto &port2 : cir2.getOne()){
             outputMatchPair.push_back(pair<string,string>{port, port2});
         }

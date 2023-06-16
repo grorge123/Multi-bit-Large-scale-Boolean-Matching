@@ -1,7 +1,7 @@
 CC := g++
 exe := main
 #obj := main.o statistic.o evaluate.o utility.o
-CFLAGS := -std=c++17 -O2 -Wall -Wextra
+CFLAGS := -std=c++17 -O2 -Wall -Wextra -static
 SANITIZE := -fsanitize=undefined -fsanitize=address
 LINK := -lm -ldl -lreadline
 LIB := lib/libabc.a lib/libkissat.a lib/aiger.o
@@ -15,7 +15,7 @@ header = $(wildcard $(src_dir)/*.h)
 obj = $(patsubst $(src_dir)/%.cpp, $(obj_dir)/%.o, $(src))
 
 all:$(obj) $(LIB) $(header)
-	$(CC) $(CFLAGS) -o $(exe) $(obj) $(LIB)
+	$(CC) $(CFLAGS) -o $(exe) $(obj) $(LIB) $(LINK)
 
 initDir:
 	mkdir -p $(obj_dir)
