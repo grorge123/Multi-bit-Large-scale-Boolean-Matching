@@ -1,6 +1,6 @@
 [submodule "lib/abc"]
 	path = lib/abc
-	url = https://github.com/berkeley-abc/abc.git
+	url = https://github.com/grorge123/abc.git
 [submodule "lib/aiger"]
 	path = lib/aiger
 	url = https://github.com/zimmski/aiger.git
