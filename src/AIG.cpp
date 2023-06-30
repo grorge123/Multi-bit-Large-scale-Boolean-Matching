@@ -379,3 +379,8 @@ void AIG::addNegativeOutput() {
     }
 }
 
+set<string> AIG::getFunSupport(string name) {
+    //TODO change to functional support
+    return getSupport(name);
+}
+

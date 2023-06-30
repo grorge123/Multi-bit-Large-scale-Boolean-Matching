@@ -82,6 +82,7 @@ public:
     bool isInput(int idx);
     set<string> getSupport(int idx);
     set<string> getSupport(string name);
+    set<string> getFunSupport(string name);
     vector<bool> generateOutput(vector<bool> input);
     const string &getRaw();
     void changeName(string oldName, string newName);
@@ -89,6 +90,7 @@ public:
     const vector<string> &getZero() const;
     const vector<string> &getOne() const;
     void addNegativeOutput();
+
     void Debug();
 };
 
