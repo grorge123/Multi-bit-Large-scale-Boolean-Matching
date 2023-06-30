@@ -26,6 +26,6 @@ struct OutputStructure{
     vector<string> one, zero;
 };
 string produceABCCommand(string inputPath, string outputPath);
-InputStructure parseInput(string inputPath);
+InputStructure parseInput(const string& inputPath);
 void parseOutput(string outputPath, OutputStructure result);
 #endif //MULTI_BIT_LARGE_SCALE_BOOLEAN_MATCHING_PARSER_H

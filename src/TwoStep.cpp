@@ -3,6 +3,7 @@
 //
 #include <chrono>
 #include <functional>
+#include <utility>
 #include "TwoStep.h"
 
 
@@ -19,7 +20,6 @@ void TwoStep::start() {
             if(!projection){
                 projection = true;
             }else{
-                forbid.insert(VectorHash<MP>().doHash(R));
                 R.pop_back();
                 outputSolverPop();
                 projection = false;
@@ -28,7 +28,6 @@ void TwoStep::start() {
         }
         bool satisfied = inputSolver();
         if(satisfied){
-            forbid.insert(VectorHash<MP>().doHash(R));
             R.pop_back();
             outputSolverPop();
             if(static_cast<int>(R.size() * 2) == allOutputNumber)optimal = true;
@@ -74,7 +73,7 @@ MP TwoStep::outputSolver(bool projection) {
             for(int i = 0 ; i < static_cast<int>(cir2Output.size()) ; i++){
                 for(int q = 0 ; q < static_cast<int>(cir1Output.size()) ; q += 2){
                     if(groupId[i] != groupId[q / 2]){
-                        initVe[i][q] = initVe[i][q + 1] = 0;
+                        initVe[i][q] = initVe[i][q + 1] = false;
                     }
                 }
             }
@@ -97,10 +96,7 @@ MP TwoStep::outputSolver(bool projection) {
             }
         }
     }
-#ifdef DBG
-    cout << "[TwoStep] ERROR: can not handle output solver.\n";
-            exit(1);
-#endif
+    return {};
 }
 
 
@@ -116,7 +112,7 @@ bool TwoStep::inputSolver() {
     return false;
 }
 
-bool TwoStep::heuristicsOrderCmp(string a, string b) {
+bool TwoStep::heuristicsOrderCmp(const string& a, const string& b) {
 
     std::function<std::set<std::string>(std::string)> funSupport;
     if (a[0] == '!') {
@@ -124,16 +120,16 @@ bool TwoStep::heuristicsOrderCmp(string a, string b) {
     } else {
         funSupport = [this](auto && PH1) { return cir2.getFunSupport(std::forward<decltype(PH1)>(PH1)); };
     }
-    int funSupportSizeA = funSupport(a).size();
-    int funSupportSizeB = funSupport(b).size();
+    int funSupportSizeA = static_cast<int>(funSupport(a).size());
+    int funSupportSizeB = static_cast<int>(funSupport(b).size());
     std::function<std::set<std::string>(std::string)> strSupport;
     if (a[0] == '!') {
-        strSupport = [=](std::string name) { return cir1.getSupport(name); };
+        strSupport = [=](std::string name) { return cir1.getSupport(std::move(name)); };
     } else {
-        strSupport = [=](std::string name) { return cir2.getSupport(name); };
+        strSupport = [=](std::string name) { return cir2.getSupport(std::move(name)); };
     }
-    int strSupportSizeA = strSupport(a).size();
-    int strSupportSizeB = strSupport(b).size();
+    int strSupportSizeA = static_cast<int>(strSupport(a).size());
+    int strSupportSizeB = static_cast<int>(strSupport(b).size());
 
     if(funSupportSizeA == funSupportSizeB){
         return strSupportSizeA < strSupportSizeB;

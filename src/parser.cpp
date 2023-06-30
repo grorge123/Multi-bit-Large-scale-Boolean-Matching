@@ -32,7 +32,7 @@ void removeGateNames(const std::string& filePath) {
 }
 
 
-InputStructure parseInput(string inputPath) {
+InputStructure parseInput(const string& inputPath) {
     InputStructure result;
     ifstream inputFile;
     inputFile.open(inputPath);
@@ -64,8 +64,8 @@ InputStructure parseInput(string inputPath) {
         }
         result.cir2Bus.push_back(busVector);
     }
-    removeGateNames(cir1VerilogPath);
-    removeGateNames(cir2VerilogPath);
+//    removeGateNames(cir1VerilogPath);
+//    removeGateNames(cir2VerilogPath);
     result.cir1AIGPath = cir1VerilogPath + ".aig";
     result.cir2AIGPath = cir2VerilogPath + ".aig";
     string resultPath = "stdoutOutput.txt";

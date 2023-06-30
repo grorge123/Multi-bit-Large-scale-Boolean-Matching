@@ -75,12 +75,12 @@ LargeScale::generateInput() {
         for(auto cluster2 : cir2.getInputClusters()){
             if(hashTable[cluster1[0]] == hashTable[cluster2[0]]){
                 bool genBool = distribution(generator);
-                for(auto port : cluster1){
+                for(const auto& port : cluster1){
                     int order = cir1.inputIdxToOrder(cir1.getIdx(port));
                     input1[order] = genBool;
                     set1[order] = true;
                 }
-                for(auto port : cluster2){
+                for(const auto& port : cluster2){
                     int order = cir2.inputIdxToOrder(cir2.getIdx(port));
                     input2[order] = genBool;
                     set2[order] = true;
@@ -106,7 +106,7 @@ int LargeScale::start() {
     cir2.initialRefinement(initialInputRecord2, initialOutputRecord2);
     dealRecord(initialInputRecord1, initialInputRecord2, true);
     dealRecord(initialOutputRecord1, initialOutputRecord2, false);
-    int change = 0;
+    int change;
     do{
         vector<vector<set<size_t> > > dependencyInputRecord1, dependencyOutputRecord1;
         vector<vector<set<size_t> > > dependencyInputRecord2, dependencyOutputRecord2;
@@ -124,13 +124,13 @@ int LargeScale::start() {
     for(auto &port : cir1.getZero()){
         if(port.back() == '\'')continue;
         for(auto &port2 : cir2.getZero()){
-            outputMatchPair.push_back(pair<string,string>{port, port2});
+            outputMatchPair.emplace_back(port, port2);
         }
     }
     for(auto &port : cir1.getOne()){
         if(port.back() == '\'')continue;
         for(auto &port2 : cir2.getOne()){
-            outputMatchPair.push_back(pair<string,string>{port, port2});
+            outputMatchPair.emplace_back(port, port2);
         }
     }
     cir1.erasePort(cir1.getZero());
@@ -163,7 +163,7 @@ int LargeScale::start() {
         matchNumber += 2;
     }
 #ifdef INF
-    cout << "Large Scale matching port number: " << matchNumber << "(" << (float)matchNumber / allOutputNumber * 100 << "%)" << endl;
+    cout << "Large Scale matching port number: " << matchNumber << "(" << (float)matchNumber / (float)allOutputNumber * 100 << "%)" << endl;
 #endif
     parseOutput(outputFilePath, outputStructure);
     if(matchNumber == allOutputNumber)return -1;
@@ -176,27 +176,27 @@ LargeScale::removeNonSingleton(const vector<vector<string>> &par1, const vector<
     vector<pair<string, string> > result;
     vector<string> nonSingleton1;
     map<size_t, string>nonSingleton2;
-    for(unsigned int i = 0 ; i < par1.size() ; i++){
-        if(par1[i].size() == 1){
-            nonSingleton1.push_back(par1[i][0]);
+    for(const auto & i : par1){
+        if(i.size() == 1){
+            nonSingleton1.push_back(i[0]);
         }
     }
-    for(unsigned int i = 0 ; i < par2.size() ; i++){
-        if(par2[i].size() == 1){
-            nonSingleton2.insert(pair<size_t ,string>(hashTable[par2[i][0]], par2[i][0]));
+    for(const auto & i : par2){
+        if(i.size() == 1){
+            nonSingleton2.insert(pair<size_t ,string>(hashTable[i[0]], i[0]));
         }
     }
     for(auto port : nonSingleton1){
         if(port.back() == '\'')continue;
         if(nonSingleton2.find(hashTable[port]) != nonSingleton2.end()){
-            result.push_back(pair<string, string> (port, nonSingleton2[hashTable[port]]));
+            result.emplace_back(port, nonSingleton2[hashTable[port]]);
         }
     }
     return result;
 }
 
 void LargeScale::removeNonSupport(vector<pair<string, string>> &inputMatch, vector<pair<string, string>> &outputMatch) {
-    int change = 0;
+    int change;
     set<string> inputMap1, outputMap1;
     set<string> inputMap2, outputMap2;
     for(auto &match: inputMatch){
@@ -261,11 +261,10 @@ void LargeScale::removeNonSupport(vector<pair<string, string>> &inputMatch, vect
             }
         }
     } while (change != 0);
-    return;
 }
 
 void LargeScale::SAT_Solver(vector<pair<string, string> > &inputMatch, vector<pair<string, string> > &outputMatch) {
-    if(outputMatch.size() == 0)return;
+    if(outputMatch.empty())return;
     string savePath1 = "save1.aig";
     string savePath2 = "save2.aig";
 
