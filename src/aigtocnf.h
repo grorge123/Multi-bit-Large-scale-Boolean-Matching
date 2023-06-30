@@ -9,7 +9,7 @@ extern "C" {
 #endif
 
 // C struct declaration
-void aigtocnf(char * fileName, char * outputName);
+void aigtocnf(const char *fileName, const char *outputName);
 #ifdef __cplusplus
 }
 #endif

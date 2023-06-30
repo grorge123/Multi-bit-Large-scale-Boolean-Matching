@@ -215,12 +215,14 @@ int _aigtocnf (int argc, char **argv){
     return res;
 }
 
-void aigtocnf(char * fileName, char * outputName){
+void aigtocnf(const char *fileName, const char *outputName){
     int argc = 4;
     char* argv[4];
     char arg[] = "-m";
-    argv[1] = fileName;
-    argv[2] = outputName;
+    argv[1] = (char*)malloc(sizeof(char) * strlen(fileName) + 1);
+    strcpy(argv[1], fileName);
+    argv[2] = (char*)malloc(sizeof(char) * strlen(outputName) + 1);
+    strcpy(argv[2], outputName);
     argv[3] = arg;
     _aigtocnf(argc, argv);
     return;

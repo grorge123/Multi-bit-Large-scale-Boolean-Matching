@@ -8,7 +8,7 @@ struct solverResult{
     int* input;
     int inputSize;
 };
-solverResult SAT_solver (char* fileName);
+solverResult SAT_solver (const char* fileName);
 #ifdef __cplusplus
 }
 #endif
