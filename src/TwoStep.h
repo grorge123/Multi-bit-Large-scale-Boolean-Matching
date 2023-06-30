@@ -5,18 +5,25 @@
 #ifndef MULTI_BIT_LARGE_SCALE_BOOLEAN_MATCHING_TWOSTEP_H
 #define MULTI_BIT_LARGE_SCALE_BOOLEAN_MATCHING_TWOSTEP_H
 
-#include "Partition.h"
+#include <stack>
 #include "parser.h"
 #include "AIG.h"
+typedef pair<string, string> MP;
 class TwoStep {
-    typedef pair<string, string> MP;
     string outputFilePath;
-    Partition cir1, cir2;
+    AIG cir1, cir2;
     int allOutputNumber;
+    // output solver
+    stack<MP> backtrace;
+    vector<vector<bool> > initVe;
+    vector<int> cir1Choose; // how many number be chosen by cir2 port
+    vector<int> cir2Choose; // choose which cir1 port
+    vector<string> cir1Output, cir2Output;
+    map<string, int> cir1OutputMap, cir2OutputMap;
 
     // hyper parameter
-    int maxRunTime; // ms
-
+    int maxRunTime = 1000 * 3500; // ms
+    bool outputSolverInit = false;
 
     template <typename T>
     struct VectorHash {
@@ -39,22 +46,21 @@ class TwoStep {
         }
     };
     static int nowMs();
-
+    vector<int> generateOutputGroups(vector<string> &f, vector<string> &g);
+    MP outputSolver(bool projection);
+    void outputSolverPop();
+    bool inputSolver();
+    bool heuristicsOrderCmp(string a, string b);
 public:
     TwoStep(){
 
     }
-    TwoStep(Partition cir1, Partition cir2): cir1(cir1), cir2(cir2){
-
-    }
     TwoStep(InputStructure input, string outputFilePath) : outputFilePath(outputFilePath){
-        cir1 = Partition(input.cir1AIGPath, "!", false);
-        cir2 = Partition(input.cir2AIGPath, "@", false);
+        cir1 = AIG(input.cir1AIGPath, "!");
+        cir2 = AIG(input.cir2AIGPath, "@");
         allOutputNumber = (cir2.getOutputNum() + cir1.getOutputNum());
     }
     void start();
-    vector<MP> outputSolver();
-    bool inputSolver();
 };
 
 
