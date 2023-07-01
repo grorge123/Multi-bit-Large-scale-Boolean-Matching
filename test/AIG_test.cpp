@@ -2,6 +2,7 @@
 #include <set>
 #include <bitset>
 #include "../src/AIG.h"
+#include "../src/utility.h"
 vector<bool> top(bool a0, bool a1, bool b1, bool b0, bool c) {
     bool na, a, b, ne, e, d, na0, nb1, nb0;
     bool h0, h1, m0, m1;
@@ -49,11 +50,10 @@ std::vector<bool> intToBoolVector(int n, int m) {
 class AIGCase : public ::testing::Test {
 protected:
     void SetUp() override {
-        aig = AIG("cir1.aig");
-        aig2 = AIG("cir2.aig");
-        aig3 = AIG("cir3.aig");
+        aig = AIG("cir1.aig", 2);
+        aig3 = AIG("cir3.aig", 2);
     }
-    AIG aig, aig2, aig3;
+    AIG aig, aig3;
 };
 
 
@@ -97,7 +97,6 @@ TEST_F(AIGCase, test2){
         vector<bool> input = intToBoolVector(i, 3);
         vector<bool> output2 = top2(input[0], input[1], input[2]);
         vector<bool> output3 = top3(input[0], input[1], input[2]);
-//        ASSERT_EQ(aig2.generateOutput(input), output2);
         ASSERT_EQ(aig3.generateOutput(input), output3);
     }
 }
@@ -153,7 +152,40 @@ TEST_F(AIGCase, test4){
     ASSERT_EQ(aig.getRaw(), raw2);
 }
 
+TEST_F(AIGCase, test5) {
+    set<string> a0 = aig.getFunSupport("a0");
+    set<string> a1 = aig.getFunSupport("a1");
+    set<string> b0 = aig.getFunSupport("b0");
+    set<string> b1 = aig.getFunSupport("b1");
+    set<string> c = aig.getFunSupport("c");
+    set<string> h0 = aig.getFunSupport("h0");
+    set<string> h1 = aig.getFunSupport("h1");
+    set<string> m0 = aig.getFunSupport("m0");
+    set<string> m1 = aig.getFunSupport("m1");
+    set<string> _a0{"h0", "h1"};
+    set<string> _a1{"h1"};
+    set<string> _b1{"h1", "m0"};
+    set<string> _b0{"h0", "h1", "m1", "m0"};
+    set<string> _c{"m0", "m1"};
+    set<string> _h0{"a0", "b0"};
+    set<string> _h1{"a1", "b0", "b1", "a0"};
+    set<string> _m0{"b1", "b0", "c"};
+    set<string> _m1{"b0", "c"};
+    EXPECT_EQ(a0 , _a0);
+    EXPECT_EQ(a1 , _a1);
+    EXPECT_EQ(b0 , _b0);
+    EXPECT_EQ(b1 , _b1);
+    EXPECT_EQ(c , _c);
+    EXPECT_EQ(h0 , _h0);
+    EXPECT_EQ(h1 , _h1);
+    EXPECT_EQ(m0 , _m0);
+    EXPECT_EQ(m1 , _m1);
+}
+
 int main(int argc, char **argv) {
+    Abc_Start();
+    pAbc = Abc_FrameGetGlobalFrame();
     testing::InitGoogleTest(&argc, argv);
+    Abc_Stop();
     return RUN_ALL_TESTS();
 }

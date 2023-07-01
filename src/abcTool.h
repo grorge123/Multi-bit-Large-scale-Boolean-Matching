@@ -36,7 +36,6 @@ Abc_Obj_t * Abc_NtkCo( Abc_Ntk_t * pNtk, int i );
 char * Abc_ObjName( Abc_Obj_t * pObj );
 Vec_Ptr_t *     Sim_ComputeFunSupp( Abc_Ntk_t * pNtk, int fVerbose );
 int IoCommandReadAiger( Abc_Frame_t * pAbc, int argc, char **argv );
-int Abc_CommandPrintSymms( Abc_Frame_t * pAbc, int argc, char ** argv );
 Abc_Ntk_t * Abc_FrameReadNtk( Abc_Frame_t * p );
 
 #if defined(ABC_NAMESPACE)
@@ -49,6 +48,8 @@ using namespace ABC_NAMESPACE;
 
 class ABCTool {
     Abc_Ntk_t *mainNtk{};
+    FILE * stdoutSave();
+    void stdoutRecovery(FILE *saveStdout);
 public:
     explicit ABCTool(string& path){
         init(path);
@@ -56,60 +57,9 @@ public:
     explicit ABCTool(AIG& cir){
         init(cir);
     }
-    void init(string &path){
-        char ** argv = new char *[2];
-        char * pathArr = new char[path.size() + 1];
-        strcpy(pathArr, path.c_str());
-        argv[1] = pathArr;
-        IoCommandReadAiger(pAbc, 2, argv);
-        mainNtk = Abc_FrameReadNtk(pAbc);
-    }
-    void init(AIG &cir){
-        ofstream file;
-        string filename = "abcToolAIG.aag";
-        string filename2 = "abcToolAIG.aig";
-        string content = cir.getRaw();
-
-        file.open(filename);
-        if (file.is_open()) {
-            aiger *aig = aiger_init();
-            FILE *fp = nullptr;
-            fp = fopen(filename.c_str(), "w+");
-            fputs(content.c_str(), fp);
-            fclose(fp);
-            const char *err_msg = aiger_open_and_read_from_file(aig, filename.c_str());
-#ifdef DBG
-            if(err_msg != nullptr){
-                cout << "[abcTool]ERROR: " << err_msg << endl;
-                exit(1);
-            }
-#endif
-            fp = fopen(filename2.c_str(), "w");
-            aiger_write_to_file(aig, aiger_binary_mode, fp);
-            fclose(fp);
-            aiger_reset(aig);
-            init(filename2);
-        } else {
-#ifdef DBG
-            cout << "[abcTool] Error: cant not open file." << endl;
-            exit(1);
-#endif
-        }
-    }
-    map<string, set<string> > funSupport(){
-        Abc_Obj_t * pNode, * pNodeCi;
-        map<string, set<string> > re;
-        int i, v;
-        Vec_Ptr_t * vSuppFun = Sim_ComputeFunSupp( mainNtk, 0 );
-        Abc_NtkForEachCo( mainNtk, pNode, i )
-            Abc_NtkForEachCi( mainNtk, pNodeCi, v ){
-                if(Sim_SuppFunHasVar( vSuppFun, i, v ) != 0){
-                    re[Abc_ObjName(pNode)].insert(Abc_ObjName(pNodeCi));
-                    re[Abc_ObjName(pNodeCi)].insert(Abc_ObjName(pNode));
-                }
-            }
-        return re;
-    }
+    void init(string &path);
+    void init(AIG &cir);
+    map<string, set<string> > funSupport();
 };
 #endif //MULTI_BIT_LARGE_SCALE_BOOLEAN_MATCHING_ABCTOOL_H
 

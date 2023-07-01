@@ -4,6 +4,7 @@
 #include <gtest/gtest.h>
 #include <set>
 #include "../src/Partition.h"
+#include "../src/utility.h"
 class ParCase : public ::testing::Test {
 protected:
     void SetUp() override {
@@ -120,6 +121,9 @@ TEST_F(ParCase, TestSim3){
 //}
 
 int main(int argc, char **argv) {
+    Abc_Start();
+    pAbc = Abc_FrameGetGlobalFrame();
     testing::InitGoogleTest(&argc, argv);
+    Abc_Stop();
     return RUN_ALL_TESTS();
 }
