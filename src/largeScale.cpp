@@ -265,8 +265,8 @@ void LargeScale::removeNonSupport(vector<pair<string, string>> &inputMatch, vect
 
 void LargeScale::SAT_Solver(vector<pair<string, string> > &inputMatch, vector<pair<string, string> > &outputMatch) {
     if(outputMatch.empty())return;
-    string savePath1 = "save1.aig";
-    string savePath2 = "save2.aig";
+    string savePath1 = "largeScaleSave1.aig";
+    string savePath2 = "largeScaleSave2.aig";
 
     produceMatchAIG(inputMatch, outputMatch, savePath1, savePath2);
     //TODO optimize abc command
@@ -299,7 +299,7 @@ void LargeScale::SAT_Solver(vector<pair<string, string> > &inputMatch, vector<pa
         // TODO Not test
         cout << "Not Implement" << endl;
         while (true);
-        AIG miter("miter.aig");
+        AIG miter("miter.aig", 0);
         ifstream pf("miter.cnf");
         string symbol;
         map<int, string> CNFToAIG;
@@ -345,9 +345,9 @@ void LargeScale::SAT_Solver(vector<pair<string, string> > &inputMatch, vector<pa
     }
 }
 
-void LargeScale::produceMatchAIG(vector<pair<string, string> > inputMatch, vector<pair<string, string> > outputMatch,
-                                 string savePath1,
-                                 string savePath2) {
+void LargeScale::produceMatchAIG(const vector<pair<string, string> >& inputMatch, const vector<pair<string, string> >& outputMatch,
+                                 const string& savePath1,
+                                 const string& savePath2) {
     AIG newAIG = cir2;
     for(auto &match : inputMatch){
         newAIG.changeName(match.second, match.first);
@@ -356,8 +356,8 @@ void LargeScale::produceMatchAIG(vector<pair<string, string> > inputMatch, vecto
         newAIG.changeName(match.second, match.first);
     }
     aiger *aig = aiger_init();
-    string  tmpFilePath1 = "tmp1.aig";
-    string  tmpFilePath2 = "tmp2.aig";
+    string  tmpFilePath1 = "largeScaleTmp1.aag";
+    string  tmpFilePath2 = "largeScaleTmp2.aag";
     FILE *fp = nullptr;
     fp = fopen(tmpFilePath1.c_str(), "w+");
     fputs(newAIG.getRaw().c_str(), fp);

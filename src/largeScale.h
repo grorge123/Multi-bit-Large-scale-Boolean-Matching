@@ -50,9 +50,9 @@ public:
         allOutputNumber = (cir2.getOutputNum() + cir1.getOutputNum()) / 2;
     }
     int start();
-    void produceMatchAIG(vector<pair<string, string> > inputMatch, vector<pair<string, string> > outputMatch,
-                         string savePath1,
-                         string savePath2);
+    void produceMatchAIG(const vector<pair<string, string> >& inputMatch, const vector<pair<string, string> >& outputMatch,
+                         const string& savePath1,
+                         const string& savePath2);
     pair<vector<bool>, vector<bool>> generateInput();
     void randomSimulation(int only = 0);
     vector<pair<string, string>> removeNonSingleton(const vector<vector<string>> &par1, const vector<vector<string>> &par2);

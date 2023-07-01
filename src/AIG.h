@@ -35,23 +35,27 @@ private:
     vector<string> orderToName; // AIG input order to verilog name
     vector<bool> invMap; // AIG input order if is inverted
     map<int, set<int> > support; // AIG Node index to support set
+    map<int, set<int> > funSupport; // AIG Node index to support set
     void parseRaw();
     void recursiveFindSupport(int output, int now, vector<bool> &visit);
     bool recursiveGenerateOutput(int now, vector<int>& signal, vector<bool>& input);
     void findSupport();
+    void findFunSupport();
     vector<string> zero, one;
     vector<pair<string,string>> wire; // <output name, input name>
 
 public:
     string cirName;
     AIG(){};
-    AIG(string name, string cirName = "") : cirName(cirName){
+    AIG(string name, int supportType, string cirName = "") : cirName(cirName){
         aiger *input = aiger_init();
         const char *err_msg = aiger_open_and_read_from_file(input, name.c_str());
+#ifdef DBG
         if(err_msg != NULL){
             cout << "[AIG]ERROR: " << err_msg << endl;
             exit(1);
         }
+#endif
         ifstream ifs;
         ifs.open (name.c_str(), ios::binary );
         ifs.seekg (0, ios::end);
@@ -60,15 +64,23 @@ public:
         char* tmp = (char*)malloc(sizeof(char ) * length);
         aiger_mode mode = aiger_ascii_mode;
         int err = aiger_write_to_string(input, mode, tmp, length);
+#ifdef DBG
         if(err != 1){
             cout << "[AIG]ERROR: AIG write error" << endl;
             exit(1);
         }
+#endif
         raw = tmp;
         free(tmp);
+        ifs.close();
         aiger_reset(input);
         parseRaw();
-        findSupport();
+        if (supportType == 0 || supportType == 2) {
+            findSupport();
+        }
+        if(supportType == 1 || supportType == 2){
+            findFunSupport();
+        }
     }
     const string &inputFromIndexToName(int index);
     const vector<string> &outputFromIndexToName(int idx);
@@ -82,6 +94,7 @@ public:
     bool isInput(int idx);
     set<string> getSupport(int idx);
     set<string> getSupport(string name);
+    set<string> getFunSupport(int idx);
     set<string> getFunSupport(string name);
     vector<bool> generateOutput(vector<bool> input);
     const string &getRaw();

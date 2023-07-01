@@ -3,6 +3,7 @@
 //
 
 #include "AIG.h"
+#include "abcTool.h"
 #include "utility.h"
 #include <sstream>
 #include <queue>
@@ -91,6 +92,19 @@ void AIG::findSupport() {
     }
 }
 
+void AIG::findFunSupport() {
+    ABCTool abcT(*this);
+    map<string, set<string> > re = abcT.funSupport();
+    for(auto &funPair : re){
+        set<int> transfer;
+        for(auto &port : funPair.second){
+            transfer.insert(getIdx(port));
+        }
+        funSupport[getIdx(funPair.first)] = transfer;
+    }
+}
+
+
 void AIG::recursiveFindSupport(int output, int now, vector<bool> &visit) {
     if(visit[now])return;
     visit[now] = true;
@@ -149,7 +163,23 @@ set<string> AIG::getSupport(int idx) {
 set<string> AIG::getSupport(string name) {
     return getSupport(getIdx(name));
 }
+set<string> AIG::getFunSupport(int idx){
+    set<string> re;
+    for(auto &i : funSupport[idx]){
+        if(tree[i].isInput){
+            re.insert(inputNameMapInv[i]);
+        }else{
+            for(auto &outputName : outputNameMapInv[i]){
+                re.insert(outputName);
+            }
+        }
+    }
+    return re;
+}
+set<string> AIG::getFunSupport(string name) {
 
+    return getFunSupport(getIdx(name));
+}
 int AIG::getIdx(string name) {
     return nameMap[name];
 }
@@ -379,8 +409,5 @@ void AIG::addNegativeOutput() {
     }
 }
 
-set<string> AIG::getFunSupport(string name) {
-    //TODO change to functional support
-    return getSupport(name);
-}
+
 

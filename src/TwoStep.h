@@ -36,8 +36,8 @@ class TwoStep {
 public:
     TwoStep()= default;
     TwoStep(const InputStructure& input, string outputFilePath) : outputFilePath(std::move(outputFilePath)){
-        cir1 = AIG(input.cir1AIGPath, "!");
-        cir2 = AIG(input.cir2AIGPath, "@");
+        cir1 = AIG(input.cir1AIGPath, 0, "!");
+        cir2 = AIG(input.cir2AIGPath, 0, "@");
         allOutputNumber = (cir2.getOutputNum() + cir1.getOutputNum());
     }
     void start();

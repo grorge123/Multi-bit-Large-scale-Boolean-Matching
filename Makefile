@@ -4,7 +4,7 @@ exe := main
 CFLAGS := -std=c++17 -O2 -Wall -Wextra -static
 SANITIZE := -fsanitize=undefined -fsanitize=address
 DEFINE := -DINF -DDBG
-LINK := -lm -ldl -lreadline
+LINK := -lm -ldl -lreadline -ltinfo
 LIB := lib/libabc.a lib/libkissat.a lib/aiger.o
 #INCLUDES :=
 
@@ -43,5 +43,5 @@ clean:
 	rm -rf $(obj) $(exe)
 run: all
 	./main input.txt output.txt
-	rm -f save* miter* tmp* stdoutOutput.txt *.v.aig
+	rm -f *.aig *.aag stdoutOutput.txt
 
