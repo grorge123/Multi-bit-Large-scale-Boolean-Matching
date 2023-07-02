@@ -6,11 +6,10 @@
 #include "utility.h"
 #include "aiger.h"
 #include "aigtocnf.h"
-#include "satsolver.h"
 #include <fstream>
 
 using namespace std;
-
+LargeScale lg;
 void LargeScale::randomSimulation(int only) {
     int stopNum = 10;
     int noChangeNum = stopNum;
@@ -265,36 +264,17 @@ void LargeScale::removeNonSupport(vector<pair<string, string>> &inputMatch, vect
 
 void LargeScale::SAT_Solver(vector<pair<string, string> > &inputMatch, vector<pair<string, string> > &outputMatch) {
     if(outputMatch.empty())return;
-    string savePath1 = "largeScaleSave1.aig";
-    string savePath2 = "largeScaleSave2.aig";
 
-    produceMatchAIG(inputMatch, outputMatch, savePath1, savePath2);
-    //TODO optimize abc command
-    string abcCmd = "miter " + savePath1 + " " + savePath2 + "; write_aiger -s miter.aig;";
-    string resultPath = "stdoutOutput.txt";
-    cout.flush();
-    FILE *saveStdout = stdout;
-    stdout = fopen(resultPath.c_str(), "a");
-    if (stdout != NULL) {
-        if (Cmd_CommandExecute(pAbc, abcCmd.c_str())){
-#ifdef DBG
-            cout << "[LargeScale] ERROR:Cannot execute command \"" << abcCmd << "\".\n";
-            exit(1);
-#endif
-        }
-        fflush(stdout);
-        fclose(stdout);
-        stdout = saveStdout;
-    } else {
-#ifdef DBG
-        cout << "[LargeScale] ERROR:Can't write file:" << resultPath << endl;
-        exit(1);
-#endif
+
+    AIG newAIG = cir2;
+    for(auto &match : inputMatch){
+        newAIG.changeName(match.second, match.first);
     }
-    char miterAIG[]{"miter.aig"};
-    char miterCNF[]{"miter.cnf"};
-    aigtocnf(miterAIG, miterCNF);
-    solverResult result = SAT_solver(miterCNF);
+    for(auto &match : outputMatch){
+        newAIG.changeName(match.second, match.first);
+    }
+
+    solverResult result = solveMiter(cir1, newAIG);
     if(result.satisfiable){
         // TODO Not test
         cout << "Not Implement" << endl;
@@ -343,53 +323,6 @@ void LargeScale::SAT_Solver(vector<pair<string, string> > &inputMatch, vector<pa
     }else{
         return;
     }
-}
-
-void LargeScale::produceMatchAIG(const vector<pair<string, string> >& inputMatch, const vector<pair<string, string> >& outputMatch,
-                                 const string& savePath1,
-                                 const string& savePath2) {
-    AIG newAIG = cir2;
-    for(auto &match : inputMatch){
-        newAIG.changeName(match.second, match.first);
-    }
-    for(auto &match : outputMatch){
-        newAIG.changeName(match.second, match.first);
-    }
-    aiger *aig = aiger_init();
-    string  tmpFilePath1 = "largeScaleTmp1.aag";
-    string  tmpFilePath2 = "largeScaleTmp2.aag";
-    FILE *fp = nullptr;
-    fp = fopen(tmpFilePath1.c_str(), "w+");
-    fputs(newAIG.getRaw().c_str(), fp);
-    fclose(fp);
-    const char *err_msg = aiger_open_and_read_from_file(aig, tmpFilePath1.c_str());
-#ifdef DBG
-    if(err_msg != nullptr){
-        cout << "[LargeScale]ERROR: " << err_msg << endl;
-        exit(1);
-    }
-#endif
-    fp = fopen(savePath2.c_str(), "w");
-    aiger_write_to_file(aig, aiger_binary_mode, fp);
-    fclose(fp);
-    aiger_reset(aig);
-
-    aig = aiger_init();
-    fp = fopen(tmpFilePath2.c_str(), "w+");
-    fputs(cir1.getRaw().c_str(), fp);
-    fclose(fp);
-    const char *err_msg2 = aiger_open_and_read_from_file(aig, tmpFilePath2.c_str());
-#ifdef DBG
-    if(err_msg2 != nullptr){
-        cout << "[LargeScale]ERROR: " << err_msg2 << endl;
-        exit(1);
-    }
-#endif
-    fp = fopen(savePath1.c_str(), "w");
-    aiger_write_to_file(aig, aiger_binary_mode, fp);
-    fclose(fp);
-
-    aiger_reset(aig);
 }
 
 void LargeScale::removeNonMatch(const vector<pair<string, string>> &inputMatch,

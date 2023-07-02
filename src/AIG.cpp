@@ -428,4 +428,60 @@ void AIG::invertGate(string &name) {
 }
 
 
+void AIG::writeToAIGFile(const string &fileName) {
+    string aagFileName = fileName.substr(0, fileName.size() - 4) + ".aag";
+    aiger *aig = aiger_init();
+    FILE *fp = nullptr;
+    fp = fopen(aagFileName.c_str(), "w+");
+    fputs(getRaw().c_str(), fp);
+    fclose(fp);
+    const char *err_msg = aiger_open_and_read_from_file(aig, aagFileName.c_str());
+#ifdef DBG
+    if(err_msg != nullptr){
+        cout << "[AIG:writeToAIGFile]ERROR: " << err_msg << endl;
+        exit(1);
+    }
+#endif
+    fp = fopen(fileName.c_str(), "w");
+    aiger_write_to_file(aig, aiger_binary_mode, fp);
+    fclose(fp);
+    aiger_reset(aig);
+}
 
+
+solverResult solveMiter(AIG &cir1, AIG &cir2) {
+
+    string savePath1 = "AIGSave1.aig";
+    string savePath2 = "AIGSave2.aig";
+    cir1.writeToAIGFile(savePath1);
+    cir2.writeToAIGFile(savePath2);
+
+    //TODO optimize abc command
+    string abcCmd = "miter " + savePath1 + " " + savePath2 + "; write_aiger -s miter.aig;";
+    string resultPath = "stdoutOutput.txt";
+    cout.flush();
+    FILE *saveStdout = stdout;
+    stdout = fopen(resultPath.c_str(), "a");
+    if (stdout != NULL) {
+        if (Cmd_CommandExecute(pAbc, abcCmd.c_str())){
+#ifdef DBG
+            cout << "[AIG] ERROR:Cannot execute command \"" << abcCmd << "\".\n";
+            exit(1);
+#endif
+        }
+        fflush(stdout);
+        fclose(stdout);
+        stdout = saveStdout;
+    } else {
+#ifdef DBG
+        cout << "[AIG] ERROR:Can't write file:" << resultPath << endl;
+        exit(1);
+#endif
+    }
+    char miterAIG[]{"miter.aig"};
+    char miterCNF[]{"miter.cnf"};
+    aigtocnf(miterAIG, miterCNF);
+    solverResult result = SAT_solver(miterCNF);
+
+    return result;
+}

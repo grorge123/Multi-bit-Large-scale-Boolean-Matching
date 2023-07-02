@@ -50,9 +50,6 @@ public:
         allOutputNumber = (cir2.getOutputNum() + cir1.getOutputNum()) / 2;
     }
     int start();
-    void produceMatchAIG(const vector<pair<string, string> >& inputMatch, const vector<pair<string, string> >& outputMatch,
-                         const string& savePath1,
-                         const string& savePath2);
     pair<vector<bool>, vector<bool>> generateInput();
     void randomSimulation(int only = 0);
     vector<pair<string, string>> removeNonSingleton(const vector<vector<string>> &par1, const vector<vector<string>> &par2);
@@ -82,5 +79,5 @@ public:
     }
     void removeNonMatch(const vector<pair<string, string> > & inputMatch, const vector<pair<string, string> > & outputMatch);
 };
-
+extern LargeScale lg;
 #endif //MULTI_BIT_LARGE_SCALE_BOOLEAN_MATCHING_LARGESCALE_H

@@ -5,7 +5,8 @@
 #ifndef MULTI_BIT_LARGE_SCALE_BOOLEAN_MATCHING_AIG_H
 #define MULTI_BIT_LARGE_SCALE_BOOLEAN_MATCHING_AIG_H
 #include "aiger.h"
-#include <string.h>
+#include "satsolver.h"
+#include <cstring>
 #include <map>
 #include <set>
 #include <iostream>
@@ -103,9 +104,14 @@ public:
     const vector<string> &getZero() const;
     const vector<string> &getOne() const;
     void addNegativeOutput();
-    void invertGate(string &name);
+    void invertGate(const string &name);
+    void copyOutput(const string &origin,const string &newName);
+    void exportInput(const string &from, const string &to, bool negative);
+    void setConstant(const string &origin, int val);
+    void writeToAIGFile(const string &fileName);
     void Debug();
 };
 
+solverResult solveMiter(AIG &cir1, AIG &cir2);
 
 #endif //MULTI_BIT_LARGE_SCALE_BOOLEAN_MATCHING_AIG_H
