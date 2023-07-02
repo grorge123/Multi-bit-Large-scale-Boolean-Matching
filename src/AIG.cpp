@@ -233,24 +233,28 @@ const string &AIG::getRaw() {
 
 void AIG::changeName(string oldName, string newName) {
     raw = "";
-    for(unsigned int i = 0 ; i < orderToName.size() ; i++){
-        if(orderToName[i] == oldName){
-            orderToName[i] = newName;
-            int tmpIdx = nameMap[oldName];
-            nameMap[newName] = tmpIdx;
-            if(tree[tmpIdx].isInput){
-                inputNameMapInv[tmpIdx] = newName;
-            }else{
-                for(auto &outputName : outputNameMapInv[tmpIdx]){
-                    if(outputName == oldName){
-                        outputName = newName;
-                    }
-                }
+    int tmpOrder;
+    int tmpIdx = nameMap[oldName];
+    nameMap[newName] = tmpIdx;
+    if(tree[tmpIdx].isInput && inputNameMapInv[tmpIdx] == oldName){
+        inputNameMapInv[tmpIdx] = newName;
+        tmpOrder = inputIndexMapInv[tmpIdx];
+    }else{
+        for(auto &order : outputIndexMapInv[tmpIdx]){
+            if(orderToName[order] == oldName){
+                tmpOrder = order;
             }
-            nameMap.erase(oldName);
-            break;
+        }
+        for(auto &outputName : outputNameMapInv[tmpIdx]){
+            if(outputName == oldName){
+                outputName = newName;
+                break;
+            }
         }
     }
+    orderToName[tmpOrder] = newName;
+    nameMap.erase(oldName);
+
 }
 
 void AIG::erasePort(vector<string> nameList) {
@@ -405,6 +409,20 @@ void AIG::addNegativeOutput() {
             }
         }else if(tree[indexMap[newOrder]].isInput){
             wire.push_back(pair<string,string>(newName, inputNameMapInv[indexMap[newOrder]]));
+        }
+    }
+}
+
+void AIG::invertGate(string &name) {
+    int idx = nameMap[name];
+    if(tree[idx].isInput && inputNameMapInv[idx] == name){
+        invMap[inputIndexMapInv[idx]] = !invMap[inputIndexMapInv[idx]];
+    }else{
+        for(auto &order: outputIndexMapInv[idx]){
+            if(orderToName[order] == name){
+                invMap[order] = !invMap[order];
+                break;
+            }
         }
     }
 }

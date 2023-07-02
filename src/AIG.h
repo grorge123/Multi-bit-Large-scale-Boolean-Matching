@@ -103,7 +103,7 @@ public:
     const vector<string> &getZero() const;
     const vector<string> &getOne() const;
     void addNegativeOutput();
-
+    void invertGate(string &name);
     void Debug();
 };
 
