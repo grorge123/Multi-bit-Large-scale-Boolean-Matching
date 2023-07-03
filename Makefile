@@ -43,5 +43,5 @@ clean:
 	rm -rf $(obj) $(exe)
 run: all
 	./main input.txt output.txt
-	rm -f *.aig *.aag stdoutOutput.txt
+	rm -f *.aig *.aag stdoutOutput.txt *.cnf
 

@@ -104,7 +104,7 @@ int Partition::simulationType1(vector<bool> output, vector<vector<bool> > &recor
     for(auto &cluster : outputClusters){
         map<bool, vector<string> > Bmap;
         for(auto &port : cluster){
-            for(auto &order : outputIdxToOrder(getIdx(port))){
+            for(auto &order : outputFromIndexToOrder(fromNameToIndex(port))){
                 if(fromOrderToName(order) == port){
                     Bmap[output[order - getInputNum()]].push_back(port);
                     break;
@@ -139,7 +139,7 @@ int Partition::simulationType2(vector<bool> originalOutput, vector<vector<bool>>
     for(auto &cluster : inputClusters){
         map<int, vector<string> > obsMap;
         for(auto &port : cluster){
-            obsMap[obs[inputIdxToOrder(getIdx(port))]].push_back(port);
+            obsMap[obs[inputFromIndexToOrder(fromNameToIndex(port))]].push_back(port);
         }
         change += obsMap.size() - 1;
         vector<int> recordVector;
@@ -169,7 +169,7 @@ int Partition::simulationType3(vector<bool> originalOutput, vector<vector<bool>>
     for(auto &cluster : outputClusters){
         map<int, vector<string> > ctrlMap;
         for(auto &port : cluster){
-            for(auto &order : outputIdxToOrder(getIdx(port))){
+            for(auto &order : outputFromIndexToOrder(fromNameToIndex(port))){
                 if(fromOrderToName(order) == port){
                     ctrlMap[ctrl[order - getInputNum()]].push_back(port);
                     break;

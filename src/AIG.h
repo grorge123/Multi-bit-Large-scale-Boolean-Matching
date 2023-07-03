@@ -14,6 +14,7 @@
 #include <fstream>
 
 using namespace std;
+class CNF;
 class AIG {
     struct Node{
         bool inv[3] = {}; // self, l, r if invert
@@ -87,11 +88,13 @@ public:
     const vector<string> &outputFromIndexToName(int idx);
     const string &fromOrderToName(int idx);
     int fromOrderToIndex(int order) const;
+    int fromNameToIndex(string name);
+    int inputFromIndexToOrder(int idx);
+    const vector<int> &outputFromIndexToOrder(int idx);
+    int fromOrderToIndex(int order);
+    int fromNameToOrder(string name);
     int getInputNum();
     int getOutputNum();
-    int getIdx(string name);
-    int inputIdxToOrder(int idx);
-    const vector<int> &outputIdxToOrder(int idx);
     bool isInput(int idx);
     set<string> getSupport(int idx);
     set<string> getSupport(string name);
@@ -112,6 +115,6 @@ public:
     void Debug();
 };
 
-solverResult solveMiter(AIG &cir1, AIG &cir2);
+solverResult solveMiter(AIG &cir1, AIG &cir2, CNF *miter);
 
 #endif //MULTI_BIT_LARGE_SCALE_BOOLEAN_MATCHING_AIG_H

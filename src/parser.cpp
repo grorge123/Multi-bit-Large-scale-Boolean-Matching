@@ -12,7 +12,7 @@ using namespace std;
 
 extern Abc_Frame_t * pAbc;
 
-
+int maxMatchNumber = 0;
 void removeGateNames(const std::string& filePath) {
     std::ifstream inputFile(filePath);
     std::string outputFilePath = filePath + ".modified";
@@ -99,12 +99,13 @@ InputStructure parseInput(const string& inputPath) {
     return result;
 }
 
-string produceABCCommand(string inputPath, string outputPath) {
+string produceABCCommand(const string& inputPath, const string& outputPath) {
     //TODO test which command can reduce most network space
     return "read " + inputPath +"; strash; write_aiger -s " + outputPath;
 }
 
-void parseOutput(string outputPath, OutputStructure result) {
+void parseOutput(const string &outputPath, const OutputStructure &result, const int matchOutput) {
+    if(matchOutput < maxMatchNumber)return;
     ofstream outputFile;
     outputFile.open(outputPath);
     auto toName = [=](string x){
@@ -135,12 +136,12 @@ void parseOutput(string outputPath, OutputStructure result) {
         }
         outputFile << "END\n";
     }
-    if(result.one.size() != 0 || result.zero.size() != 0){
+    if(!result.one.empty() || !result.zero.empty()){
         outputFile << "CONSTGROUP\n";
-        for(auto group: result.one){
+        for(const auto& group: result.one){
             outputFile << "- " << toName(group) << "\n";
         }
-        for(auto group: result.zero){
+        for(const auto& group: result.zero){
             outputFile << "+ " << toName(group) << "\n";
         }
         outputFile << "END\n";

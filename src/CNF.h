@@ -5,25 +5,25 @@
 #ifndef MULTI_BIT_LARGE_SCALE_BOOLEAN_MATCHING_CNF_H
 #define MULTI_BIT_LARGE_SCALE_BOOLEAN_MATCHING_CNF_H
 
+#include <utility>
 #include <vector>
 #include <string>
+#include <map>
 #include "AIG.h"
 using namespace std;
-
 class CNF {
-    int maxIdx = 0;
-    vector<vector<int> > clauses;
     vector<int> satisfiedInput;
-    map<string, int> varMap;
     bool checkSatisfied = false;
     bool satisfied = false;
-    CNF(){
-
+public:
+    map<string, int> varMap;
+    int maxIdx = 0;
+    vector<vector<int> > clauses;
+    CNF()= default;
+    explicit CNF(string inputPath){
+        readFromFile(std::move(inputPath));
     }
-    CNF(string inputPath){
-        readFromFile(inputPath);
-    }
-    CNF(AIG aig){
+    explicit CNF(AIG aig){
         readFromAIG(aig);
     }
     void readFromAIG(AIG &aig);

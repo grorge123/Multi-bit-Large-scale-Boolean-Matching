@@ -18,6 +18,7 @@ struct Group{
     string cir1;
     bool inv = false;
     vector<string> cir2;
+    //TODO unused invVector
     vector<bool> invVector;
 };
 struct OutputStructure{
@@ -25,7 +26,8 @@ struct OutputStructure{
     vector<Group> outputGroups;
     vector<string> one, zero;
 };
-string produceABCCommand(string inputPath, string outputPath);
+string produceABCCommand(const string& inputPath, const string& outputPath);
 InputStructure parseInput(const string& inputPath);
-void parseOutput(string outputPath, OutputStructure result);
+void parseOutput(const string &outputPath, const OutputStructure &result, const int matchOutput);
+extern int maxMatchNumber;
 #endif //MULTI_BIT_LARGE_SCALE_BOOLEAN_MATCHING_PARSER_H
