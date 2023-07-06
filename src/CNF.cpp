@@ -13,23 +13,52 @@ void CNF::readFromAIG(AIG &aig) {
     ofs << aigContent;
     ofs.close();
     aigtocnf((fileName + ".aig").c_str(), (fileName + ".cnf").c_str());
+    // read another info
+    readFromFile(fileName + ".cnf");
+
     ifstream ifs;
     ifs.open(fileName + ".cnf");
     string input;
-    while (ifs >> input){
+#ifdef DBG
+    for(int i = 0 ; i < aig.getInputNum() + aig.getOutputNum() ; i++){
+        DC.insert(aig.fromOrderToName(i));
+    }
+#endif
+    inv.resize(maxIdx);
+    while (getline(ifs, input)){
         if(input[0] != 'c')break;
         stringstream ss;
+        ss.clear();
         ss << input;
         ss >> input;
-        int aigIdx, cnfIdx;
+        int aigIdx = -1, cnfIdx = -1;
         ss >> aigIdx >> input >> cnfIdx;
+#ifdef DBG
+            if(aigIdx % 2 != 0){
+                cout << "[CNF] Break aigIdx not negative assume" << endl;
+                exit(1);
+            }
+#endif
+        aigIdx /= 2;
+        int order = aig.inputFromIndexToOrder(aigIdx);
         if(aig.isInput(aigIdx)){
-            // TODO only add input to map table
-            varMap.insert(pair<string, int> (aig.fromOrderToName(aigIdx), cnfIdx));
+            if(aig.portIsNegative(order)){
+                inv[cnfIdx];
+            }
+#ifdef DBG
+            DC.erase(aig.inputFromIndexToName(aigIdx));
+#endif
+            varMap.insert(pair<string, int> (aig.inputFromIndexToName(aigIdx), cnfIdx));
+        }
+        for(const auto& name : aig.outputFromIndexToName(aigIdx)){
+#ifdef DBG
+            DC.erase(name);
+#endif
+            varMap.insert(pair<string, int> (name, cnfIdx));
         }
     }
     ifs.close();
-    readFromFile(fileName + ".cnf");
+
 }
 
 
@@ -37,7 +66,7 @@ void CNF::readFromFile(string inputPath) {
     ifstream ifs;
     ifs.open(inputPath);
     string input;
-    while (ifs >> input){
+    while (getline(ifs, input)){
         if(input[0] == 'c')continue;
         stringstream ss;
         ss << input;
@@ -61,7 +90,7 @@ void CNF::readFromFile(string inputPath) {
     ifs.close();
 }
 
-string CNF::getRow() {
+string CNF::getRaw() {
     string raw;
     raw += "p cnf " + to_string(maxIdx) + " " + to_string(clauses.size()) + '\n';
     for(auto clause : clauses){
@@ -94,23 +123,40 @@ void CNF::combine(const CNF &a) {
     maxIdx += a.maxIdx;
 }
 
-bool CNF::isSatisfied() {
+bool CNF::solve() {
+    //TODO finish checkSatisfied;
     if(checkSatisfied){
-        return satisfied;
+        return satisfiable;
     }else{
         string fileName = "CNFSatisfied.cnf";
-        string content = getRow();
+        string content = getRaw();
         ofstream ofs;
-        ofs.open(fileName + ".aig");
+        ofs.open(fileName);
         ofs << content;
         ofs.close();
         char * miterCNF = new char[fileName.size() + 1];
         strcpy(miterCNF, fileName.c_str());
         solverResult result = SAT_solver(miterCNF);
-        satisfied = result.satisfiable;
-        for(int i = 0 ; i < result.inputSize ; i++){
-            satisfiedInput.push_back(result.input[i]);
+        satisfiable = result.satisfiable;
+        if(satisfiable){
+            for(int i = 0 ; i < result.inputSize ; i++){
+                satisfiedInput.push_back(result.input[i] ^ inv[i]);
+            }
+            free(result.input);
         }
-        return satisfied;
+        return satisfiable;
     }
+}
+
+bool CNF::isDC(const string &name) {
+#ifdef DBG
+    bool reIsDC = (DC.find(name) != DC.end());
+    if(reIsDC != (varMap.find(name) == varMap.end())){
+        cout << "[CNF] Error: DC determine error." << endl;
+        exit(1);
+    }
+    return reIsDC;
+#elif
+    return varMap.find(name) == varMap.end();
+#endif
 }

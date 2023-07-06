@@ -12,11 +12,15 @@
 #include "AIG.h"
 using namespace std;
 class CNF {
-    vector<int> satisfiedInput;
     bool checkSatisfied = false;
-    bool satisfied = false;
 public:
+    vector<int> satisfiedInput;
+    bool satisfiable = false;
+    vector<int> inv;
     map<string, int> varMap;
+#ifdef DBG
+    set<string> DC;
+#endif
     int maxIdx = 0;
     vector<vector<int> > clauses;
     CNF()= default;
@@ -29,8 +33,9 @@ public:
     void readFromAIG(AIG &aig);
     void readFromFile(string inputPath);
     void combine(const CNF &a);
-    string getRow();
-    bool isSatisfied();
+    bool isDC(const string &name);
+    string getRaw();
+    bool solve();
 };
 
 

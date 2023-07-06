@@ -30,18 +30,18 @@ class TwoStep {
     // hyper parameter
     int maxRunTime = 1000 * 3500; // ms
     bool outputSolverInit = false;
-
+    int iteratorCounter = 0;
 
     static int nowMs();
     vector<int> generateOutputGroups(vector<string> &f, vector<string> &g);
     MP outputSolver(bool projection, vector<MP> &R);
     void outputSolverPop();
     vector<MP> inputSolver(vector<MP> &R);
-    vector<MP> solveMapping(CNF &mapping, AIG &cir1, AIG &cir2, const int baseLength);
-    pair<vector<bool>, vector<bool>>
-    solveMiter(const vector<MP> &inputMatchPair, const vector<MP> &outputMatchPair, AIG &cir1, AIG &cir2);
-    void reduceSpace(CNF &mappingSpace, const pair<vector<bool>, vector<bool>> &counter, const int baseLength,
-                     AIG &cir1, AIG &cir2, const vector<MP> &mapping);
+    vector<MP> solveMapping(CNF &mappingSpace, AIG &cir1, AIG &cir2, const int baseLength);
+    pair<pair<map<string, pair<int, bool>>, map<string, pair<int, bool>>>, vector<vector<bool>>>
+    solveMiter(const vector<MP> &inputMatchPair, const vector<MP> &outputMatchPair, AIG cir1, AIG cir2);
+    void reduceSpace(CNF &mappingSpace, const vector<bool> &counter, const int baseLength, AIG &cir1, AIG &cir2,
+                     const vector<MP> &mapping, pair<map<string, pair<int, bool>>, map<string, pair<int, bool>>> &nameToOrder);
     vector<int> getNonRedundant(const vector<bool> &input, AIG & cir); // return port order
     bool heuristicsOrderCmp(const string& a, const string& b);
     static pair<string, bool> analysisName(string name);
@@ -69,12 +69,13 @@ class TwoStep {
 public:
     TwoStep()= default;
     TwoStep(const InputStructure& input, string outputFilePath) : outputFilePath(std::move(outputFilePath)){
-        cir1 = AIG(input.cir1AIGPath, 0, "!");
-        cir2 = AIG(input.cir2AIGPath, 0, "@");
+        cir1 = AIG(input.cir1AIGPath, 1, "!");
+        cir2 = AIG(input.cir2AIGPath, 1, "@");
         allOutputNumber = (cir2.getOutputNum() + cir1.getOutputNum());
     }
     void start();
+    void tsDebug(string msg, AIG cir1, AIG cir2);
 };
 
-
+extern TwoStep ts;
 #endif //MULTI_BIT_LARGE_SCALE_BOOLEAN_MATCHING_TWOSTEP_H

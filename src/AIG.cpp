@@ -110,6 +110,7 @@ void AIG::findFunSupport() {
 void AIG::recursiveFindSupport(int output, int now, vector<bool> &visit) {
     if(visit[now])return;
     visit[now] = true;
+    if(now == 0)return;
     if(tree[now].isInput){
         support[now].insert(output);
         support[output].insert(now);
@@ -187,17 +188,19 @@ int AIG::fromNameToIndex(string name) {
 }
 
 void AIG::Debug() {
-    for(int i = 0 ; i < inputNum + outputNum ; i++){
-        cout << i << ' ' << invMap[i] << endl;
+    cout << "DEBUG:"<< (nameMap.find("@z") == nameMap.end()) << " " << nameMap.size() << endl;
+    for(auto pair : nameMap){
+        cout << "("<< pair.first << ", " << pair.second << ")" << " ";
     }
+    cout << endl;
 }
 
 int AIG::getInputNum() {
     return inputNum;
 }
 
-const string &AIG::fromOrderToName(int idx) {
-    return orderToName[idx];
+const string &AIG::fromOrderToName(int order) {
+    return orderToName[order];
 }
 
 int AIG::getOutputNum() {
@@ -240,6 +243,12 @@ const string &AIG::getRaw() {
 void AIG::changeName(string oldName, string newName) {
     raw = "";
     int tmpOrder = -1;
+#ifdef DBG
+    if(nameMap.find(oldName) == nameMap.end()){
+        cout << "[AIG] Error: Can not change " << oldName << " to " << newName << endl;
+        exit(1);
+    }
+#endif
     int tmpIdx = nameMap[oldName];
     nameMap[newName] = tmpIdx;
     if(tree[tmpIdx].isInput && inputNameMapInv[tmpIdx] == oldName){
@@ -260,7 +269,6 @@ void AIG::changeName(string oldName, string newName) {
     }
     orderToName[tmpOrder] = newName;
     nameMap.erase(oldName);
-
 }
 
 void AIG::erasePort(vector<string> nameList) {
@@ -334,7 +342,6 @@ void AIG::erasePort(vector<string> nameList) {
             outputIndexMapInv[indexMap[order]].push_back(order);
         }
     }
-
     vector<bool> exist;
     exist.resize(tree.size());
     queue<int> existQueue;
@@ -349,8 +356,10 @@ void AIG::erasePort(vector<string> nameList) {
         if(exist[now])continue;
         exist[now] = true;
         if(!tree[now].isInput){
-            existQueue.push(tree[now].l);
-            existQueue.push(tree[now].r);
+            if(now != 0){
+                existQueue.push(tree[now].l);
+                existQueue.push(tree[now].r);
+            }
         }
     }
     for(unsigned int idx = 1 ; idx < tree.size() ; idx++){
@@ -367,6 +376,12 @@ void AIG::erasePort(vector<string> nameList) {
 }
 
 const string &AIG::inputFromIndexToName(int index) {
+#ifdef DBG
+    if(index > MAXIndex || index < 0){
+        cout << "[AIG] Error: Cant not transfer " << index << endl;
+        exit(1);
+    }
+#endif
     return inputNameMapInv[index];
 }
 
@@ -404,6 +419,10 @@ bool AIG::isInput(int idx) {
     return tree[idx].isInput;
 }
 
+bool AIG::portExist(string name) {
+    return nameMap.find(name) != nameMap.end();
+}
+
 const vector<string> &AIG::outputFromIndexToName(int idx) {
     return outputNameMapInv[idx];
 }
@@ -437,11 +456,51 @@ void AIG::addNegativeOutput() {
     }
 }
 
+void AIG::addFloatInput(const vector<string>& name) {
+    raw = "";
+    indexMap.resize(indexMap.size() + name.size());
+    orderToName.resize(orderToName.size() + name.size());
+    invMap.resize(invMap.size() + name.size());
+    for(auto i = inputNum + outputNum - 1 ; i >= inputNum ; i--){
+        int originIdx = indexMap[i];
+        indexMap[i + name.size()] = indexMap[i];
+        for(auto &order : outputIndexMapInv[originIdx]){
+            order += static_cast<int>(name.size());
+        }
+        orderToName[i + name.size()] = orderToName[i];
+        invMap[i + name.size()] = invMap[i];
+    }
+    for(const auto & i : name){
+        int newIdx = ++MAXIndex;
+        nameMap[i] = newIdx;
+        inputNameMapInv[newIdx] = i;
+        inputIndexMapInv[newIdx] = inputNum; // AIG Node index to AIG input order
+        indexMap[inputNum] = newIdx; // AIG input order to AIG Node index
+        orderToName[inputNum] = i; // AIG input order to verilog name
+        invMap[inputNum] = false; // AIG input order if is inverted
+        inputNum++;
+        tree.push_back(Node{{false,false,false}, -1, -1, true, false, true});
+    }
+}
+
 void AIG::invertGate(const string &name) {
     raw = "";
+#ifdef DBG
+    if(nameMap.find(name) == nameMap.end()){
+        cout << "[AIG] Error: invertGate can not find " << name << endl;
+        exit(1);
+    }
+#endif
     int idx = nameMap[name];
     if(tree[idx].isInput && inputNameMapInv[idx] == name){
-        invMap[inputIndexMapInv[idx]] = !invMap[inputIndexMapInv[idx]];
+        for(auto &node : tree){
+            if(node.l == idx){
+                node.inv[1] = !node.inv[1];
+            }
+            if(node.r == idx){
+                node.inv[2] = !node.inv[2];
+            }
+        }
     }else{
         for(auto &order: outputIndexMapInv[idx]){
             if(orderToName[order] == name){
@@ -452,10 +511,17 @@ void AIG::invertGate(const string &name) {
     }
 }
 
-void AIG::copyOutput(const string &origin, const string &newName) {
+void AIG::copyOutput(const string &origin, const string &newName, const bool negative) {
     raw = "";
+#ifdef DBG
+    if(nameMap.find(origin) == nameMap.end()){
+        cout << "[AIG] Error: Can not change " << origin << " to " << newName << endl;
+        exit(1);
+    }
+#endif
     int originalIdx = nameMap[origin];
     nameMap[newName] = originalIdx;
+    indexMap.push_back(originalIdx);
     int newOrder = indexMap.size() - 1;
     int originalOrder = -1;
     for(const auto &order :outputIndexMapInv[originalIdx]){
@@ -471,7 +537,7 @@ void AIG::copyOutput(const string &origin, const string &newName) {
     }
 #endif
 
-    invMap.push_back(invMap[originalOrder]);
+    invMap.push_back((negative ? !invMap[originalOrder] : invMap[originalOrder]));
     outputIndexMapInv[originalIdx].push_back(newOrder);
     nameMap[newName] = indexMap[newOrder];
     outputNameMapInv[indexMap[newOrder]].push_back(newName);
@@ -490,10 +556,24 @@ void AIG::copyOutput(const string &origin, const string &newName) {
 
 void AIG::exportInput(const string &from, const string &to, bool negative) {
     raw = "";
+#ifdef DBG
+    if(nameMap.find(from) == nameMap.end() || nameMap.find(to) == nameMap.end()){
+        cout << "[AIG] Error: Can not export " << from << " to " << to << endl;
+        exit(1);
+    }
+#endif
     int fromIdx = nameMap[from];
     int toIdx = nameMap[to];
-    for(auto node : tree){
+    for(auto &node : tree){
         if(node.l == toIdx){
+            //assume input are all positive
+#ifdef DBG
+            if(tree[fromIdx].inv[0] != 0){
+                cout << getRaw() << endl;
+                cout << "[AIG]" << fromIdx << "(" << from << ")"<<"break assume;" << endl;
+                exit(1);
+            }
+#endif
             node.l = fromIdx;
             if(negative)node.inv[1] = !node.inv[1];
         }
@@ -509,10 +589,29 @@ void AIG::exportInput(const string &from, const string &to, bool negative) {
 
 void AIG::setConstant(const string &origin, int val) {
     raw = "";
+#ifdef DBG
+    if(nameMap.find(origin) == nameMap.end()){
+        exit(1);
+    }
+#endif
     int idx = nameMap[origin];
-    for(auto node : tree){
-        if(node.l == idx)node.l = val;
-        if(node.r == idx)node.r = val;
+    for(auto &node : tree){
+        if(node.l == idx){
+            node.l = 0;
+            if(val == 0){
+                node.inv[1] = node.inv[1];
+            }else{
+                node.inv[1] = !node.inv[1];
+            }
+        }
+        if(node.r == idx){
+            node.r = 0;
+            if(val == 0){
+                node.inv[2] = node.inv[2];
+            }else{
+                node.inv[2] = !node.inv[2];
+            }
+        }
     }
     vector<string> ve;
     ve.emplace_back(origin);
@@ -539,9 +638,11 @@ void AIG::writeToAIGFile(const string &fileName) {
     aiger_reset(aig);
 }
 
+bool AIG::portIsNegative(int order) {
+    return invMap[order];
+}
 
-solverResult solveMiter(AIG &cir1, AIG &cir2, CNF *miter= nullptr) {
-
+void solveMiter(AIG &cir1, AIG &cir2, CNF &miter) {
     string savePath1 = "AIGSave1.aig";
     string savePath2 = "AIGSave2.aig";
     cir1.writeToAIGFile(savePath1);
@@ -572,10 +673,9 @@ solverResult solveMiter(AIG &cir1, AIG &cir2, CNF *miter= nullptr) {
     char miterAIG[]{"miter.aig"};
     char miterCNF[]{"miter.cnf"};
     aigtocnf(miterAIG, miterCNF);
-    if(miter != nullptr){
-        *miter = CNF("miter.cnf");
-    }
-    solverResult result = SAT_solver(miterCNF);
-
-    return result;
+    miter = CNF(AIG("miter.aig", 3));
+    miter.solve();
+//    solverResult result = SAT_solver(miterCNF);
+//
+//    return result;
 }

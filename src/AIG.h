@@ -86,7 +86,7 @@ public:
     }
     const string &inputFromIndexToName(int index);
     const vector<string> &outputFromIndexToName(int idx);
-    const string &fromOrderToName(int idx);
+    const string &fromOrderToName(int order);
     int fromOrderToIndex(int order) const;
     int fromNameToIndex(string name);
     int inputFromIndexToOrder(int idx);
@@ -96,6 +96,8 @@ public:
     int getInputNum();
     int getOutputNum();
     bool isInput(int idx);
+    bool portExist(string name);
+    bool portIsNegative(int order);
     set<string> getSupport(int idx);
     set<string> getSupport(string name);
     set<string> getFunSupport(int idx);
@@ -107,14 +109,15 @@ public:
     const vector<string> &getZero() const;
     const vector<string> &getOne() const;
     void addNegativeOutput();
+    void addFloatInput(const vector<string>& name);
     void invertGate(const string &name);
-    void copyOutput(const string &origin,const string &newName);
+    void copyOutput(const string &origin, const string &newName, const bool negative);
     void exportInput(const string &from, const string &to, bool negative);
     void setConstant(const string &origin, int val);
     void writeToAIGFile(const string &fileName);
     void Debug();
 };
 
-solverResult solveMiter(AIG &cir1, AIG &cir2, CNF *miter);
+void solveMiter(AIG &cir1, AIG &cir2, CNF &miter);
 
 #endif //MULTI_BIT_LARGE_SCALE_BOOLEAN_MATCHING_AIG_H
