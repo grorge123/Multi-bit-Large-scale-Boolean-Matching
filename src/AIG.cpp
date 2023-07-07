@@ -200,6 +200,12 @@ int AIG::getInputNum() {
 }
 
 const string &AIG::fromOrderToName(int order) {
+#ifdef DBG
+    if(static_cast<int>(orderToName.size()) <= order || order < 0){
+        cout << "[AIG] Error: Can not transfer order(" << order << ") to name." << endl;
+        exit(1);
+    }
+#endif
     return orderToName[order];
 }
 
@@ -208,10 +214,22 @@ int AIG::getOutputNum() {
 }
 
 int AIG::inputFromIndexToOrder(int idx) {
+#ifdef DBG
+    if(inputIndexMapInv.find(idx) == inputIndexMapInv.end()){
+        cout << "[AIG] Error: Can not transfer Index(" << idx << ") to order." << endl;
+        exit(1);
+    }
+#endif
     return inputIndexMapInv[idx];
 }
 
 int AIG::fromOrderToIndex(int order) {
+#ifdef DBG
+    if(static_cast<int>(indexMap.size()) <= order || order < 0){
+        cout << "[AIG] Error: Can not transfer order(" << order << ") to Index." << endl;
+        exit(1);
+    }
+#endif
     return indexMap[order];
 }
 
@@ -578,6 +596,13 @@ void AIG::exportInput(const string &from, const string &to, bool negative) {
             if(negative)node.inv[1] = !node.inv[1];
         }
         if(node.r == toIdx){
+#ifdef DBG
+            if(tree[fromIdx].inv[1] != 0){
+                cout << getRaw() << endl;
+                cout << "[AIG]" << fromIdx << "(" << from << ")"<<"break assume;" << endl;
+                exit(1);
+            }
+#endif
             node.r = fromIdx;
             if(negative)node.inv[2] = !node.inv[2];
         }
@@ -642,7 +667,7 @@ bool AIG::portIsNegative(int order) {
     return invMap[order];
 }
 
-void solveMiter(AIG &cir1, AIG &cir2, CNF &miter) {
+void solveMiter(AIG &cir1, AIG &cir2, CNF &miter, AIG &miterAIG) {
     string savePath1 = "AIGSave1.aig";
     string savePath2 = "AIGSave2.aig";
     cir1.writeToAIGFile(savePath1);
@@ -670,10 +695,11 @@ void solveMiter(AIG &cir1, AIG &cir2, CNF &miter) {
         exit(1);
 #endif
     }
-    char miterAIG[]{"miter.aig"};
-    char miterCNF[]{"miter.cnf"};
-    aigtocnf(miterAIG, miterCNF);
-    miter = CNF(AIG("miter.aig", 3));
+    char miterAIGFileName[]{"miter.aig"};
+    char miterCNFFileName[]{"miter.cnf"};
+    aigtocnf(miterAIGFileName, miterCNFFileName);
+    miterAIG = AIG("miter.aig", 3);
+    miter = CNF(miterAIG);
     miter.solve();
 //    solverResult result = SAT_solver(miterCNF);
 //

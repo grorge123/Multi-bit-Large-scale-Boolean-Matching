@@ -27,11 +27,17 @@ class TwoStep {
     int lastCir1, lastCir2;
     vector<vector<string>> clauseStack;
     vector<int> clauseNum;
+    // input solver
+    int mappingSpaceLast = 0;
+    string mappingSpaceFileName = "TwoStepSolveMapping.cnf";
+
     // hyper parameter
     int maxRunTime = 1000 * 3500; // ms
     bool outputSolverInit = false;
     int iteratorCounter = 0;
+    int lastTime = 0;
 
+    void recordMs();
     static int nowMs();
     vector<int> generateOutputGroups(vector<string> &f, vector<string> &g);
     MP outputSolver(bool projection, vector<MP> &R);

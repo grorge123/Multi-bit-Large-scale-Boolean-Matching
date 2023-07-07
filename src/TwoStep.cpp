@@ -56,6 +56,7 @@ void TwoStep::start() {
             continue;
         }
         cout << "Output Pair:" << projection << endl;
+        recordMs();
         for(auto pair : R){
             cout << pair.first << ' ' << pair.second << endl;
         }
@@ -116,6 +117,13 @@ void TwoStep::start() {
 int TwoStep::nowMs() {
     return static_cast<int>(chrono::duration_cast<chrono::milliseconds>(chrono::system_clock::now().time_since_epoch()).count());
 }
+int recordCounter = 0;
+void TwoStep::recordMs() {
+    int now = nowMs();
+    cout <<"During:"<< now - lastTime << " Iteration:" << recordCounter << endl;
+    recordCounter++;
+    lastTime = now;
+}
 
 MP TwoStep::outputSolver(bool projection, vector<MP> &R) {
     if(!outputSolverInit){
@@ -154,8 +162,7 @@ MP TwoStep::outputSolver(bool projection, vector<MP> &R) {
                 }
             }
         }
-        //TODO cir1Choose need change -1 to 0
-        cir1Choose.resize(cir1Output.size(), -1);
+        cir1Choose.resize(cir1Output.size(), 0);
         cir2Choose.resize(cir2Output.size(), -1);
         lastCir1 = lastCir2 = 0;
         outputSolverInit = true;
@@ -182,7 +189,6 @@ MP TwoStep::outputSolver(bool projection, vector<MP> &R) {
                         }else{
                             forbid.insert(hashValue);
                         }
-                        cout <<"OutputSolver:"<< i << " " << q << " " << projection << " " << cir1Choose[q / 2] << " " << !(!projection && cir1Choose[q / 2] != 0) << endl;
                         cir1Choose[q / 2]++;
                         cir2Choose[i] = q;
                         backtrace.push(re);
@@ -255,6 +261,7 @@ vector<MP> TwoStep::inputSolver(vector<MP> &R) {
     cir1Reduce.erasePort(cir1Erase);
     cir2Reduce.erasePort(cir2Erase);
     CNF mappingSpace;
+    mappingSpaceLast = 0;
     int baseLength = (cir1Reduce.getInputNum() + 1) * 2;
     mappingSpace.maxIdx = cir2Reduce.getInputNum() * baseLength;
     for(int i = 0 ; i < cir2Reduce.getInputNum() ; i++){
@@ -285,6 +292,29 @@ vector<MP> TwoStep::inputSolver(vector<MP> &R) {
             }
         }
     }
+    if(cir1Reduce.getInputNum() == cir2Reduce.getInputNum()){
+        //disable match constant
+        for(int i = 0 ; i < cir2Reduce.getInputNum() ; i++){
+            vector<int> clause;
+            clause.push_back(-1 * (i * baseLength + cir1Reduce.getInputNum() * 2 + 1));
+            mappingSpace.clauses.push_back(clause);
+            clause.clear();
+            clause.push_back(-1 * (i * baseLength + cir1Reduce.getInputNum() * 2 + 1 + 1));
+            mappingSpace.clauses.push_back(clause);
+        }
+        // disable input projection
+        for(int i = 0 ; i < cir1Reduce.getInputNum() * 2 ; i++){
+            vector<int> clause;
+            for(int q = 0 ; q < cir2Reduce.getInputNum() ; q++){
+                for(int k = q + 1 ; k < cir2Reduce.getInputNum() ; k++){
+                    clause.push_back((q * baseLength + i + 1) * -1);
+                    clause.push_back((k * baseLength + i + 1) * -1);
+                    mappingSpace.clauses.emplace_back(clause);
+                    clause.clear();
+                }
+            }
+        }
+    }
     // recover learning clause
     for(const auto& clauses : clauseStack){
         vector<int> clause;
@@ -306,15 +336,18 @@ vector<MP> TwoStep::inputSolver(vector<MP> &R) {
     while (true){
         mapping = solveMapping(mappingSpace, cir1Reduce, cir2Reduce, baseLength);
         if(mapping.empty())break;
+        // TODO delete this
         cout << "Find Mapping" << endl;
         for(auto pair : mapping){
             cout << pair.first << " " << pair.second << endl;
         }
+        recordMs();
         pair<pair<map<string, pair<int, bool>>, map<string, pair<int, bool> > >, vector<vector<bool> > > counter = solveMiter(mapping, R, cir1Reduce, cir2Reduce);
         if(counter.second.empty()){
             break;
         }
-        cout << "It is counterexample" << endl;
+        cout << "It is counterexample size:" << counter.second.size() << endl;
+        recordMs();
         for(auto counterexample : counter.second){
             reduceSpace(mappingSpace, counterexample, baseLength, cir1Reduce, cir2Reduce, mapping, counter.first);
         }
@@ -370,10 +403,45 @@ vector<int> TwoStep::generateOutputGroups(vector<string> &f, vector<string> &g) 
 vector<MP> TwoStep::solveMapping(CNF &mappingSpace, AIG &cir1, AIG &cir2, const int baseLength) {
     vector<MP> re;
     ofstream of;
-    string fileName = "TwoStepSolveMapping.cnf";
-    of.open(fileName);
-    of << mappingSpace.getRaw();
-    of.close();
+    string fileName = mappingSpaceFileName;
+    if(mappingSpaceLast != 0){
+        std::streampos firstLineEnd;
+        std::fstream file;
+        file.open(fileName, std::ios::in);
+        std::string firstLine;
+        std::getline(file, firstLine);
+        firstLineEnd = file.tellg();
+        file.close();
+        file.open(fileName, std::ios::out | std::ios::in);
+        string newLine = "p cnf " + to_string(mappingSpace.maxIdx) + " " + to_string(mappingSpace.clauses.size());
+        if (newLine.length() <= firstLine.length()) {
+            file << newLine;
+            for (size_t i = newLine.length(); i < firstLine.length(); ++i) {
+                file.put(' ');
+            }
+        } else {
+#ifdef DBG
+            cout << "[TwoStep] Error: cnf saveSpace not enough !" << endl;
+            exit(1);
+#endif
+        }
+        file.close();
+        of.open(fileName, ios::app);
+        string content;
+        for(int i = mappingSpaceLast ; i < static_cast<int>(mappingSpace.clauses.size()) ; i++){
+            for(int q : mappingSpace.clauses[i]){
+                content += to_string(q) + " ";
+            }
+            content += "0\n";
+        }
+        of << content;
+        of.close();
+    }else{
+        of.open(fileName);
+        of << mappingSpace.getRaw();
+        of.close();
+    }
+    mappingSpaceLast = static_cast<int>(mappingSpace.clauses.size());
     solverResult result = SAT_solver(fileName.c_str());
     if(result.satisfiable){
 #ifdef DBG
@@ -424,20 +492,17 @@ TwoStep::solveMiter(const vector<MP> &inputMatchPair, const vector<MP> &outputMa
             cir2NameToOrder[pair.second] = {-1, stoi(pair.first)}; // constant to special order
         }else{
             auto [gateName, negative] = analysisName(pair.first);
-            if(projectiveInput.find(gateName) == projectiveInput.end()){
+            if(projectiveInput.find(gateName) == projectiveInput.end() && projectiveInput.find(gateName + "'") == projectiveInput.end()){
                 cir1NameToOrder[cir1.cirName + gateName] = {cir1.fromNameToOrder(cir1.cirName + gateName), false};
                 cir2NameToOrder[pair.second] = {cir2.fromNameToOrder(pair.second), negative};
                 cir2.changeName(pair.second, cir1.cirName + gateName);
-                if(negative)inverter2.push_back(cir1.cirName + gateName);
-                projectiveInput.insert(gateName);
+                if(negative)cir2.invertGate(cir1.cirName + gateName);
+                projectiveInput.insert(gateName + (negative ? "'" : ""));
             }else{
                 cir2NameToOrder[pair.second] = {cir2.fromNameToOrder(cir1.cirName + gateName), negative};
                 cir2.exportInput(cir1.cirName + gateName, pair.second, negative);
             }
         }
-    }
-    for(auto name : inverter2){
-        cir2.invertGate(name);
     }
     vector<string> additionalInput;
     for(int i = 0 ; i < cir1.getInputNum() + cir1.getOutputNum() ; i++){
@@ -451,28 +516,34 @@ TwoStep::solveMiter(const vector<MP> &inputMatchPair, const vector<MP> &outputMa
     tsDebug("Matching Network", cir1, cir2);
     //TODO solve miter may mapping may be negative with AIG
     CNF miter;
-    ::solveMiter(cir1, cir2, miter);
+    AIG miterAIG;
+    ::solveMiter(cir1, cir2, miter, miterAIG);
     if(miter.satisfiable){
-        vector<int> cir1Input, cir2Input;
-        auto getCounter = [&](vector<int> &cirInput, AIG &cir){
-            cirInput.resize(cir.getInputNum());
-            for(int order = 0 ; order < cir.getInputNum() ; order++){
-                string name = cir.fromOrderToName(order);
-                if(miter.isDC(name)){
-                    cirInput[order] = 2;
-                }else{
+        vector<int> counter;
+        counter.resize(miterAIG.getInputNum());
+        for(int order = 0 ; order < miterAIG.getInputNum() ; order++){
+            string name = miterAIG.fromOrderToName(order);
+            if(miter.isDC(name)){
+                counter[order] = 2;
+            }else{
 #ifdef DBG
-                    if(miter.varMap.find(name) == miter.varMap.end()){
-                        cout << "[TwoStep] Error: Cant not found " << cir.cirName << "(" << name << ") in cnf." << endl;
-                        exit(1);
-                    }
-#endif
-                    cirInput[order] = (miter.satisfiedInput[miter.varMap[name] - 1] > 0 ? 1 : 0);
+                if(miter.varMap.find(name) == miter.varMap.end()){
+                    cout << "[TwoStep] Error: Cant not found " << miterAIG.cirName << "(" << name << ") in cnf." << endl;
+                    exit(1);
                 }
+#endif
+                counter[order] = miter.satisfiedInput[miter.varMap[name] - 1];
             }
-        };
-        getCounter(cir1Input, cir1);
-        return  {{cir1NameToOrder, cir2NameToOrder}, convert_pair(cir1Input)};
+        }
+
+        for(auto &order : cir1NameToOrder){
+            order.second.first = miterAIG.fromNameToOrder(cir1.fromOrderToName(order.second.first));
+        }
+        for(auto &order : cir2NameToOrder){
+            if(order.second.first == -1)continue;
+            order.second.first = miterAIG.fromNameToOrder(cir2.fromOrderToName(order.second.first));
+        }
+        return  {{cir1NameToOrder, cir2NameToOrder}, convert_pair(counter)};
     }else{
         return {};
     }
@@ -525,17 +596,36 @@ TwoStep::reduceSpace(CNF &mappingSpace, const vector<bool> &counter, const int b
 #endif
         }
     }
-    cout << "cir1Input:" << cir1.getInputNum() << endl;
-    for(auto i : cir1Input){
-        cout << i << " ";
+    cout << "cir1Input" << endl;
+    for(int i = 0 ; i < cir1Input.size() ; i++){
+        cout << cir1Input[i]<<" ";
     }
     cout << endl;
-    cout << "cir2Input:" << cir2.getInputNum() << endl;
-    for(auto i : cir2Input){
-        cout << i << " ";
+    cout << "cir2Input" << endl;
+    for(int i = 0 ; i < cir2Input.size() ; i++){
+        cout << cir2Input[i]<<" ";
     }
     cout << endl;
-    cout << "cir1 == cir2:" << (cir1.generateOutput(cir1Input) == cir2.generateOutput(cir2Input)) << endl;
+#ifdef DBG
+    //TODO delete test
+    if(cir1.generateOutput(cir1Input) == cir2.generateOutput(cir2Input)){
+        cout << "[TwoStep] SelfTest fail: cir1 == cir2!" << endl;
+        exit(1);
+    }
+    for(auto i : mapping){
+        if(i.first.size() == 1){
+            if(cir2Input[cir2.fromNameToOrder(i.second)] != stoi(i.first)){
+                cout << "SelfCheck failed:" << i.first << " " << i.second << endl;
+            }
+            continue;
+        }
+        auto [name, negative] = analysisName(i.first);
+        if((cir1Input[cir1.fromNameToOrder(cir1.cirName + name)] ^ negative) != cir2Input[cir2.fromNameToOrder(i.second)]){
+            cout << "[TwoStep] SelfCheck failed:" << i.first << " " << i.second << endl;
+            exit(1);
+        }
+    }
+#endif
     vector<int> cir1NonRedundant = getNonRedundant(cir1Input, cir1), cir2NonRedundant = getNonRedundant(cir2Input, cir2); // return order
     vector<int> clause;
     vector<string> record;
@@ -563,15 +653,18 @@ TwoStep::reduceSpace(CNF &mappingSpace, const vector<bool> &counter, const int b
             record.push_back("1_" + cir2.fromOrderToName(i));
         }
     }
-    cout << "clause1:" << clause.size() <<endl;
+    cout << "clause:" << endl;
     for(auto i : clause){
-        cout << i <<' ';
+        cout << i << " ";
     }
     cout << endl;
 #ifdef DBG
-    if(clause == mappingSpace.clauses.back()){
-        cout << "[TwoStep] Error: can not find right clause cause infinite loop." << endl;
-        exit(1);
+    //TODO delete test
+    for(const auto &i :mappingSpace.clauses){
+        if(clause == i){
+            cout << "[TwoStep] Error: can not find right clause cause infinite loop." << endl;
+            exit(1);
+        }
     }
 #endif
     clauseStack.push_back(record);
@@ -582,15 +675,16 @@ TwoStep::reduceSpace(CNF &mappingSpace, const vector<bool> &counter, const int b
 
 
 vector<int> TwoStep::getNonRedundant(const vector<bool> &input, AIG &cir) {
+    //TODO need to fix
     vector<int> re;
     for(int i = 0 ; i < cir.getInputNum() ; i++){
         re.push_back(i);
         vector<bool> input2 = input;
         input2[i] = !input2[i];
         // TODO check need fix output that is different or just have different output
-//        if(cir.generateOutput(input) == cir.generateOutput(input2)){
+        if(cir.generateOutput(input) == cir.generateOutput(input2)){
 //            re.pop_back();
-//        }
+        }
     }
     return re;
 }
@@ -602,3 +696,5 @@ void TwoStep::tsDebug(string msg, AIG cir1, AIG cir2) {
     cout << "Cir2" << endl;
     cout << cir2.getRaw();
 }
+
+

@@ -118,6 +118,6 @@ public:
     void Debug();
 };
 
-void solveMiter(AIG &cir1, AIG &cir2, CNF &miter);
+void solveMiter(AIG &cir1, AIG &cir2, CNF &miter, AIG &miterAIG);
 
 #endif //MULTI_BIT_LARGE_SCALE_BOOLEAN_MATCHING_AIG_H

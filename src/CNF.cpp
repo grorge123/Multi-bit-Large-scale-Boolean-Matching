@@ -40,8 +40,8 @@ void CNF::readFromAIG(AIG &aig) {
             }
 #endif
         aigIdx /= 2;
-        int order = aig.inputFromIndexToOrder(aigIdx);
         if(aig.isInput(aigIdx)){
+            int order = aig.inputFromIndexToOrder(aigIdx);
             if(aig.portIsNegative(order)){
                 inv[cnfIdx];
             }
@@ -54,7 +54,7 @@ void CNF::readFromAIG(AIG &aig) {
 #ifdef DBG
             DC.erase(name);
 #endif
-            varMap.insert(pair<string, int> (name, cnfIdx));
+//            varMap.insert(pair<string, int> (name, cnfIdx));
         }
     }
     ifs.close();
@@ -92,8 +92,9 @@ void CNF::readFromFile(string inputPath) {
 
 string CNF::getRaw() {
     string raw;
-    raw += "p cnf " + to_string(maxIdx) + " " + to_string(clauses.size()) + '\n';
-    for(auto clause : clauses){
+    string saveSpace(10, ' ');
+    raw += "p cnf " + to_string(maxIdx) + " " + to_string(clauses.size()) + saveSpace + '\n';
+    for(const auto& clause : clauses){
         for(auto var : clause){
             raw += to_string(var) + " ";
         }
@@ -140,7 +141,7 @@ bool CNF::solve() {
         satisfiable = result.satisfiable;
         if(satisfiable){
             for(int i = 0 ; i < result.inputSize ; i++){
-                satisfiedInput.push_back(result.input[i] ^ inv[i]);
+                satisfiedInput.push_back((result.input[i] > 0 ? 1 : 0) ^ inv[i]);
             }
             free(result.input);
         }

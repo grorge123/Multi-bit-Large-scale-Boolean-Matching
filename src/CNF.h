@@ -14,7 +14,7 @@ using namespace std;
 class CNF {
     bool checkSatisfied = false;
 public:
-    vector<int> satisfiedInput;
+    vector<bool> satisfiedInput;
     bool satisfiable = false;
     vector<int> inv;
     map<string, int> varMap;

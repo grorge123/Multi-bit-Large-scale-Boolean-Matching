@@ -275,7 +275,8 @@ void LargeScale::SAT_Solver(vector<pair<string, string> > &inputMatch, vector<pa
         newAIG.changeName(match.second, match.first);
     }
     CNF miter;
-    solveMiter(cir1, newAIG, miter);
+    AIG miterAIG;
+    solveMiter(cir1, newAIG, miter, miterAIG);
     if(miter.satisfiable){
         // TODO Not test
         cout << "Not Implement" << endl;
@@ -296,9 +297,9 @@ void LargeScale::SAT_Solver(vector<pair<string, string> > &inputMatch, vector<pa
         vector<bool> inputVector1, inputVector2;
         inputVector1.resize(cir1.getInputNum());
         inputVector2.resize(cir1.getInputNum());
-        for(int i = 0 ; i < miter.satisfiedInput.size() ; i++){
-            inputVector1[cir1.inputFromIndexToOrder(cir1.fromNameToIndex(CNFToAIG[i + 1]))] = (miter.satisfiedInput[i] > 0 ? 1 : 0);
-            inputVector2[cir2.inputFromIndexToOrder(cir2.fromNameToIndex(CNFToAIG[i + 1]))] = (miter.satisfiedInput[i] > 0 ? 1 : 0);
+        for(int i = 0 ; i < static_cast<int>(miter.satisfiedInput.size()) ; i++){
+            inputVector1[cir1.inputFromIndexToOrder(cir1.fromNameToIndex(CNFToAIG[i + 1]))] = miter.satisfiedInput[i];
+            inputVector2[cir2.inputFromIndexToOrder(cir2.fromNameToIndex(CNFToAIG[i + 1]))] = miter.satisfiedInput[i];
         }
         vector<bool> outputVector1 = cir1.generateOutput(inputVector1);
         vector<bool> outputVector2 = cir2.generateOutput(inputVector2);
