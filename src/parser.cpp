@@ -101,7 +101,8 @@ InputStructure parseInput(const string& inputPath) {
 
 string produceABCCommand(const string& inputPath, const string& outputPath) {
     //TODO test which command can reduce most network space
-    return "read " + inputPath +"; strash; write_aiger -s " + outputPath;
+    string resyn3 = "balance; resub; resub -K 6; balance; resub -z; resub -z -K 6; balance; resub -z -K 5; balance;";
+    return "read " + inputPath +"; strash; " + "write_aiger -s " + outputPath;
 }
 
 void parseOutput(const string &outputPath, const OutputStructure &result, const int matchOutput) {
