@@ -150,7 +150,7 @@ bool AIG::recursiveGenerateOutput(int now, vector<int> &signal, vector<bool> &in
 
 const set<string> & AIG::getSupport(const string &name, int supType) {
     if(supType == 1 || supType == 2){
-            abcFindFunSupport();
+        abcFindFunSupport();
         if(supType == 1){
             return funSupport[name];
         }else{
