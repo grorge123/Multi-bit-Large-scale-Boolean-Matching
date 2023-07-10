@@ -24,7 +24,6 @@ void Partition::intialRefineCluster(vector<vector<string> > &clusters, vector<ve
         record.push_back(recordVector);
     }
     clusters = newClusters;
-    return;
 }
 
 const vector<vector<string>> &Partition::getInputClusters() const {

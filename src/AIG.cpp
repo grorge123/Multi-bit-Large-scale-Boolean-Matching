@@ -94,6 +94,7 @@ void AIG::findSupport() {
 }
 
 void AIG::findFunSupport() {
+    funSupport.clear();
     ABCTool abcT(*this);
     map<string, set<string> > re = abcT.funSupport();
     for(auto &funPair : re){
@@ -298,7 +299,8 @@ void AIG::changeName(string oldName, string newName) {
     nameMap.erase(oldName);
 }
 //TODO check wire erase input but output still exist
-void AIG::erasePort(vector<string> nameList) {
+void AIG::erasePort(const vector<string>& nameList) {
+    if(nameList.size() == 0)return;
     int removeAnd = 0;
     for(auto &name : nameList){
 #ifdef DBG
@@ -384,7 +386,7 @@ void AIG::erasePort(vector<string> nameList) {
         exist[now] = true;
 #ifdef DBG
         if(!tree[now].exist){
-            cout << "[AIG] Error: output need been erased path." << endl;
+            cout << "[AIG] Error: output port need path has been erased." << endl;
             exit(1);
         }
 #endif
@@ -395,7 +397,9 @@ void AIG::erasePort(vector<string> nameList) {
             }
         }
     }
+    //TODO fix don't care input will be remove in here
     for(unsigned int idx = 1 ; idx < tree.size() ; idx++){
+        if(tree[idx].isInput)continue;
         if(tree[idx].exist && !exist[idx]){
             removeAnd++;
         }else if( !tree[idx].exist && exist[idx]){
@@ -406,6 +410,7 @@ void AIG::erasePort(vector<string> nameList) {
     andNum -= removeAnd;
     support.clear();
     findSupport();
+    findFunSupport();
 }
 
 const string &AIG::inputFromIndexToName(int index) {

@@ -42,12 +42,12 @@ private:
     void parseRaw();
     void recursiveFindSupport(int output, int now, vector<bool> &visit);
     bool recursiveGenerateOutput(int now, vector<int>& signal, vector<bool>& input);
-    void findSupport();
-    void findFunSupport();
     vector<string> zero, one;
     vector<pair<string,string>> wire; // <output name, input name>
 
 public:
+    void findSupport();
+    void findFunSupport();
     string cirName;
     AIG(){};
     AIG(string name, int supportType, string cirName = "") : cirName(std::move(cirName)){
@@ -106,7 +106,7 @@ public:
     vector<bool> generateOutput(vector<bool> input);
     const string &getRaw();
     void changeName(string oldName, string newName);
-    void erasePort(vector<string> nameList);
+    void erasePort(const vector<string>& nameList);
     const vector<string> &getZero() const;
     const vector<string> &getOne() const;
     void addNegativeOutput();

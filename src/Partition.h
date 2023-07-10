@@ -6,6 +6,7 @@
 #define MULTI_BIT_LARGE_SCALE_BOOLEAN_MATCHING_PARTITION_H
 #include "AIG.h"
 #include <random>
+#include <utility>
 class Partition : public AIG {
 
     vector<vector<string> > inputClusters;
@@ -15,7 +16,7 @@ class Partition : public AIG {
                                   map<string, size_t> &hashTable);
 public:
     Partition(){};
-    Partition(string fileName, string cirName = "", bool addNegative = false) : AIG(fileName, 2, cirName) {
+    Partition(string fileName, string cirName = "", bool addNegative = false) : AIG(std::move(fileName), 2, std::move(cirName)) {
         vector<string> ve;
         for(int i = 0 ; i < getInputNum() ; i++){
             if(fromOrderToIndex(i) != 0)
@@ -29,6 +30,8 @@ public:
                 ve.push_back(fromOrderToName(i));
         }
         outputClusters.push_back(ve);
+        findSupport();
+        findFunSupport();
     }
     const vector<vector<string>> &getInputClusters() const;
     const vector<vector<string>> &getOutputClusters() const;
