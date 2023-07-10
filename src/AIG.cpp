@@ -84,6 +84,7 @@ void AIG::parseRaw() {
 }
 
 void AIG::findSupport() {
+    if(!support.empty())return;
     for(int i = inputNum ; i < outputNum + inputNum; i++){
         int idx = indexMap[i];
         vector<bool> visit;
@@ -94,7 +95,7 @@ void AIG::findSupport() {
 }
 
 void AIG::findFunSupport() {
-    funSupport.clear();
+    if(!funSupport.empty())return;
     ABCTool abcT(*this);
     map<string, set<string> > re = abcT.funSupport();
     for(auto &funPair : re){
@@ -156,6 +157,7 @@ bool AIG::recursiveGenerateOutput(int now, vector<int> &signal, vector<bool> &in
 }
 
 set<string> AIG::getSupport(int idx) {
+    findSupport();
     set<string> re;
     for(auto &i : support[idx]){
         if(tree[i].isInput){
@@ -175,6 +177,7 @@ set<string> AIG::getSupport(const string& name) {
     return getSupport(fromNameToIndex(name));
 }
 set<string> AIG::getFunSupport(int idx){
+    findFunSupport();
     set<string> re;
     for(auto &i : funSupport[idx]){
         if(tree[i].isInput){
@@ -269,7 +272,7 @@ const string &AIG::getRaw() {
 }
 
 void AIG::changeName(string oldName, string newName) {
-    raw = "";
+    modifyAIG();
     int tmpOrder = -1;
 #ifdef DBG
     if(nameMap.find(oldName) == nameMap.end()){
@@ -300,7 +303,8 @@ void AIG::changeName(string oldName, string newName) {
 }
 //TODO check wire erase input but output still exist
 void AIG::erasePort(const vector<string>& nameList) {
-    if(nameList.size() == 0)return;
+    if(nameList.empty())return;
+    modifyAIG();
     int removeAnd = 0;
     for(auto &name : nameList){
 #ifdef DBG
@@ -386,7 +390,7 @@ void AIG::erasePort(const vector<string>& nameList) {
         exist[now] = true;
 #ifdef DBG
         if(!tree[now].exist){
-            cout << "[AIG] Error: output port need path has been erased." << endl;
+            cout << "[AIG] Error: output port need path " << now << " has been erased." << endl;
             exit(1);
         }
 #endif
@@ -409,8 +413,6 @@ void AIG::erasePort(const vector<string>& nameList) {
     }
     andNum -= removeAnd;
     support.clear();
-    findSupport();
-    findFunSupport();
 }
 
 const string &AIG::inputFromIndexToName(int index) {
@@ -470,6 +472,7 @@ const vector<int> &AIG::outputFromIndexToOrder(int idx) {
 }
 
 void AIG::addNegativeOutput() {
+    modifyAIG();
     int oldNum = inputNum + outputNum;
     for(int i = inputNum ; i < oldNum ; i++){
         int newIndex = indexMap[i];
@@ -495,7 +498,7 @@ void AIG::addNegativeOutput() {
 }
 
 void AIG::addFloatInput(const vector<string>& name) {
-    raw = "";
+    modifyAIG();
     indexMap.resize(indexMap.size() + name.size());
     orderToName.resize(orderToName.size() + name.size());
     invMap.resize(invMap.size() + name.size());
@@ -522,7 +525,7 @@ void AIG::addFloatInput(const vector<string>& name) {
 }
 
 void AIG::invertGate(const string &name) {
-    raw = "";
+    modifyAIG();
 #ifdef DBG
     if(nameMap.find(name) == nameMap.end()){
         cout << "[AIG] Error: invertGate can not find " << name << endl;
@@ -550,7 +553,7 @@ void AIG::invertGate(const string &name) {
 }
 
 void AIG::copyOutput(const string &origin, const string &newName, const bool negative) {
-    raw = "";
+    modifyAIG();
 #ifdef DBG
     if(nameMap.find(origin) == nameMap.end()){
         cout << "[AIG] Error: Can not change " << origin << " to " << newName << endl;
@@ -593,7 +596,7 @@ void AIG::copyOutput(const string &origin, const string &newName, const bool neg
 }
 
 void AIG::exportInput(const string &from, const string &to, bool negative) {
-    raw = "";
+    modifyAIG();
 #ifdef DBG
     if(nameMap.find(from) == nameMap.end() || nameMap.find(to) == nameMap.end()){
         cout << "[AIG] Error: Can not export " << from << " to " << to << endl;
@@ -633,7 +636,7 @@ void AIG::exportInput(const string &from, const string &to, bool negative) {
 }
 
 void AIG::setConstant(const string &origin, int val) {
-    raw = "";
+    modifyAIG();
 #ifdef DBG
     if(nameMap.find(origin) == nameMap.end()){
         exit(1);
@@ -685,6 +688,12 @@ void AIG::writeToAIGFile(const string &fileName) {
 
 bool AIG::portIsNegative(int order) {
     return invMap[order];
+}
+
+void AIG::modifyAIG() {
+    raw = "";
+    funSupport.clear();
+    support.clear();
 }
 
 void solveMiter(AIG &cir1, AIG &cir2, CNF &miter, AIG &miterAIG) {

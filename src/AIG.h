@@ -44,10 +44,10 @@ private:
     bool recursiveGenerateOutput(int now, vector<int>& signal, vector<bool>& input);
     vector<string> zero, one;
     vector<pair<string,string>> wire; // <output name, input name>
-
-public:
     void findSupport();
     void findFunSupport();
+
+public:
     string cirName;
     AIG(){};
     AIG(string name, int supportType, string cirName = "") : cirName(std::move(cirName)){
@@ -116,6 +116,7 @@ public:
     void exportInput(const string &from, const string &to, bool negative);
     void setConstant(const string &origin, int val);
     void writeToAIGFile(const string &fileName);
+    void modifyAIG();
     void Debug();
 };
 

@@ -30,8 +30,6 @@ public:
                 ve.push_back(fromOrderToName(i));
         }
         outputClusters.push_back(ve);
-        findSupport();
-        findFunSupport();
     }
     const vector<vector<string>> &getInputClusters() const;
     const vector<vector<string>> &getOutputClusters() const;
