@@ -14,7 +14,7 @@ void Partition::intialRefineCluster(vector<vector<string> > &clusters, vector<ve
     for(auto &cluster : clusters){
         map<int, vector<string>> Dmap;
         for(auto &port : cluster){
-            Dmap[getSupport(port).size()].push_back(port);
+            Dmap[getSupport(port, 2).size()].push_back(port);
         }
         vector<int> recordVector;
         for(auto &newCluster : Dmap){
@@ -49,7 +49,7 @@ int Partition::dependencyAnalysisCluster(vector<vector<string> > &clusters, vect
     for(auto &cluster : clusters){
         map<set<size_t>, vector<string> > Smap;
         for(auto &port : cluster){
-            set<string> supportSet = getSupport(port);
+            set<string> supportSet = getSupport(port, 2);
             set<size_t> indexSet;
             for(auto &supportVar : supportSet){
                 indexSet.insert(hashTable[supportVar]);

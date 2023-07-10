@@ -37,7 +37,8 @@ private:
     map<int, vector<int> > outputIndexMapInv; // AIG Node index to AIG input order
     vector<string> orderToName; // AIG input order to verilog name
     vector<bool> invMap; // AIG input order if is inverted
-    map<string , set<string> > strSupport; // input Name to strSupport set
+    map<string , set<string> > strSupport; // input Name to strSupport set search by recursive
+    map<string , set<string> > abcStrSupport; // input Name to strSupport set search by abc
     map<string , set<string> > funSupport; // input Name to funSupport set
     void parseRaw();
     void recursiveFindSupport(int output, int now, vector<bool> &visit);
@@ -45,17 +46,16 @@ private:
     vector<string> zero, one;
     vector<pair<string,string>> wire; // <output name, input name>
     void recursiveFindStrSupport();
-    void findStrSupport();
-    void findFunSupport();
+    void abcFindFunSupport();
 
 public:
     string cirName;
     AIG(){};
-    AIG(string name, int supportType, string cirName = "") : cirName(std::move(cirName)){
+    AIG(const string& name, int supportType, string cirName = "") : cirName(std::move(cirName)){
         aiger *input = aiger_init();
         const char *err_msg = aiger_open_and_read_from_file(input, name.c_str());
 #ifdef DBG
-        if(err_msg != NULL){
+        if(err_msg != nullptr){
             cout << "[AIG]ERROR: " << err_msg << endl;
             exit(1);
         }
@@ -83,14 +83,14 @@ public:
             recursiveFindStrSupport();
         }
         if(supportType == 1 || supportType == 2){
-            findFunSupport();
+            abcFindFunSupport();
         }
     }
     const string &inputFromIndexToName(int index);
     const vector<string> &outputFromIndexToName(int idx);
     const string &fromOrderToName(int order);
     int fromOrderToIndex(int order) const;
-    int fromNameToIndex(string name);
+    int fromNameToIndex(const string &name);
     int inputFromIndexToOrder(int idx);
     const vector<int> &outputFromIndexToOrder(int idx);
     int fromOrderToIndex(int order);
@@ -100,10 +100,7 @@ public:
     bool isInput(int idx);
     bool portExist(string name);
     bool portIsNegative(int order);
-    set<string> getSupport(int idx);
-    set<string> getSupport(const string& name);
-    set<string> getFunSupport(int idx);
-    set<string> getFunSupport(string name);
+    const set<string> & getSupport(const string &name, int supType); // 0: funSuppose 1: abcStrSuppose 2: recurStrSuppose
     vector<bool> generateOutput(vector<bool> input);
     const string &getRaw();
     void changeName(string oldName, string newName);
@@ -113,7 +110,7 @@ public:
     void addNegativeOutput();
     void addFloatInput(const vector<string>& name);
     void invertGate(const string &name);
-    void copyOutput(const string &origin, const string &newName, const bool negative);
+    void copyOutput(const string &origin, const string &newName, bool negative);
     void exportInput(const string &from, const string &to, bool negative);
     void setConstant(const string &origin, int val);
     void writeToAIGFile(const string &fileName);

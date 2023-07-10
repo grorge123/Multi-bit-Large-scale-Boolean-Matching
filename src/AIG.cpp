@@ -94,11 +94,13 @@ void AIG::recursiveFindStrSupport() {
     }
 }
 
-void AIG::findFunSupport() {
+void AIG::abcFindFunSupport() {
     if(!funSupport.empty())return;
     ABCTool abcT(*this);
     funSupport = abcT.funSupport();
+    abcStrSupport = abcT.strSupport();
 }
+
 
 
 void AIG::recursiveFindSupport(int output, int now, vector<bool> &visit) {
@@ -146,15 +148,25 @@ bool AIG::recursiveGenerateOutput(int now, vector<int> &signal, vector<bool> &in
     return (tree[now].inv[0] ? !(lvalue & rvalue) : (lvalue & rvalue));
 }
 
-set<string> AIG::getSupport(const string& name) {
-    recursiveFindStrSupport();
-    return strSupport[name];
+const set<string> & AIG::getSupport(const string &name, int supType) {
+    if(supType == 1 || supType == 2){
+            abcFindFunSupport();
+        if(supType == 1){
+            return funSupport[name];
+        }else{
+            return abcStrSupport[name];
+        }
+    }else if(supType == 3){
+        recursiveFindStrSupport();
+        return strSupport[name];
+    }
+#ifdef DBG
+    cout << "[AIG] Error: can not hanle supType!" << endl;
+    exit(1);
+#endif
 }
-set<string> AIG::getFunSupport(string name) {
-    findFunSupport();
-    return funSupport[name];
-}
-int AIG::fromNameToIndex(string name) {
+
+int AIG::fromNameToIndex(const string &name) {
     return nameMap[name];
 }
 

@@ -211,14 +211,14 @@ void LargeScale::removeNonSupport(vector<pair<string, string>> &inputMatch, vect
         change = 0;
         for(auto match = inputMatch.begin() ; match != inputMatch.end() ; ){
             bool flag1 = false, flag2 = false;
-            auto supportSet1 = cir1.getSupport(match->first);
+            auto supportSet1 = cir1.getSupport(match->first, 2);
             for(auto &supportVar : supportSet1){
                 if(outputMap1.find(supportVar) != outputMap1.end()){
                     flag1 = true;
                     break;
                 }
             }
-            auto supportSet2 = cir2.getSupport(match->second);
+            auto supportSet2 = cir2.getSupport(match->second, 2);
             for(auto &supportVar : supportSet2){
                 if(outputMap2.find(supportVar) != outputMap2.end()){
                     flag2 = true;
@@ -236,14 +236,14 @@ void LargeScale::removeNonSupport(vector<pair<string, string>> &inputMatch, vect
         }
         for(auto match = outputMatch.begin() ; match != outputMatch.end() ; ){
             bool flag1 = false, flag2 = false;
-            auto supportSet1 = cir1.getSupport(match->first);
+            auto supportSet1 = cir1.getSupport(match->first, 2);
             for(auto &supportVar : supportSet1){
                 if(inputMap1.find(supportVar) == inputMap1.end()){
                     flag1 = true;
                     break;
                 }
             }
-            auto supportSet2 = cir2.getSupport(match->second);
+            auto supportSet2 = cir2.getSupport(match->second, 2);
             for(auto &supportVar : supportSet2){
                 if(inputMap2.find(supportVar) == inputMap2.end()){
                     flag2 = true;

@@ -238,7 +238,7 @@ vector<MP> TwoStep::inputSolver(vector<MP> &R) {
         }
         for(int order = 0 ; order < cir.getInputNum() ; order++){
             bool eraseFlag = true;
-            for(const string& funSupportPort: cir.getFunSupport(cir.fromOrderToName(order))){
+            for(const string& funSupportPort: cir.getSupport(cir.fromOrderToName(order), 1)){
                 if(cirErase.find(funSupportPort) == cirErase.end()){
                     eraseFlag = false;
                     break;
@@ -370,17 +370,17 @@ bool TwoStep::heuristicsOrderCmp(const string& a, const string& b) {
 
     std::function<std::set<std::string>(std::string)> funSupport;
     if (a[0] == '!') {
-        funSupport = [this](auto && PH1) { return cir1.getFunSupport(std::forward<decltype(PH1)>(PH1)); };
+        funSupport = [this](auto && PH1) { return cir1.getSupport(std::forward<decltype(PH1)>(PH1), 1); };
     } else {
-        funSupport = [this](auto && PH1) { return cir2.getFunSupport(std::forward<decltype(PH1)>(PH1)); };
+        funSupport = [this](auto && PH1) { return cir2.getSupport(std::forward<decltype(PH1)>(PH1), 1); };
     }
     int funSupportSizeA = static_cast<int>(funSupport(a).size());
     int funSupportSizeB = static_cast<int>(funSupport(b).size());
     std::function<std::set<std::string>(std::string)> strSupport;
     if (a[0] == '!') {
-        strSupport = [=](std::string name) { return cir1.getSupport(std::move(name)); };
+        strSupport = [=](std::string name) { return cir1.getSupport(std::move(name), 2); };
     } else {
-        strSupport = [=](std::string name) { return cir2.getSupport(std::move(name)); };
+        strSupport = [=](std::string name) { return cir2.getSupport(std::move(name), 2); };
     }
     int strSupportSizeA = static_cast<int>(strSupport(a).size());
     int strSupportSizeB = static_cast<int>(strSupport(b).size());
@@ -399,7 +399,7 @@ vector<int> TwoStep::generateOutputGroups(vector<string> &f, vector<string> &g) 
     group.emplace_back();
     for(int i = static_cast<int>(f.size()) - 1; i >= 0 ; i--){
         group.back().push_back(i);
-        if(cir1.getFunSupport(f[i]).size() > cir2.getFunSupport(g[i]).size()){
+        if(cir1.getSupport(f[i], 1).size() > cir2.getSupport(g[i], 1).size()){
             group.emplace_back();
         }
     }
