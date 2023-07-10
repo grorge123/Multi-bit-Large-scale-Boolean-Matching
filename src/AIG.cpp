@@ -697,7 +697,7 @@ void solveMiter(AIG &cir1, AIG &cir2, CNF &miter, AIG &miterAIG) {
     char miterAIGFileName[]{"miter.aig"};
     char miterCNFFileName[]{"miter.cnf"};
     aigtocnf(miterAIGFileName, miterCNFFileName);
-    miterAIG = AIG("miter.aig", 3);
+    miterAIG = AIG("miter.aig");
     miter = CNF(miterAIG);
     miter.solve();
 //    solverResult result = SAT_solver(miterCNF);

@@ -7,6 +7,7 @@
 
 #include <string>
 #include <random>
+#include <utility>
 #include "utility.h"
 #include "Partition.h"
 #include "parser.h"
@@ -16,7 +17,8 @@ class LargeScale {
     default_random_engine generator;
     uniform_int_distribution<int> distribution;
     Partition cir1, cir2;
-    int allOutputNumber;
+    int allOutputNumber{};
+    int supType;
     map<string, size_t> hashTable;
 
     template<class _T>
@@ -41,12 +43,13 @@ public:
     LargeScale(){
 
     }
-    LargeScale(Partition cir1, Partition cir2): cir1(cir1), cir2(cir2){
+    LargeScale(Partition cir1, Partition cir2): cir1(std::move(cir1)), cir2(std::move(cir2)){
 
     }
-    LargeScale(InputStructure input, string outputFilePath) : outputFilePath(outputFilePath), generator(7122), distribution(0, 1){
-        cir1 = Partition(input.cir1AIGPath, "!", true);
-        cir2 = Partition(input.cir2AIGPath, "@", true);
+    LargeScale(const InputStructure& input, string outputFilePath, int supType = 2)
+            : outputFilePath(std::move(outputFilePath)), generator(7122), distribution(0, 1), supType(supType){
+        cir1 = Partition(input.cir1AIGPath, supType, "!", true);
+        cir2 = Partition(input.cir2AIGPath, supType, "@", true);
         allOutputNumber = (cir2.getOutputNum() + cir1.getOutputNum()) / 2;
     }
     int start();

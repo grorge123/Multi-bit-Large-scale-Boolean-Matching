@@ -51,7 +51,7 @@ private:
 public:
     string cirName;
     AIG(){};
-    AIG(const string& name, int supportType, string cirName = "") : cirName(std::move(cirName)){
+    AIG(const string &name, string cirName = "") : cirName(std::move(cirName)){
         aiger *input = aiger_init();
         const char *err_msg = aiger_open_and_read_from_file(input, name.c_str());
 #ifdef DBG
@@ -79,12 +79,6 @@ public:
         ifs.close();
         aiger_reset(input);
         parseRaw();
-        if (supportType == 0 || supportType == 2) {
-            recursiveFindStrSupport();
-        }
-        if(supportType == 1 || supportType == 2){
-            abcFindFunSupport();
-        }
     }
     const string &inputFromIndexToName(int index);
     const vector<string> &outputFromIndexToName(int idx);

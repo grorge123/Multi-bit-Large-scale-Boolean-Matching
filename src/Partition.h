@@ -8,7 +8,7 @@
 #include <random>
 #include <utility>
 class Partition : public AIG {
-
+    int supType;
     vector<vector<string> > inputClusters;
     vector<vector<string> > outputClusters;
     void intialRefineCluster(vector<vector<string> > &clusters, vector<vector<int>> &record);
@@ -16,7 +16,7 @@ class Partition : public AIG {
                                   map<string, size_t> &hashTable);
 public:
     Partition(){};
-    Partition(string fileName, string cirName = "", bool addNegative = false) : AIG(std::move(fileName), 2, std::move(cirName)) {
+    Partition(const string& fileName, int supType = 2, string cirName = "", bool addNegative = false) : AIG(fileName, std::move(cirName)), supType(supType) {
         vector<string> ve;
         for(int i = 0 ; i < getInputNum() ; i++){
             if(fromOrderToIndex(i) != 0)
