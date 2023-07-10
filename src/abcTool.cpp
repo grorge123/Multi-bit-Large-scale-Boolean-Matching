@@ -70,8 +70,11 @@ map<string, set<string> > ABCTool::funSupport(){
     Abc_NtkForEachCo( mainNtk, pNode, i )
         Abc_NtkForEachCi( mainNtk, pNodeCi, v ){
             if(Sim_SuppFunHasVar( vSuppFun, i, v ) != 0){
-                re[Abc_ObjName(pNode)].insert(Abc_ObjName(pNodeCi));
-                re[Abc_ObjName(pNodeCi)].insert(Abc_ObjName(pNode));
+                string outputName = Abc_ObjName(pNode);
+                string inputName = Abc_ObjName(pNodeCi);
+                if(outputName == inputName)continue;
+                re[outputName].insert(inputName);
+                re[outputName].insert(inputName);
             }
         }
     return re;

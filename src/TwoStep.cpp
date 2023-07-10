@@ -55,11 +55,11 @@ void TwoStep::start() {
             }
             continue;
         }
-        cout << "Output Pair:" << projection << endl;
-        recordMs();
-        for(auto pair : R){
-            cout << pair.first << ' ' << pair.second << endl;
-        }
+//        cout << "Output Pair:" << projection << endl;
+//        recordMs();
+//        for(const auto& pair : R){
+//            cout << pair.first << ' ' << pair.second << endl;
+//        }
         clauseNum.push_back(clauseStack.size());
         vector<MP> inputMatch = inputSolver(R);
         if(inputMatch.empty()){
@@ -119,6 +119,7 @@ int TwoStep::nowMs() {
 }
 int recordCounter = 0;
 void TwoStep::recordMs() {
+    return;
     int now = nowMs();
     cout <<"During:"<< now - lastTime << " Iteration:" << recordCounter << endl;
     recordCounter++;
@@ -235,16 +236,16 @@ vector<MP> TwoStep::inputSolver(vector<MP> &R) {
                 cirErase.insert(cir.fromOrderToName(i));
             }
         }
-        for(int idx = 0 ; idx < cir.getInputNum() ; idx++){
+        for(int order = 0 ; order < cir.getInputNum() ; order++){
             bool eraseFlag = true;
-            for(const string& funSupportPort: cir.getFunSupport(cir.fromOrderToName(idx))){
+            for(const string& funSupportPort: cir.getFunSupport(cir.fromOrderToName(order))){
                 if(cirErase.find(funSupportPort) == cirErase.end()){
                     eraseFlag = false;
                     break;
                 }
             }
             if(eraseFlag){
-                cirErase.insert(cir.fromOrderToName(idx));
+                cirErase.insert(cir.fromOrderToName(order));
             }
         }
         vector<string> re;
@@ -347,16 +348,16 @@ vector<MP> TwoStep::inputSolver(vector<MP> &R) {
         mapping = solveMapping(mappingSpace, cir1Reduce, cir2Reduce, baseLength);
         if(mapping.empty())break;
         // TODO delete this
-        cout << "Find Mapping" << endl;
-        for(auto pair : mapping){
-            cout << pair.first << " " << pair.second << endl;
-        }
+//        cout << "Find Mapping" << endl;
+//        for(auto pair : mapping){
+//            cout << pair.first << " " << pair.second << endl;
+//        }
         recordMs();
         pair<pair<map<string, pair<int, bool>>, map<string, pair<int, bool> > >, vector<vector<bool> > > counter = solveMiter(mapping, R, cir1Reduce, cir2Reduce);
         if(counter.second.empty()){
             break;
         }
-        cout << "It is counterexample size:" << counter.second.size() << endl;
+//        cout << "It is counterexample size:" << counter.second.size() << endl;
         recordMs();
         for(auto counterexample : counter.second){
             reduceSpace(mappingSpace, counterexample, baseLength, cir1Reduce, cir2Reduce, mapping, counter.first, R);
@@ -564,14 +565,6 @@ TwoStep::solveMiter(const vector<MP> &inputMatchPair, const vector<MP> &outputMa
         }
         if(!notEqual){
             cout << "[TwoStep] SelfTest fail: match network are equal!" <<endl;
-            for(auto k : cir1.generateOutput(testCir1Input)){
-                cout << k << ' ';
-            }
-            cout << endl;
-            for(auto k : cir2.generateOutput(testCir2Input)){
-                cout << k << ' ';
-            }
-            cout << endl;
             cout <<"miter Result:"<< miterAIG.generateOutput(testMiterInput)[0];
             exit(1);
         }
@@ -640,16 +633,16 @@ TwoStep::reduceSpace(CNF &mappingSpace, const vector<bool> &counter, const int b
 #endif
         }
     }
-    cout << "cir1Input" << endl;
-    for(int i = 0 ; i < cir1Input.size() ; i++){
-        cout << cir1Input[i]<<" ";
-    }
-    cout << endl;
-    cout << "cir2Input" << endl;
-    for(int i = 0 ; i < cir2Input.size() ; i++){
-        cout << cir2Input[i]<<" ";
-    }
-    cout << endl;
+//    cout << "cir1Input" << endl;
+//    for(int i = 0 ; i < cir1Input.size() ; i++){
+//        cout << cir1Input[i]<<" ";
+//    }
+//    cout << endl;
+//    cout << "cir2Input" << endl;
+//    for(int i = 0 ; i < cir2Input.size() ; i++){
+//        cout << cir2Input[i]<<" ";
+//    }
+//    cout << endl;
 #ifdef DBG
     //TODO delete test
 
@@ -689,32 +682,32 @@ TwoStep::reduceSpace(CNF &mappingSpace, const vector<bool> &counter, const int b
     for(auto i : cir2NonRedundant){
         for(auto j : cir1NonRedundant){
 
-            cout <<"order:"<< i << " " << j << endl;
+//            cout <<"order:"<< i << " " << j << endl;
             if(cir1Input[j] == cir2Input[i]){
-                cout << "equal:" << i * baseLength + j * 2 + 1 + 1 << endl;
+//                cout << "equal:" << i * baseLength + j * 2 + 1 + 1 << endl;
                 clause.push_back(i * baseLength + j * 2 + 1 + 1);
                 record.push_back(cir1.fromOrderToName(j) + '\'' + "_" + cir2.fromOrderToName(i));
             }else{
-                cout << "not equal:" << i * baseLength + j * 2 + 1 << endl;
+//                cout << "not equal:" << i * baseLength + j * 2 + 1 << endl;
                 clause.push_back(i * baseLength + j * 2 + 1);
                 record.push_back(cir1.fromOrderToName(j) + "_" + cir2.fromOrderToName(i));
             }
         }
         if(cir2Input[i]){
-            cout << "0:" << i * baseLength + cir1.getInputNum() * 2 + 1 << endl;
+//            cout << "0:" << i * baseLength + cir1.getInputNum() * 2 + 1 << endl;
             clause.push_back(i * baseLength  + cir1.getInputNum() * 2 + 1);
             record.push_back("0_" + cir2.fromOrderToName(i));
         }else{
-            cout << "1:" << i * baseLength + cir1.getInputNum() * 2 + 1 + 1 << endl;
+//            cout << "1:" << i * baseLength + cir1.getInputNum() * 2 + 1 + 1 << endl;
             clause.push_back(i * baseLength  + cir1.getInputNum() * 2 + 1 + 1);
             record.push_back("1_" + cir2.fromOrderToName(i));
         }
     }
-    cout << "clause:" << endl;
-    for(auto i : clause){
-        cout << i << " ";
-    }
-    cout << endl;
+//    cout << "clause:" << endl;
+//    for(auto i : clause){
+//        cout << i << " ";
+//    }
+//    cout << endl;
 #ifdef DBG
     //TODO delete test
     for(const auto &i :mappingSpace.clauses){

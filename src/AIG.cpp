@@ -52,8 +52,8 @@ void AIG::parseRaw() {
         tree[idx].inv[2] = r % 2;
         tree[idx].exist = true;
     }
-    int idx = 0;
-    while (!ss.eof() && idx < inputNum + outputNum){
+    int order = 0;
+    while (!ss.eof() && order < inputNum + outputNum){
         string a, b;
         ss >> a;
         if(a != "c"){
@@ -62,26 +62,25 @@ void AIG::parseRaw() {
             break;
         }
         string portName = cirName + b;
-        nameMap[portName] = indexMap[idx];
-        if(idx < inputNum){
-            inputNameMapInv[indexMap[idx]] = portName;
+        nameMap[portName] = indexMap[order];
+        if(order < inputNum){
+            inputNameMapInv[indexMap[order]] = portName;
         }else{
-            outputNameMapInv[indexMap[idx]].push_back(portName);
+            outputNameMapInv[indexMap[order]].push_back(portName);
         }
         orderToName.push_back(portName);
-        if(indexMap[idx] == 0){
-            if(invMap[idx]){
+        if(indexMap[order] == 0){
+            if(invMap[order]){
                 one.push_back(portName);
             }else{
                 zero.push_back(portName);
             }
-        }else if(idx >= inputNum && tree[indexMap[idx]].isInput){
-            wire.push_back(pair<string,string>(portName, inputNameMapInv[indexMap[idx]]));
+        }else if(order >= inputNum && tree[indexMap[order]].isInput){
+            wire.emplace_back(portName, inputNameMapInv[indexMap[order]]);
         }
-        idx++;
+        order++;
     }
 
-    return;
 }
 
 void AIG::findSupport() {
@@ -99,6 +98,9 @@ void AIG::findFunSupport() {
     map<string, set<string> > re = abcT.funSupport();
     for(auto &funPair : re){
         set<int> transfer;
+        if(tree[fromNameToIndex(funPair.first)].isInput && fromNameToOrder(funPair.first) > inputNum){
+            continue;
+        }
         for(auto &port : funPair.second){
             transfer.insert(fromNameToIndex(port));
         }
@@ -112,8 +114,10 @@ void AIG::recursiveFindSupport(int output, int now, vector<bool> &visit) {
     visit[now] = true;
     if(now == 0)return;
     if(tree[now].isInput){
-        support[now].insert(output);
-        support[output].insert(now);
+        if(now != output){
+            support[now].insert(output);
+            support[output].insert(now);
+        }
     }else{
         recursiveFindSupport(output, tree[now].l, visit);
         recursiveFindSupport(output, tree[now].r, visit);
@@ -163,7 +167,10 @@ set<string> AIG::getSupport(int idx) {
     }
     return re;
 }
-set<string> AIG::getSupport(string name) {
+set<string> AIG::getSupport(const string& name) {
+    if(tree[fromNameToIndex(name)].isInput && fromNameToOrder(name) > inputNum){
+        return set<string>{inputFromIndexToName(fromNameToIndex(name))};
+    }
     return getSupport(fromNameToIndex(name));
 }
 set<string> AIG::getFunSupport(int idx){
@@ -180,7 +187,9 @@ set<string> AIG::getFunSupport(int idx){
     return re;
 }
 set<string> AIG::getFunSupport(string name) {
-
+    if(tree[fromNameToIndex(name)].isInput && fromNameToOrder(name) > inputNum){
+        return set<string>{inputFromIndexToName(fromNameToIndex(name))};
+    }
     return getFunSupport(fromNameToIndex(name));
 }
 int AIG::fromNameToIndex(string name) {
@@ -288,7 +297,7 @@ void AIG::changeName(string oldName, string newName) {
     orderToName[tmpOrder] = newName;
     nameMap.erase(oldName);
 }
-
+//TODO check wire erase input but output still exist
 void AIG::erasePort(vector<string> nameList) {
     int removeAnd = 0;
     for(auto &name : nameList){
@@ -373,6 +382,12 @@ void AIG::erasePort(vector<string> nameList) {
         existQueue.pop();
         if(exist[now])continue;
         exist[now] = true;
+#ifdef DBG
+        if(!tree[now].exist){
+            cout << "[AIG] Error: output need been erased path." << endl;
+            exit(1);
+        }
+#endif
         if(!tree[now].isInput){
             if(now != 0){
                 existQueue.push(tree[now].l);
@@ -653,7 +668,7 @@ void AIG::writeToAIGFile(const string &fileName) {
     const char *err_msg = aiger_open_and_read_from_file(aig, aagFileName.c_str());
 #ifdef DBG
     if(err_msg != nullptr){
-        cout << "[AIG:writeToAIGFile]ERROR: " << err_msg << endl;
+        cout << "[AIG:writeToAIGFile]ERROR: file:" << fileName << " msg:" << err_msg << endl;
         exit(1);
     }
 #endif

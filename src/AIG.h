@@ -10,6 +10,7 @@
 #include <map>
 #include <set>
 #include <iostream>
+#include <utility>
 #include <vector>
 #include <fstream>
 
@@ -49,7 +50,7 @@ private:
 public:
     string cirName;
     AIG(){};
-    AIG(string name, int supportType, string cirName = "") : cirName(cirName){
+    AIG(string name, int supportType, string cirName = "") : cirName(std::move(cirName)){
         aiger *input = aiger_init();
         const char *err_msg = aiger_open_and_read_from_file(input, name.c_str());
 #ifdef DBG
@@ -99,7 +100,7 @@ public:
     bool portExist(string name);
     bool portIsNegative(int order);
     set<string> getSupport(int idx);
-    set<string> getSupport(string name);
+    set<string> getSupport(const string& name);
     set<string> getFunSupport(int idx);
     set<string> getFunSupport(string name);
     vector<bool> generateOutput(vector<bool> input);
