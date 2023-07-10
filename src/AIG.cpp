@@ -83,8 +83,8 @@ void AIG::parseRaw() {
 
 }
 
-void AIG::findSupport() {
-    if(!support.empty())return;
+void AIG::recursiveFindStrSupport() {
+    if(!strSupport.empty())return;
     for(int i = inputNum ; i < outputNum + inputNum; i++){
         int idx = indexMap[i];
         vector<bool> visit;
@@ -97,17 +97,7 @@ void AIG::findSupport() {
 void AIG::findFunSupport() {
     if(!funSupport.empty())return;
     ABCTool abcT(*this);
-    map<string, set<string> > re = abcT.funSupport();
-    for(auto &funPair : re){
-        set<int> transfer;
-        if(tree[fromNameToIndex(funPair.first)].isInput && fromNameToOrder(funPair.first) > inputNum){
-            continue;
-        }
-        for(auto &port : funPair.second){
-            transfer.insert(fromNameToIndex(port));
-        }
-        funSupport[fromNameToIndex(funPair.first)] = transfer;
-    }
+    funSupport = abcT.funSupport();
 }
 
 
@@ -116,9 +106,9 @@ void AIG::recursiveFindSupport(int output, int now, vector<bool> &visit) {
     visit[now] = true;
     if(now == 0)return;
     if(tree[now].isInput){
-        if(now != output){
-            support[now].insert(output);
-            support[output].insert(now);
+        for(auto outputPort : outputFromIndexToName(output)){
+            strSupport[inputFromIndexToName(now)].insert(outputPort);
+            strSupport[outputPort].insert(inputFromIndexToName(now));
         }
     }else{
         recursiveFindSupport(output, tree[now].l, visit);
@@ -156,45 +146,13 @@ bool AIG::recursiveGenerateOutput(int now, vector<int> &signal, vector<bool> &in
     return (tree[now].inv[0] ? !(lvalue & rvalue) : (lvalue & rvalue));
 }
 
-set<string> AIG::getSupport(int idx) {
-    findSupport();
-    set<string> re;
-    for(auto &i : support[idx]){
-        if(tree[i].isInput){
-            re.insert(inputNameMapInv[i]);
-        }else{
-            for(auto &outputName : outputNameMapInv[i]){
-                re.insert(outputName);
-            }
-        }
-    }
-    return re;
-}
 set<string> AIG::getSupport(const string& name) {
-    if(tree[fromNameToIndex(name)].isInput && fromNameToOrder(name) > inputNum){
-        return set<string>{inputFromIndexToName(fromNameToIndex(name))};
-    }
-    return getSupport(fromNameToIndex(name));
-}
-set<string> AIG::getFunSupport(int idx){
-    findFunSupport();
-    set<string> re;
-    for(auto &i : funSupport[idx]){
-        if(tree[i].isInput){
-            re.insert(inputNameMapInv[i]);
-        }else{
-            for(auto &outputName : outputNameMapInv[i]){
-                re.insert(outputName);
-            }
-        }
-    }
-    return re;
+    recursiveFindStrSupport();
+    return strSupport[name];
 }
 set<string> AIG::getFunSupport(string name) {
-    if(tree[fromNameToIndex(name)].isInput && fromNameToOrder(name) > inputNum){
-        return set<string>{inputFromIndexToName(fromNameToIndex(name))};
-    }
-    return getFunSupport(fromNameToIndex(name));
+    findFunSupport();
+    return funSupport[name];
 }
 int AIG::fromNameToIndex(string name) {
     return nameMap[name];
@@ -412,7 +370,7 @@ void AIG::erasePort(const vector<string>& nameList) {
         tree[idx].exist = exist[idx];
     }
     andNum -= removeAnd;
-    support.clear();
+    strSupport.clear();
 }
 
 const string &AIG::inputFromIndexToName(int index) {
@@ -693,7 +651,7 @@ bool AIG::portIsNegative(int order) {
 void AIG::modifyAIG() {
     raw = "";
     funSupport.clear();
-    support.clear();
+    strSupport.clear();
 }
 
 void solveMiter(AIG &cir1, AIG &cir2, CNF &miter, AIG &miterAIG) {

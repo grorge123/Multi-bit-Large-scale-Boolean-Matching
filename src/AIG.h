@@ -37,14 +37,15 @@ private:
     map<int, vector<int> > outputIndexMapInv; // AIG Node index to AIG input order
     vector<string> orderToName; // AIG input order to verilog name
     vector<bool> invMap; // AIG input order if is inverted
-    map<int, set<int> > support; // AIG Node index to support set
-    map<int, set<int> > funSupport; // AIG Node index to support set
+    map<string , set<string> > strSupport; // input Name to strSupport set
+    map<string , set<string> > funSupport; // input Name to funSupport set
     void parseRaw();
     void recursiveFindSupport(int output, int now, vector<bool> &visit);
     bool recursiveGenerateOutput(int now, vector<int>& signal, vector<bool>& input);
     vector<string> zero, one;
     vector<pair<string,string>> wire; // <output name, input name>
-    void findSupport();
+    void recursiveFindStrSupport();
+    void findStrSupport();
     void findFunSupport();
 
 public:
@@ -79,7 +80,7 @@ public:
         aiger_reset(input);
         parseRaw();
         if (supportType == 0 || supportType == 2) {
-            findSupport();
+            recursiveFindStrSupport();
         }
         if(supportType == 1 || supportType == 2){
             findFunSupport();
