@@ -47,7 +47,7 @@ private:
     vector<pair<string,string>> wire; // <output name, input name>
     void recursiveFindStrSupport();
     void abcFindFunSupport();
-
+    void abcFindStrSupport();
 public:
     string cirName;
     AIG(){};
@@ -89,15 +89,16 @@ public:
     const vector<int> &outputFromIndexToOrder(int idx);
     int fromOrderToIndex(int order);
     int fromNameToOrder(string name);
-    int getInputNum();
-    int getOutputNum();
+    int getInputNum() const;
+    int getOutputNum() const;
     bool isInput(int idx);
+    bool isOutput(int idx);
     bool portExist(string name);
     bool portIsNegative(int order);
     const set<string> & getSupport(const string &name, int supType); // 0: funSuppose 1: abcStrSuppose 2: recurStrSuppose
     vector<bool> generateOutput(vector<bool> input);
     const string &getRaw();
-    void changeName(string oldName, string newName);
+    void changeName(const string& oldName, const string& newName);
     void erasePort(const vector<string>& nameList);
     const vector<string> &getZero() const;
     const vector<string> &getOne() const;
@@ -110,6 +111,7 @@ public:
     void writeToAIGFile(const string &fileName);
     void modifyAIG();
     void Debug();
+    void selfTest();
 };
 
 void solveMiter(AIG &cir1, AIG &cir2, CNF &miter, AIG &miterAIG);

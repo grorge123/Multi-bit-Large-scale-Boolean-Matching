@@ -50,11 +50,13 @@ void CNF::readFromAIG(AIG &aig) {
 #endif
             varMap.insert(pair<string, int> (aig.inputFromIndexToName(aigIdx), cnfIdx));
         }
-        for(const auto& name : aig.outputFromIndexToName(aigIdx)){
+        if(aig.isOutput(aigIdx)){
+            for(const auto& name : aig.outputFromIndexToName(aigIdx)){
 #ifdef DBG
-            DC.erase(name);
+                DC.erase(name);
 #endif
-//            varMap.insert(pair<string, int> (name, cnfIdx));
+    //            varMap.insert(pair<string, int> (name, cnfIdx));
+            }
         }
     }
     ifs.close();

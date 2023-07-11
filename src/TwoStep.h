@@ -36,6 +36,7 @@ class TwoStep {
     bool outputSolverInit = false;
     int iteratorCounter = 0;
     int lastTime = 0;
+    int verbose = 0;
 
     void recordMs();
     static int nowMs();

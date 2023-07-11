@@ -107,6 +107,7 @@ string produceABCCommand(const string& inputPath, const string& outputPath) {
 
 void parseOutput(const string &outputPath, const OutputStructure &result, const int matchOutput) {
     if(matchOutput < maxMatchNumber)return;
+    maxMatchNumber = matchOutput;
     ofstream outputFile;
     outputFile.open(outputPath);
     auto toName = [=](string x){
