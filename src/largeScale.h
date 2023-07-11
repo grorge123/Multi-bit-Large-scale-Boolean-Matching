@@ -43,6 +43,9 @@ public:
     LargeScale(){
 
     }
+    LargeScale(const AIG& cir1, const AIG& cir2): cir1(cir1), cir2(cir2){
+
+    }
     LargeScale(Partition cir1, Partition cir2): cir1(std::move(cir1)), cir2(std::move(cir2)){
 
     }
@@ -53,6 +56,7 @@ public:
         allOutputNumber = (cir2.getOutputNum() + cir1.getOutputNum()) / 2;
     }
     int start();
+    map<string, size_t> calculateEigenvalue();
     pair<vector<bool>, vector<bool>> generateInput();
     void randomSimulation(int only = 0);
     vector<pair<string, string>> removeNonSingleton(const vector<vector<string>> &par1, const vector<vector<string>> &par2);

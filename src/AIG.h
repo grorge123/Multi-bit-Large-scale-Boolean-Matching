@@ -36,6 +36,7 @@ private:
     map<int, int> inputIndexMapInv; // AIG Node index to AIG input order
     map<int, vector<int> > outputIndexMapInv; // AIG Node index to AIG input order
     vector<string> orderToName; // AIG input order to verilog name
+                                // verilog input name to order
     vector<bool> invMap; // AIG input order if is inverted
     map<string , set<string> > strSupport; // input Name to strSupport set search by recursive
     map<string , set<string> > abcStrSupport; // input Name to strSupport set search by abc

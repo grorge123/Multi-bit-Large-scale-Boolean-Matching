@@ -183,9 +183,7 @@ void AIG::Debug() {
 
 void AIG::selfTest() {
     for(const auto& i : nameMap){
-        bool safe = false;
         if(fromOrderToIndex(fromNameToOrder(i.first)) != i.second){
-            safe = true;
             cout << "[AIG] selfTest: nameMap failed." << endl;
             exit(1);
         }
@@ -211,7 +209,6 @@ void AIG::selfTest() {
         }
     }
     for(int i = 0 ; i < static_cast<int>(indexMap.size()) ; i++){
-        bool safe = false;
         if(fromNameToIndex(fromOrderToName(i)) != indexMap[i]){
             cout << "[AIG] selfTest: index failed." << endl;
             exit(1);
@@ -382,7 +379,7 @@ void AIG::erasePort(const vector<string>& nameList) {
                 inputOrder--;
             }
             indexMap.erase(indexMap.begin() + inputOrder);
-            inputIndexMapInv.erase(nodeIdx);
+//            inputIndexMapInv.erase(nodeIdx);
             orderToName.erase(orderToName.begin() + inputOrder);
             invMap.erase(invMap.begin() + inputOrder);
         }else{
@@ -414,12 +411,12 @@ void AIG::erasePort(const vector<string>& nameList) {
             if(outputNameMapInv[nodeIdx].empty()){
                 outputNameMapInv.erase(nodeIdx);
             }
-            for(auto it = outputIndexMapInv[nodeIdx].begin() ; it != outputIndexMapInv[nodeIdx].end() ; it++){
-                if(*it == (int)inputOrder){
-                    outputIndexMapInv[nodeIdx].erase(it);
-                    break;
-                }
-            }
+//            for(auto it = outputIndexMapInv[nodeIdx].begin() ; it != outputIndexMapInv[nodeIdx].end() ; it++){
+//                if(*it == (int)inputOrder){
+//                    outputIndexMapInv[nodeIdx].erase(it);
+//                    break;
+//                }
+//            }
         }
     }
     inputIndexMapInv.clear();
@@ -634,17 +631,17 @@ void AIG::invertGate(const string &name) {
                 node.inv[2] = !node.inv[2];
             }
         }
+        if(isOutput(idx)) {
+            for (const auto &order: outputFromIndexToOrder(idx)) {
+                invMap[order] = !invMap[order];
+            }
+        }
     }else{
         for(auto &order: outputIndexMapInv[idx]){
             if(orderToName[order] == name){
                 invMap[order] = !invMap[order];
                 break;
             }
-        }
-    }
-    if(isOutput(idx)) {
-        for (const auto &order: outputFromIndexToOrder(idx)) {
-            invMap[order] = !invMap[order];
         }
     }
     selfTest();

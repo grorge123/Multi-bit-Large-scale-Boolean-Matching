@@ -170,6 +170,17 @@ int LargeScale::start() {
     return  matchNumber;
 }
 
+map<string, size_t> LargeScale::calculateEigenvalue() {
+    vector<vector<int>> initialInputRecord1, initialOutputRecord1;
+    cir1.initialRefinement(initialInputRecord1, initialOutputRecord1);
+    vector<vector<int> > initialInputRecord2, initialOutputRecord2;
+    cir2.initialRefinement(initialInputRecord2, initialOutputRecord2);
+    dealRecord(initialInputRecord1, initialInputRecord2, true);
+    dealRecord(initialOutputRecord1, initialOutputRecord2, false);
+    return hashTable;
+}
+
+
 
 vector<pair<string, string>>
 LargeScale::removeNonSingleton(const vector<vector<string>> &par1, const vector<vector<string>> &par2) {
@@ -341,7 +352,6 @@ void LargeScale::removeNonMatch(const vector<pair<string, string>> &inputMatch,
     cir1.removeNonMatch(inputSet1, outputSet1);
     cir2.removeNonMatch(inputSet2, outputSet2);
 }
-
 
 
 
