@@ -16,6 +16,7 @@ class TwoStep {
     string outputFilePath;
     AIG cir1, cir2;
     int allOutputNumber{};
+    int startMs;
     // output solver
     set<size_t> forbid;
     stack<MP> backtrace;
@@ -33,6 +34,7 @@ class TwoStep {
 
     // hyper parameter
     int maxRunTime = 1000 * 3500; // ms
+//    int maxRunTime = 1000 * 10; // ms
     bool outputSolverInit = false;
     int iteratorCounter = 0;
     int lastTime = 0;

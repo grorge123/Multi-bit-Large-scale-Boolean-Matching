@@ -41,6 +41,11 @@ template<typename _t> void pary(_t _a,_t _b){_OUTC(cerr,_a,_b);cerr<<endl;}
 
 string getNowTime();
 string formatTime(time_t inputTime);
+long long int nowTime();
+extern long long  int allOptimize;
+extern long long  int lastOptimize;
+void startOptimize();
+void stopOptimize();
 
 #if defined(ABC_NAMESPACE)
 namespace ABC_NAMESPACE

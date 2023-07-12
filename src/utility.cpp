@@ -11,7 +11,8 @@
 #define pAbcMain
 Abc_Frame_t * pAbc;
 #endif
-
+long long int allOptimize = 0;
+long long int lastOptimize = 0;
 ifstream* readFile(string fileName){
     ifstream* file = new ifstream;
     file->open(fileName, std::ios::in);
@@ -37,4 +38,17 @@ string getNowTime(){
     auto now = chrono::system_clock::now();
     time_t time = chrono::system_clock::to_time_t(now);
     return formatTime(time);
+}
+long long int nowTime() {
+    auto now = std::chrono::high_resolution_clock::now();
+    auto nanos = std::chrono::duration_cast<std::chrono::nanoseconds>(now.time_since_epoch()).count();
+    return nanos;
+}
+
+void startOptimize() {
+    lastOptimize = nowTime();
+}
+
+void stopOptimize() {
+    allOptimize += nowTime() - lastOptimize;
 }

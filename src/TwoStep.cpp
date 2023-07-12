@@ -35,7 +35,7 @@ vector<vector<bool>> convert_pair(vector<int> input){
 
 TwoStep ts;
 void TwoStep::start() {
-    int startMs = nowMs();
+    startMs = nowMs();
     bool optimal = false, timeout = false, projection = false;
     vector<MP> R;
     while (!optimal && !timeout){
@@ -46,7 +46,7 @@ void TwoStep::start() {
             if(!projection){
                 projection = true;
             }else{
-                if(R.size() == 0){
+                if(R.empty()){
                     optimal = true;
                     break;
                 }
@@ -232,7 +232,8 @@ vector<MP> TwoStep::inputSolver(vector<MP> &R) {
         cir2ChoosePort.insert(pair.second);
     }
     vector<string> cir1Erase, cir2Erase;
-    auto eraseNonUsedPort = [](AIG &cir, set<string> &cirChoosePort) -> vector<string>{
+    vector<string> cir1Constant, cir2Constant;
+    auto eraseNonUsedPort = [](AIG &cir, set<string> &cirChoosePort, vector<string> &cirConstant) -> vector<string>{
         set<string> cirErase;
         for(int i = cir.getInputNum() ; i < cir.getInputNum() + cir.getOutputNum(); i++){
             if(cirChoosePort.find(cir.fromOrderToName(i)) == cirChoosePort.end()){
@@ -240,15 +241,25 @@ vector<MP> TwoStep::inputSolver(vector<MP> &R) {
             }
         }
         for(int order = 0 ; order < cir.getInputNum() ; order++){
-            bool eraseFlag = true;
+            int eraseFlag = 0;
             for(const string& funSupportPort: cir.getSupport(cir.fromOrderToName(order), 1)){
                 if(cirErase.find(funSupportPort) == cirErase.end()){
-                    eraseFlag = false;
+                    eraseFlag = 1;
                     break;
                 }
             }
-            if(eraseFlag){
+            if(eraseFlag == 0){
+                for(const string& strSupportPort: cir.getSupport(cir.fromOrderToName(order), 2)){
+                    if(cirErase.find(strSupportPort) == cirErase.end()){
+                        eraseFlag = 2;
+                        break;
+                    }
+                }
+            }
+            if(eraseFlag == 0){
                 cirErase.insert(cir.fromOrderToName(order));
+            }else if(eraseFlag == 2){
+                cirConstant.push_back(cir.fromOrderToName(order));
             }
         }
         vector<string> re;
@@ -258,10 +269,16 @@ vector<MP> TwoStep::inputSolver(vector<MP> &R) {
         }
         return re;
     };
-    cir1Erase = eraseNonUsedPort(cir1, cir1ChoosePort);
-    cir2Erase = eraseNonUsedPort(cir2, cir2ChoosePort);
+    cir1Erase = eraseNonUsedPort(cir1, cir1ChoosePort, cir1Constant);
+    cir2Erase = eraseNonUsedPort(cir2, cir2ChoosePort, cir1Constant);
     AIG cir1Reduce = cir1;
     AIG cir2Reduce = cir2;
+    for(const auto &name : cir1Constant){
+        cir1.setConstant(name, 0);
+    }
+    for(const auto &name : cir2Constant){
+        cir2.setConstant(name, 0);
+    }
     cir1Reduce.erasePort(cir1Erase);
     cir2Reduce.erasePort(cir2Erase);
     CNF mappingSpace;
@@ -330,17 +347,19 @@ vector<MP> TwoStep::inputSolver(vector<MP> &R) {
         }
     }
     //remove funSupport not equal
-    LargeScale inputLg = LargeScale(cir1Reduce, cir2Reduce);
-    auto eigenValue = inputLg.calculateEigenvalue();
-    for(int i = 0 ; i < cir1Reduce.getInputNum() ; i++){
-        for(int q = 0 ; q < cir2Reduce.getInputNum() ; q++){
-            if(eigenValue[cir1Reduce.fromOrderToName(i)] == eigenValue[cir2Reduce.fromOrderToName(q)])continue;
-            vector<int> clause;
-            clause.push_back(-1 * (q * baseLength + 2 * i + 1));
-            clause.push_back(-1 * (q * baseLength + 2 * i + 1 + 1));
-            mappingSpace.clauses.emplace_back(clause);
-        }
-    }
+//    LargeScale inputLg = LargeScale(cir1Reduce, cir2Reduce);
+//    auto eigenValue = inputLg.calculateEigenvalue();
+//    for(int i = 0 ; i < cir1Reduce.getInputNum() ; i++){
+//        for(int q = 0 ; q < cir2Reduce.getInputNum() ; q++){
+//            if(eigenValue[cir1Reduce.fromOrderToName(i)] == eigenValue[cir2Reduce.fromOrderToName(q)])continue;
+//            vector<int> clause;
+//            clause.push_back(-1 * (q * baseLength + 2 * i + 1));
+//            mappingSpace.clauses.emplace_back(clause);
+//            clause.clear();
+//            clause.push_back(-1 * (q * baseLength + 2 * i + 1 + 1));
+//            mappingSpace.clauses.emplace_back(clause);
+//        }
+//    }
     // recover learning clause
     for(const auto& clauses : clauseStack){
         vector<int> clause;
@@ -380,6 +399,9 @@ vector<MP> TwoStep::inputSolver(vector<MP> &R) {
         }
         for(auto counterexample : counter.second){
             reduceSpace(mappingSpace, counterexample, baseLength, cir1Reduce, cir2Reduce, mapping, counter.first, R);
+        }
+        if(nowMs() - startMs > maxRunTime){
+            return {};
         }
     }
     return mapping;
