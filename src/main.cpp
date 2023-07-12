@@ -21,5 +21,8 @@ int main (int argc, char *argv[]){
     if(lgMatch == -1){
         return 0;
     }
+    ts = TwoStep(input, argv[2]);
+    ts.start();
     Abc_Stop();
+    cout << "Optimize:" << allOptimize << endl;
 }

@@ -751,6 +751,38 @@ TwoStep::reduceSpace(CNF &mappingSpace, const vector<bool> &counter, const int b
     }
 #endif
     vector<int> cir1NonRedundant = getNonRedundant(cir1Input, cir1), cir2NonRedundant = getNonRedundant(cir2Input, cir2); // return order
+#ifdef DBG
+    for(int i = 0 ; i < cir1.getInputNum() ; i++){
+        vector<bool> testCir1Input = cir1Input;
+        testCir1Input[i] = !testCir1Input[i];
+        if((find(cir1NonRedundant.begin(), cir1NonRedundant.end(), i) == cir1NonRedundant.end())){
+            if((cir1.generateOutput(testCir1Input) != cir1.generateOutput(cir1Input))){
+                cout << "[TwoStep] cir1 nonRedundant SelfTest1 failed." << i << endl;
+                exit(1);
+            }
+        }else{
+            if((cir1.generateOutput(testCir1Input) == cir1.generateOutput(cir1Input))){
+                cout << "[TwoStep] cir1 nonRedundant SelfTest2 failed." << i << endl;
+                exit(1);
+            }
+        }
+    }
+    for(int i = 0 ; i < cir2.getInputNum() ; i++){
+        vector<bool> testCir2Input = cir2Input;
+        testCir2Input[i] = !testCir2Input[i];
+        if((find(cir2NonRedundant.begin(), cir2NonRedundant.end(), i) == cir2NonRedundant.end())){
+            if((cir2.generateOutput(testCir2Input) != cir2.generateOutput(cir2Input))){
+                cout << "[TwoStep] cir2 nonRedundant SelfTest1 failed." << i << endl;
+                exit(1);
+            }
+        }else{
+            if((cir2.generateOutput(testCir2Input) == cir2.generateOutput(cir2Input))){
+                cout << "[TwoStep] cir2 nonRedundant SelfTest2 failed." << i << endl;
+                exit(1);
+            }
+        }
+    }
+#endif
     vector<int> clause;
     vector<string> record;
     if(verbose){
@@ -813,31 +845,24 @@ TwoStep::reduceSpace(CNF &mappingSpace, const vector<bool> &counter, const int b
 vector<int> TwoStep::getNonRedundant(const vector<bool> &input, AIG &cir) {
     // TODO check need fix output that is different or just have different output
     vector<int> re;
-//    auto originOutput = cir.generateOutput(input);
-//    for(int i = 0 ; i < cir.getOutputNum() ; i++){
-//        vector<int> fi;
-//        fi.reserve(cir.getInputNum());
-//        for(int p = 0 ; p < cir.getInputNum() ; p++){
-//            fi.push_back(p);
-//            vector<int> input2;
-//            input2.resize(input.size());
-//            for(int q = 0 ; q < static_cast<int>(input.size()) ; q++){
-//                input2[q] = input[q];
-//            }
-//            for(int q : fi){
-//                input2[q] = 2;
-//            }
-//            auto allInput = convert_pair(input2);
-//            for(const auto& testInput: allInput){
-//                if(originOutput[i] != cir.generateOutput(testInput)[i]){
-//                    fi.pop_back();
+    auto originOutput = cir.generateOutput(input);
+//    for(int i = 0 ; i < cir.getOutputNum() ; i++) {
+        vector<int> fi;
+        fi.reserve(cir.getInputNum());
+        for (int p = 0; p < cir.getInputNum(); p++) {
+            fi.push_back(p);
+//            for (int q: fi) {
+                vector<bool> input2 = input;
+                input2[p] = !input2[p];
+                if (originOutput != cir.generateOutput(input2)) {
+                    fi.pop_back();
 //                    break;
-//                }
+                }
 //            }
-//        }
-//        if(fi.size() > re.size()){
-//            re = fi;
-//        }
+        }
+        if (fi.size() > re.size()) {
+            re = fi;
+        }
 //    }
     vector<int> nf;
     int ptr = 0;
