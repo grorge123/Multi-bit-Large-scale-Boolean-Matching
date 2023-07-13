@@ -55,7 +55,7 @@ class TwoStep {
                     , const vector<MP> &R
 #endif
                      );
-    vector<int> getNonRedundant(const vector<bool> &input, AIG & cir); // return port order
+    vector<int> getNonRedundant(const vector<bool> &input, AIG &cir, vector<bool> counter); // return port order
     bool heuristicsOrderCmp(const string& a, const string& b);
     static pair<string, bool> analysisName(string name);
     struct PairHash {
