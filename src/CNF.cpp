@@ -5,6 +5,7 @@
 #include "CNF.h"
 #include "satsolver.h"
 #include "aigtocnf.h"
+#include "cadical.hpp"
 void CNF::readFromAIG(AIG &aig) {
     string fileName = "tmpCNFConstructor";
     string aigContent = aig.getRaw();
@@ -126,29 +127,50 @@ void CNF::combine(const CNF &a) {
     maxIdx += a.maxIdx;
 }
 
+//bool CNF::solve() {
+//    //TODO finish checkSatisfied;
+//    if(checkSatisfied){
+//        return satisfiable;
+//    }else{
+//        string fileName = "CNFSatisfied.cnf";
+//        string content = getRaw();
+//        ofstream ofs;
+//        ofs.open(fileName);
+//        ofs << content;
+//        ofs.close();
+//        char * miterCNF = new char[fileName.size() + 1];
+//        strcpy(miterCNF, fileName.c_str());
+//        solverResult result = SAT_solver(miterCNF);
+//        satisfiable = result.satisfiable;
+//        if(satisfiable){
+//            for(int i = 0 ; i < result.inputSize ; i++){
+//                satisfiedInput.push_back((result.input[i] > 0 ? 1 : 0) ^ inv[i]);
+//            }
+//            free(result.input);
+//        }
+//        return satisfiable;
+//    }
+//}
 bool CNF::solve() {
-    //TODO finish checkSatisfied;
-    if(checkSatisfied){
-        return satisfiable;
-    }else{
-        string fileName = "CNFSatisfied.cnf";
-        string content = getRaw();
-        ofstream ofs;
-        ofs.open(fileName);
-        ofs << content;
-        ofs.close();
-        char * miterCNF = new char[fileName.size() + 1];
-        strcpy(miterCNF, fileName.c_str());
-        solverResult result = SAT_solver(miterCNF);
-        satisfiable = result.satisfiable;
-        if(satisfiable){
-            for(int i = 0 ; i < result.inputSize ; i++){
-                satisfiedInput.push_back((result.input[i] > 0 ? 1 : 0) ^ inv[i]);
-            }
-            free(result.input);
+    CaDiCaL::Solver solver;
+    for(const auto &clause: clauses){
+        for(int number: clause){
+            solver.add(number);
         }
-        return satisfiable;
+        solver.add(0);
     }
+    int res = solver.solve();
+    if (res == 10) {
+        satisfiable = true;
+        for (int i = 1; i <= maxIdx; ++i) {
+            satisfiedInput.push_back(solver.val(i) > 0);
+        }
+    } else if (res == 20) {
+        satisfiable = false;
+    } else {
+        cout << "[CNF] Error: The solver was unable to determine satisfiability." << endl;
+    }
+    return satisfiable;
 }
 
 bool CNF::isDC(const string &name) {

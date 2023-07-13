@@ -5,7 +5,7 @@ CFLAGS := -std=c++17 -O2 -Wall -Wextra -g
 SANITIZE := -fsanitize=undefined -fsanitize=address
 DEFINE := -DINF -DDBG
 LINK := -lm -ldl -lreadline -ltinfo
-LIB := lib/libabc.a lib/libkissat.a lib/aiger.o
+LIB := lib/libabc.a lib/libkissat.a lib/aiger.o lib/libcadical.a
 #INCLUDES :=
 
 src_dir = ./src
@@ -35,6 +35,10 @@ lib/libkissat.a:
 
 lib/aiger.o:
 	gcc -c lib/aiger/aiger.c -o lib/aiger.o
+
+lib/libcadical.a:
+	cd lib/cadical && ./configure && make -j
+	mv lib/cadical/build/libcadical.a lib/
 
 test:$(obj) $(LIB) $(header)
 	echo $(header)
