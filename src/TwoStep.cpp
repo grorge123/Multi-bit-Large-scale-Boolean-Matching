@@ -890,24 +890,18 @@ vector<int> TwoStep::getNonRedundant(const vector<bool> &input, AIG &cir, vector
         vector<int> fi;
         fi.reserve(cir.getInputNum());
         set<string> funSup = cir.getSupport(cir.fromOrderToName(cir.getInputNum() + i), 1);
-//        for (int p = 0; p < cir.getInputNum(); p++) {
-//            if(funSup.find(cir.fromOrderToName(p)) != funSup.end())continue;
-//            fi.push_back(p);
-//            vector<int> input2(cir.getInputNum());
-//            for(int q = 0 ; q < static_cast<int>(input.size()) ; q++){
-//                input2[q] = input[q];
-//            }
-//            for(auto q : fi){
-//                input2[q] = 2;
-//            }
-//            auto allInput = convert_pair(input2);
-//            for(const auto& testInput : allInput){
-//                if (originOutput[i] != cir.generateOutput(testInput)[i]) {
-//                    fi.pop_back();
-//                    break;
-//                }
-//            }
-//        }
+        for (int p = 0; p < cir.getInputNum(); p++) {
+            if(funSup.find(cir.fromOrderToName(p)) != funSup.end())continue;
+            fi.push_back(p);
+            vector<bool> input2 = input;
+            for(auto q : fi){
+                input2[q] = !input2[p];
+                if (originOutput[i] != cir.generateOutput(input2)[i]) {
+                    fi.pop_back();
+                    break;
+                }
+            }
+        }
         for (int p = 0; p < cir.getInputNum(); p++) {
             if (funSup.find(cir.fromOrderToName( p)) == funSup.end()){
                 fi.push_back(p);
