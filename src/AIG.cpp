@@ -96,12 +96,20 @@ void AIG::recursiveFindStrSupport() {
 
 void AIG::abcFindFunSupport() {
     if(!funSupport.empty())return;
+    if(inputNum == 0) {
+        funSupport = {};
+        return;
+    }
     ABCTool abcT(*this);
     funSupport = abcT.funSupport();
 }
 
 void AIG::abcFindStrSupport() {
     if(!abcStrSupport.empty())return;
+    if(inputNum == 0) {
+        funSupport = {};
+        return;
+    }
     ABCTool abcT(*this);
     abcStrSupport = abcT.strSupport();
 }

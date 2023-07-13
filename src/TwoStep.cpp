@@ -104,15 +104,15 @@ void TwoStep::start() {
                 }
             }
 #ifdef INF
-            cout << "Two step matching port number: " << matchOutput << "(" << (float)matchOutput / (float)allOutputNumber * 100 << "%)" << endl;
+            cout << "Two step matching port number: " << matchOutput << "(" << (float)matchOutput / (float)allOutputNumber * 100 << "%) in " << iteratorCounter << " iterations."<< endl;
 #endif
             parseOutput(outputFilePath, OutputStructure{inputGroups, outputGroups, one, zero}, matchOutput);
             if( matchOutput == allOutputNumber)optimal = true;
+            cout << "iteration:" << iteratorCounter << endl;
         }
         if(nowMs() - startMs > maxRunTime){
             timeout = true;
         }
-//        if(iteratorCounter == 0)break;
         iteratorCounter++;
     }
 }
@@ -216,7 +216,6 @@ void TwoStep::outputSolverPop() {
     }
     clauseNum.pop_back();
 }
-
 
 vector<MP> TwoStep::inputSolver(vector<MP> &R) {
     set<string> cir1ChoosePort;
@@ -389,7 +388,7 @@ vector<MP> TwoStep::inputSolver(vector<MP> &R) {
             }
             recordMs();
         }
-        pair<pair<map<string, pair<int, bool>>, map<string, pair<int, bool> > >, vector<vector<bool> > > counter = solveMiter(mapping, R, cir1Reduce, cir2Reduce);
+        pair<pair<map<string, pair<int, bool>>, map<string, pair<int, bool> > >, vector<bool> > counter = solveMiter(mapping, R, cir1Reduce, cir2Reduce);
         if(counter.second.empty()){
             break;
         }
@@ -397,9 +396,10 @@ vector<MP> TwoStep::inputSolver(vector<MP> &R) {
             cout << "It is counterexample size:" << counter.second.size() << endl;
             recordMs();
         }
-        for(auto counterexample : counter.second){
-            reduceSpace(mappingSpace, counterexample, baseLength, cir1Reduce, cir2Reduce, mapping, counter.first, R);
-        }
+//        for(auto counterexample : counter.second){
+//            reduceSpace(mappingSpace, counterexample, baseLength, cir1Reduce, cir2Reduce, mapping, counter.first, R);
+//        }
+        reduceSpace(mappingSpace, counter.second, baseLength, cir1Reduce, cir2Reduce, mapping, counter.first, R);
         if(nowMs() - startMs > maxRunTime){
             return {};
         }
@@ -527,7 +527,7 @@ vector<MP> TwoStep::solveMapping(CNF &mappingSpace, AIG &cir1, AIG &cir2, const 
     }
     return re;
 }
-pair<pair<map<string, pair<int, bool>>, map<string, pair<int, bool>>>, vector<vector<bool>>>
+pair<pair<map<string, pair<int, bool>>, map<string, pair<int, bool>>>, vector<bool>>
 TwoStep::solveMiter(const vector<MP> &inputMatchPair, const vector<MP> &outputMatchPair, AIG cir1, AIG cir2) {
     map<string, pair<int, bool> > cir1NameToOrder; // only input
     map<string, pair<int, bool> > cir2NameToOrder;
@@ -576,14 +576,14 @@ TwoStep::solveMiter(const vector<MP> &inputMatchPair, const vector<MP> &outputMa
     AIG miterAIG;
     ::solveMiter(cir1, cir2, miter, miterAIG);
     if(miter.satisfiable){
-        vector<int> counter;
+        vector<bool> counter;
         counter.resize(miterAIG.getInputNum());
         vector<bool> testCir1Input(cir1.getInputNum(), false), testCir2Input(cir2.getInputNum(), false);
         vector<bool> testMiterInput(miterAIG.getInputNum(), false);
         for(int order = 0 ; order < miterAIG.getInputNum() ; order++){
             string name = miterAIG.fromOrderToName(order);
             if(miter.isDC(name)){
-                counter[order] = 2;
+                counter[order] = 0;
             }else{
 #ifdef DBG
                 if(miter.varMap.find(name) == miter.varMap.end()){
@@ -637,7 +637,7 @@ TwoStep::solveMiter(const vector<MP> &inputMatchPair, const vector<MP> &outputMa
             if(order.second.first == -1)continue;
             order.second.first = miterAIG.fromNameToOrder(cir2.fromOrderToName(order.second.first));
         }
-        return  {{cir1NameToOrder, cir2NameToOrder}, convert_pair(counter)};
+        return  {{cir1NameToOrder, cir2NameToOrder}, counter};
     }else{
         return {};
     }
@@ -697,16 +697,13 @@ TwoStep::reduceSpace(CNF &mappingSpace, const vector<bool> &counter, const int b
     bool notEqual = false;
     vector<bool> testCir1Output = cir1.generateOutput(cir1Input);
     vector<bool> testCir2Output = cir2.generateOutput(cir2Input);
-    vector<bool> cir1Counter(cir1.getInputNum(), false), cir2Counter(cir1.getInputNum(), false);
-    for(int i = cir1.getInputNum() ; i < cir1.getInputNum() + cir1.getOutputNum() ; i++){
-        string name = cir1.fromOrderToName(i);
-        for(const auto& pair : R){
-            auto [gateName, negative] = analysisName(pair.first);
-            if((testCir1Output[cir1.fromNameToOrder(cir1.cirName + gateName) - cir1.getInputNum()] ^ negative) ^ testCir2Output[cir2.fromNameToOrder(pair.second) - cir2.getInputNum()]){
-                cir1Counter[cir1.fromNameToOrder(cir1.cirName + gateName) - cir1.getInputNum()] = true;
-                cir2Counter[cir2.fromNameToOrder(pair.second) - cir1.getInputNum()] = true;
-                notEqual = true;
-            }
+    vector<bool> cir1Counter(cir1.getOutputNum(), false), cir2Counter(cir2.getOutputNum(), false);
+    for(const auto& pair : R){
+        auto [gateName, negative] = analysisName(pair.first);
+        if((testCir1Output[cir1.fromNameToOrder(cir1.cirName + gateName) - cir1.getInputNum()] ^ negative) ^ testCir2Output[cir2.fromNameToOrder(pair.second) - cir2.getInputNum()]){
+            cir1Counter[cir1.fromNameToOrder(cir1.cirName + gateName) - cir1.getInputNum()] = true;
+            cir2Counter[cir2.fromNameToOrder(pair.second) - cir2.getInputNum()] = true;
+            notEqual = true;
         }
     }
 #ifdef DBG
@@ -754,20 +751,30 @@ TwoStep::reduceSpace(CNF &mappingSpace, const vector<bool> &counter, const int b
     vector<int> cir1NonRedundant = getNonRedundant(cir1Input, cir1, cir1Counter)
             , cir2NonRedundant = getNonRedundant(cir2Input, cir2, cir2Counter); // return order
 #ifdef DBG
-//    for(int i = 0 ; i < cir1.getInputNum() ; i++){
-//        vector<bool> testCir1Input = cir1Input;
-//        testCir1Input[i] = !testCir1Input[i];
-//        if((find(cir1NonRedundant.begin(), cir1NonRedundant.end(), i) == cir1NonRedundant.end())){
-//            auto oriOutput = cir1.generateOutput(testCir1Input);
-//            auto testOutput = cir1.generateOutput(testCir1Input);
-//            for(int q = 0 ; q < cir1.getOutputNum() ; q++){
-//                if(!cir1Counter[q])continue;
-//                if((oriOutput[q] != testOutput[q])){
-//                    cout << "[TwoStep] cir1 nonRedundant SelfTest1 failed." << i << endl;
-//                    exit(1);
-//                }
-//            }
-//        }else{
+    for(int i = 0 ; i < cir1.getInputNum() ; i++){
+        vector<int> notEqualCnt(cir2.getOutputNum());
+        vector<bool> testCir1Input = cir1Input;
+        testCir1Input[i] = !testCir1Input[i];
+        if((find(cir1NonRedundant.begin(), cir1NonRedundant.end(), i) == cir1NonRedundant.end())){
+            auto oriOutput = cir1.generateOutput(cir1Input);
+            auto testOutput = cir1.generateOutput(testCir1Input);
+            for(int q = 0 ; q < cir1.getOutputNum() ; q++){
+                if(!cir1Counter[q]){
+                    notEqualCnt[q] = 10;
+                    continue;
+                }
+                if((oriOutput[q] != testOutput[q])) {
+                    notEqualCnt[q]++;
+                }
+            }
+            if(find(notEqualCnt.begin(), notEqualCnt.end(), 0) == notEqualCnt.end()){
+                cout << "[TwoStep] cir1 nonRedundant SelfTest1 failed." << i << endl;
+                exit(1);
+            }else if(!cir1Counter[find(notEqualCnt.begin(), notEqualCnt.end(), 0) - notEqualCnt.begin()]){
+                cout << "Code Error" << endl;
+                exit(1);
+            }
+        }else{
 //            auto oriOutput = cir1.generateOutput(testCir1Input);
 //            auto testOutput = cir1.generateOutput(testCir1Input);
 //            for(int q = 0 ; q < cir1.getOutputNum() ; q++){
@@ -777,22 +784,32 @@ TwoStep::reduceSpace(CNF &mappingSpace, const vector<bool> &counter, const int b
 //                    exit(1);
 //                }
 //            }
-//        }
-//    }
-//    for(int i = 0 ; i < cir2.getInputNum() ; i++){
-//        vector<bool> testCir2Input = cir2Input;
-//        testCir2Input[i] = !testCir2Input[i];
-//        if((find(cir2NonRedundant.begin(), cir2NonRedundant.end(), i) == cir2NonRedundant.end())){
-//            auto oriOutput = cir1.generateOutput(testCir2Input);
-//            auto testOutput = cir1.generateOutput(testCir2Input);
-//            for(int q = 0 ; q < cir2.getOutputNum() ; q++){
-//                if(!cir2Counter[q])continue;
-//                if((oriOutput[q] != testOutput[q])){
-//                    cout << "[TwoStep] cir2 nonRedundant SelfTest1 failed." << i << endl;
-//                    exit(1);
-//                }
-//            }
-//        }else{
+        }
+    }
+    for(int i = 0 ; i < cir2.getInputNum() ; i++){
+        vector<int> notEqualCnt(cir2.getOutputNum());
+        vector<bool> testCir2Input = cir2Input;
+        testCir2Input[i] = !testCir2Input[i];
+        if((find(cir2NonRedundant.begin(), cir2NonRedundant.end(), i) == cir2NonRedundant.end())){
+            auto oriOutput = cir2.generateOutput(cir2Input);
+            auto testOutput = cir2.generateOutput(testCir2Input);
+            for(int q = 0 ; q < cir2.getOutputNum() ; q++){
+                if(!cir2Counter[q]){
+                    notEqualCnt[q] = 10;
+                    continue;
+                }
+                if((oriOutput[q] != testOutput[q])) {
+                    notEqualCnt[q]++;
+                }
+            }
+            if(find(notEqualCnt.begin(), notEqualCnt.end(), 0) == notEqualCnt.end()){
+                cout << "[TwoStep] cir2 nonRedundant SelfTest1 failed." << i << endl;
+                exit(1);
+            }else if(!cir2Counter[find(notEqualCnt.begin(), notEqualCnt.end(), 0) - notEqualCnt.begin()]){
+                cout << "Code Error" << endl;
+                exit(1);
+            }
+        }else{
 //            auto oriOutput = cir2.generateOutput(testCir2Input);
 //            auto testOutput = cir2.generateOutput(testCir2Input);
 //            for(int q = 0 ; q < cir2.getOutputNum() ; q++){
@@ -802,8 +819,8 @@ TwoStep::reduceSpace(CNF &mappingSpace, const vector<bool> &counter, const int b
 //                    exit(1);
 //                }
 //            }
-//        }
-//    }
+        }
+    }
 #endif
     vector<int> clause;
     vector<string> record;
@@ -868,29 +885,29 @@ vector<int> TwoStep::getNonRedundant(const vector<bool> &input, AIG &cir, vector
     // TODO check need fix output that is different or just have different output
     vector<int> re;
     auto originOutput = cir.generateOutput(input);
-    for(int i = 0 ; i < cir.getOutputNum() ; i++) {
+    for(int i = 0 ; i < cir.getOutputNum() ; i++){
         if(!counter[i])continue;
         vector<int> fi;
         fi.reserve(cir.getInputNum());
         set<string> funSup = cir.getSupport(cir.fromOrderToName(cir.getInputNum() + i), 1);
-        for (int p = 0; p < cir.getInputNum(); p++) {
-            if(funSup.find(cir.fromOrderToName(p)) != funSup.end())continue;
-            fi.push_back(p);
-            vector<int> input2(cir.getInputNum());
-            for(int q = 0 ; q < static_cast<int>(input.size()) ; q++){
-                input2[q] = input[q];
-            }
-            for(auto q : fi){
-                input2[q] = 2;
-            }
-            auto allInput = convert_pair(input2);
-            for(const auto& testInput : allInput){
-                if (originOutput[i] != cir.generateOutput(testInput)[i]) {
-                    fi.pop_back();
-                    break;
-                }
-            }
-        }
+//        for (int p = 0; p < cir.getInputNum(); p++) {
+//            if(funSup.find(cir.fromOrderToName(p)) != funSup.end())continue;
+//            fi.push_back(p);
+//            vector<int> input2(cir.getInputNum());
+//            for(int q = 0 ; q < static_cast<int>(input.size()) ; q++){
+//                input2[q] = input[q];
+//            }
+//            for(auto q : fi){
+//                input2[q] = 2;
+//            }
+//            auto allInput = convert_pair(input2);
+//            for(const auto& testInput : allInput){
+//                if (originOutput[i] != cir.generateOutput(testInput)[i]) {
+//                    fi.pop_back();
+//                    break;
+//                }
+//            }
+//        }
         for (int p = 0; p < cir.getInputNum(); p++) {
             if (funSup.find(cir.fromOrderToName( p)) == funSup.end()){
                 fi.push_back(p);

@@ -47,7 +47,7 @@ class TwoStep {
     void outputSolverPop();
     vector<MP> inputSolver(vector<MP> &R);
     vector<MP> solveMapping(CNF &mappingSpace, AIG &cir1, AIG &cir2, const int baseLength);
-    pair<pair<map<string, pair<int, bool>>, map<string, pair<int, bool>>>, vector<vector<bool>>>
+    pair<pair<map<string, pair<int, bool>>, map<string, pair<int, bool>>>, vector<bool>>
     solveMiter(const vector<MP> &inputMatchPair, const vector<MP> &outputMatchPair, AIG cir1, AIG cir2);
     void reduceSpace(CNF &mappingSpace, const vector<bool> &counter, const int baseLength, AIG &cir1, AIG &cir2,
                      const vector<MP> &mapping, pair<map<string, pair<int, bool>>, map<string, pair<int, bool>>> &nameToOrder
@@ -55,7 +55,7 @@ class TwoStep {
                     , const vector<MP> &R
 #endif
                      );
-    vector<int> getNonRedundant(const vector<bool> &input, AIG &cir, vector<bool> counter); // return port order
+    static vector<int> getNonRedundant(const vector<bool> &input, AIG &cir, vector<bool> counter); // return port order
     bool heuristicsOrderCmp(const string& a, const string& b);
     static pair<string, bool> analysisName(string name);
     struct PairHash {
