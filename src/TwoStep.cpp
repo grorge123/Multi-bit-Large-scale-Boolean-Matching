@@ -108,13 +108,13 @@ void TwoStep::start() {
 #endif
             parseOutput(outputFilePath, OutputStructure{inputGroups, outputGroups, one, zero}, matchOutput);
             if( matchOutput == allOutputNumber)optimal = true;
-            cout << "iteration:" << iteratorCounter << endl;
         }
         if(nowMs() - startMs > maxRunTime){
             timeout = true;
         }
         iteratorCounter++;
     }
+    cout << "Final iteration: " << iteratorCounter << endl;
 }
 
 int TwoStep::nowMs() {
@@ -301,13 +301,13 @@ vector<MP> TwoStep::inputSolver(vector<MP> &R) {
         for(int q = 0 ; q < baseLength ; q++){
             clause.push_back(i * baseLength + q + 1);
         }
-        mappingSpace.clauses.emplace_back(clause);
+        mappingSpace.addClause(clause);
         clause.clear();
         for(int q = 0 ; q < baseLength ; q++){
             for(int k = q + 1 ; k < baseLength ; k++){
                 clause.push_back((i * baseLength + q + 1) * -1);
                 clause.push_back((i * baseLength + k + 1) * -1);
-                mappingSpace.clauses.emplace_back(clause);
+                mappingSpace.addClause(clause);
                 clause.clear();
             }
         }
@@ -317,10 +317,10 @@ vector<MP> TwoStep::inputSolver(vector<MP> &R) {
         for(int i = 0 ; i < cir2Reduce.getInputNum() ; i++){
             vector<int> clause;
             clause.push_back(-1 * (i * baseLength + cir1Reduce.getInputNum() * 2 + 1));
-            mappingSpace.clauses.push_back(clause);
+            mappingSpace.addClause(clause);
             clause.clear();
             clause.push_back(-1 * (i * baseLength + cir1Reduce.getInputNum() * 2 + 1 + 1));
-            mappingSpace.clauses.push_back(clause);
+            mappingSpace.addClause(clause);
         }
         // disable input projection
         for(int i = 0 ; i < cir1Reduce.getInputNum() * 2 ; i++){
@@ -329,7 +329,7 @@ vector<MP> TwoStep::inputSolver(vector<MP> &R) {
                 for(int k = q + 1 ; k < cir2Reduce.getInputNum() ; k++){
                     clause.push_back((q * baseLength + i + 1) * -1);
                     clause.push_back((k * baseLength + i + 1) * -1);
-                    mappingSpace.clauses.emplace_back(clause);
+                    mappingSpace.addClause(clause);
                     clause.clear();
                 }
             }
@@ -341,7 +341,7 @@ vector<MP> TwoStep::inputSolver(vector<MP> &R) {
                 clause.push_back(q * baseLength + 2 * i + 1);
                 clause.push_back(q * baseLength + 2 * i + 1 + 1);
             }
-            mappingSpace.clauses.emplace_back(clause);
+            mappingSpace.addClause(clause);
             clause.clear();
         }
     }
@@ -353,10 +353,10 @@ vector<MP> TwoStep::inputSolver(vector<MP> &R) {
             if(eigenValue[cir1Reduce.fromOrderToName(i)] == eigenValue[cir2Reduce.fromOrderToName(q)])continue;
             vector<int> clause;
             clause.push_back(-1 * (q * baseLength + 2 * i + 1));
-            mappingSpace.clauses.emplace_back(clause);
+            mappingSpace.addClause(clause);
             clause.clear();
             clause.push_back(-1 * (q * baseLength + 2 * i + 1 + 1));
-            mappingSpace.clauses.emplace_back(clause);
+            mappingSpace.addClause(clause);
         }
     }
     // recover learning clause
@@ -372,7 +372,7 @@ vector<MP> TwoStep::inputSolver(vector<MP> &R) {
 #endif
             clause.emplace_back(mappingSpace.varMap[key]);
         }
-        mappingSpace.clauses.push_back(clause);
+        mappingSpace.addClause(clause);
         clause.clear();
     }
     vector<MP> mapping;
@@ -454,63 +454,64 @@ vector<int> TwoStep::generateOutputGroups(vector<string> &f, vector<string> &g) 
 
 vector<MP> TwoStep::solveMapping(CNF &mappingSpace, AIG &cir1, AIG &cir2, const int baseLength) {
     vector<MP> re;
-    ofstream of;
-    string fileName = mappingSpaceFileName;
-    if(mappingSpaceLast != 0){
-        std::streampos firstLineEnd;
-        std::fstream file;
-        file.open(fileName, std::ios::in);
-        std::string firstLine;
-        std::getline(file, firstLine);
-        firstLineEnd = file.tellg();
-        file.close();
-        file.open(fileName, std::ios::out | std::ios::in);
-        string newLine = "p cnf " + to_string(mappingSpace.maxIdx) + " " + to_string(mappingSpace.clauses.size());
-        if (newLine.length() <= firstLine.length()) {
-            file << newLine;
-            for (size_t i = newLine.length(); i < firstLine.length(); ++i) {
-                file.put(' ');
-            }
-        } else {
+//    ofstream of;
+//    string fileName = mappingSpaceFileName;
+//    if(mappingSpaceLast != 0){
+//        std::streampos firstLineEnd;
+//        std::fstream file;
+//        file.open(fileName, std::ios::in);
+//        std::string firstLine;
+//        std::getline(file, firstLine);
+//        firstLineEnd = file.tellg();
+//        file.close();
+//        file.open(fileName, std::ios::out | std::ios::in);
+//        string newLine = "p cnf " + to_string(mappingSpace.maxIdx) + " " + to_string(mappingSpace.clauses.size());
+//        if (newLine.length() <= firstLine.length()) {
+//            file << newLine;
+//            for (size_t i = newLine.length(); i < firstLine.length(); ++i) {
+//                file.put(' ');
+//            }
+//        } else {
+//#ifdef DBG
+//            cout << "[TwoStep] Error: cnf saveSpace not enough !" << endl;
+//            exit(1);
+//#endif
+//        }
+//        file.close();
+//        of.open(fileName, ios::app);
+//        string content;
+//        for(int i = mappingSpaceLast ; i < static_cast<int>(mappingSpace.getClauses().size()) ; i++){
+//            for(int q : mappingSpace.clauses[i]){
+//                content += to_string(q) + " ";
+//            }
+//            content += "0\n";
+//        }
+//        of << content;
+//        of.close();
+//    }else{
+//        of.open(fileName);
+//        of << mappingSpace.getRaw();
+//        of.close();
+//    }
+//    mappingSpaceLast = static_cast<int>(mappingSpace.getClauses().size());
+//    if(verbose){
+//        cout << "start solver" << endl;
+//    }
+//    solverResult result = SAT_solver(fileName.c_str());
+//    if(verbose){
+//        cout << "end solver" << endl;
+//    }
+    mappingSpace.solve();
+    if(mappingSpace.satisfiable){
 #ifdef DBG
-            cout << "[TwoStep] Error: cnf saveSpace not enough !" << endl;
-            exit(1);
-#endif
-        }
-        file.close();
-        of.open(fileName, ios::app);
-        string content;
-        for(int i = mappingSpaceLast ; i < static_cast<int>(mappingSpace.clauses.size()) ; i++){
-            for(int q : mappingSpace.clauses[i]){
-                content += to_string(q) + " ";
-            }
-            content += "0\n";
-        }
-        of << content;
-        of.close();
-    }else{
-        of.open(fileName);
-        of << mappingSpace.getRaw();
-        of.close();
-    }
-    mappingSpaceLast = static_cast<int>(mappingSpace.clauses.size());
-    if(verbose){
-        cout << "start solver" << endl;
-    }
-    solverResult result = SAT_solver(fileName.c_str());
-    if(verbose){
-        cout << "end solver" << endl;
-    }
-    if(result.satisfiable){
-#ifdef DBG
-        if(result.inputSize != cir2.getInputNum() * baseLength){
-            cout << "[TwoStep] Error: sat solver return non expected input size." << endl;
+        if(static_cast<int>(mappingSpace.satisfiedInput.size()) != cir2.getInputNum() * baseLength){
+            cout << "[TwoStep] Error: sat solver return non expected input size. " << mappingSpace.satisfiedInput.size() << " " << cir2.getInputNum() * baseLength << endl;
             exit(1);
         }
 #endif
         for(int i = 0 ; i < cir2.getInputNum() ; i++){
             for(int q = 0 ; q < (cir1.getInputNum() + 1) * 2 ; q++){
-                if(result.input[i * baseLength + q] > 0){
+                if(mappingSpace.satisfiedInput[i * baseLength + q] > 0){
                     if(q >= cir1.getInputNum() * 2){
                         if(q == cir1.getInputNum() * 2 ){
                             re.emplace_back( "0",cir2.fromOrderToName(i));
@@ -523,7 +524,6 @@ vector<MP> TwoStep::solveMapping(CNF &mappingSpace, AIG &cir1, AIG &cir2, const 
                 }
             }
         }
-        free(result.input);
     }
     return re;
 }
@@ -867,7 +867,7 @@ TwoStep::reduceSpace(CNF &mappingSpace, const vector<bool> &counter, const int b
 //    cout << endl;
 #ifdef DBG
     //TODO delete test
-    for(const auto &i :mappingSpace.clauses){
+    for(const auto &i :mappingSpace.getClauses()){
         if(clause == i){
             cout << "[TwoStep] Error: can not find right clause cause infinite loop." << endl;
             exit(1);
@@ -875,7 +875,7 @@ TwoStep::reduceSpace(CNF &mappingSpace, const vector<bool> &counter, const int b
     }
 #endif
     clauseStack.push_back(record);
-    mappingSpace.clauses.push_back(clause);
+    mappingSpace.addClause(clause);
     clause.clear();
     record.clear();
 }

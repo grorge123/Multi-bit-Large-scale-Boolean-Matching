@@ -5,7 +5,6 @@
 #include "CNF.h"
 #include "satsolver.h"
 #include "aigtocnf.h"
-#include "cadical.hpp"
 void CNF::readFromAIG(AIG &aig) {
     string fileName = "tmpCNFConstructor";
     string aigContent = aig.getRaw();
@@ -79,7 +78,6 @@ void CNF::readFromFile(string inputPath) {
             ss >> maxIdx;
             int clauseNum;
             ss >> clauseNum;
-            clauses.reserve(clauseNum);
         }else{
             vector<int> ve;
             int now;
@@ -107,7 +105,7 @@ string CNF::getRaw() {
 }
 
 void CNF::combine(const CNF &a) {
-    checkSatisfied = false;
+    change = 2;
     for(auto mapTable : a.varMap){
 #ifdef DBG
         if(varMap.find(mapTable.first) != varMap.end()){
@@ -129,7 +127,7 @@ void CNF::combine(const CNF &a) {
 
 //bool CNF::solve() {
 //    //TODO finish checkSatisfied;
-//    if(checkSatisfied){
+//    if(!change){
 //        return satisfiable;
 //    }else{
 //        string fileName = "CNFSatisfied.cnf";
@@ -148,28 +146,43 @@ void CNF::combine(const CNF &a) {
 //            }
 //            free(result.input);
 //        }
+//        change = 0;
 //        return satisfiable;
 //    }
 //}
 bool CNF::solve() {
-    CaDiCaL::Solver solver;
-    for(const auto &clause: clauses){
-        for(int number: clause){
-            solver.add(number);
-        }
-        solver.add(0);
+    if(change == 0){
+        return satisfiable;
+    }else if(change == 2){
+        delete solver;
+        solver = new CaDiCaL::Solver();
+        lastClauses = 0;
     }
-    int res = solver.solve();
+    int tmp = 0;
+    for(const auto &clause: clauses){
+        if(tmp < lastClauses){
+            tmp++;
+            continue;
+        }
+        for(int number: clause){
+            solver->add(number);
+        }
+        solver->add(0);
+    }
+    int res = solver->solve();
+    satisfiedInput.clear();
     if (res == 10) {
         satisfiable = true;
         for (int i = 1; i <= maxIdx; ++i) {
-            satisfiedInput.push_back(solver.val(i) > 0);
+            satisfiedInput.push_back(solver->val(i) > 0);
         }
     } else if (res == 20) {
         satisfiable = false;
     } else {
         cout << "[CNF] Error: The solver was unable to determine satisfiability." << endl;
     }
+    change = 0;
+    lastClauses = static_cast<int>(clauses.size());
     return satisfiable;
 }
 
@@ -184,4 +197,13 @@ bool CNF::isDC(const string &name) {
 #elif
     return varMap.find(name) == varMap.end();
 #endif
+}
+
+void CNF::addClause(const vector<int> &clause) {
+    change = 1;
+    clauses.emplace_back(clause);
+}
+
+const list<vector<int>> &CNF::getClauses() const {
+    return clauses;
 }

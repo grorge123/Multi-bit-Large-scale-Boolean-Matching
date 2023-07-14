@@ -6,14 +6,20 @@
 #define MULTI_BIT_LARGE_SCALE_BOOLEAN_MATCHING_CNF_H
 
 #include <utility>
+#include <list>
 #include <vector>
 #include <string>
 #include <map>
 #include "AIG.h"
+#include "cadical.hpp"
 using namespace std;
 class CNF {
-    bool checkSatisfied = false;
+    CaDiCaL::Solver *solver = new CaDiCaL::Solver();
+    int change = 1;
+    int lastClauses = 0;
+    list<vector<int> > clauses;
 public:
+    const list <vector<int>> &getClauses() const;
     vector<bool> satisfiedInput;
     bool satisfiable = false;
     vector<int> inv;
@@ -22,7 +28,6 @@ public:
     set<string> DC;
 #endif
     int maxIdx = 0;
-    vector<vector<int> > clauses;
     CNF()= default;
     explicit CNF(string inputPath){
         readFromFile(std::move(inputPath));
@@ -30,6 +35,7 @@ public:
     explicit CNF(AIG aig){
         readFromAIG(aig);
     }
+    void addClause(const vector<int> &clause);
     void readFromAIG(AIG &aig);
     void readFromFile(string inputPath);
     void combine(const CNF &a);

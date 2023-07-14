@@ -37,7 +37,7 @@ lib/aiger.o:
 	gcc -c lib/aiger/aiger.c -o lib/aiger.o
 
 lib/libcadical.a:
-	cd lib/cadical && ./configure && make -j
+	cd lib/cadical && ./configure -q && make -j
 	mv lib/cadical/build/libcadical.a lib/
 
 test:$(obj) $(LIB) $(header)
