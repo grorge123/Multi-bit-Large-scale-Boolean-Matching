@@ -4,3 +4,6 @@
 [submodule "lib/aiger"]
 	path = lib/aiger
 	url = https://github.com/zimmski/aiger.git
+[submodule "lib/cadical"]
+	path = lib/cadical
+	url = git@github.com:arminbiere/cadical.git

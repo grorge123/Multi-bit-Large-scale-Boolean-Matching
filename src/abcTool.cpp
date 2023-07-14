@@ -70,8 +70,32 @@ map<string, set<string> > ABCTool::funSupport(){
     Abc_NtkForEachCo( mainNtk, pNode, i )
         Abc_NtkForEachCi( mainNtk, pNodeCi, v ){
             if(Sim_SuppFunHasVar( vSuppFun, i, v ) != 0){
-                re[Abc_ObjName(pNode)].insert(Abc_ObjName(pNodeCi));
-                re[Abc_ObjName(pNodeCi)].insert(Abc_ObjName(pNode));
+                string outputName = Abc_ObjName(pNode);
+                string inputName = Abc_ObjName(pNodeCi);
+                if(outputName == inputName)continue;
+                re[outputName].insert(inputName);
+                re[inputName].insert(outputName);
+            }
+        }
+    return re;
+}
+
+map<string, set<string> > ABCTool::strSupport() {
+    Abc_Obj_t * pNode, * pNodeCi;
+    map<string, set<string> > re;
+    int i, v;
+    FILE * saveStdout = stdoutSave();
+    Vec_Ptr_t * vSuppStr = Sim_ComputeStrSupp( mainNtk );
+    stdoutRecovery(saveStdout);
+    Abc_NtkForEachCo( mainNtk, pNode, i )
+        Abc_NtkForEachCi( mainNtk, pNodeCi, v ){
+            if(Sim_SuppStrHasVar( vSuppStr, pNode, v ) != 0){
+                string outputName = Abc_ObjName(pNode);
+                string inputName = Abc_ObjName(pNodeCi);
+
+                if(outputName == inputName)continue;
+                re[outputName].insert(inputName);
+                re[inputName].insert(outputName);
             }
         }
     return re;

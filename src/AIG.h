@@ -10,6 +10,7 @@
 #include <map>
 #include <set>
 #include <iostream>
+#include <utility>
 #include <vector>
 #include <fstream>
 
@@ -35,25 +36,27 @@ private:
     map<int, int> inputIndexMapInv; // AIG Node index to AIG input order
     map<int, vector<int> > outputIndexMapInv; // AIG Node index to AIG input order
     vector<string> orderToName; // AIG input order to verilog name
+                                // verilog input name to order
     vector<bool> invMap; // AIG input order if is inverted
-    map<int, set<int> > support; // AIG Node index to support set
-    map<int, set<int> > funSupport; // AIG Node index to support set
+    map<string , set<string> > strSupport; // input Name to strSupport set search by recursive
+    map<string , set<string> > abcStrSupport; // input Name to strSupport set search by abc
+    map<string , set<string> > funSupport; // input Name to funSupport set
     void parseRaw();
     void recursiveFindSupport(int output, int now, vector<bool> &visit);
     bool recursiveGenerateOutput(int now, vector<int>& signal, vector<bool>& input);
-    void findSupport();
-    void findFunSupport();
     vector<string> zero, one;
     vector<pair<string,string>> wire; // <output name, input name>
-
+    void recursiveFindStrSupport();
+    void abcFindFunSupport();
+    void abcFindStrSupport();
 public:
     string cirName;
     AIG(){};
-    AIG(string name, int supportType, string cirName = "") : cirName(cirName){
+    AIG(const string &name, string cirName = "") : cirName(std::move(cirName)){
         aiger *input = aiger_init();
         const char *err_msg = aiger_open_and_read_from_file(input, name.c_str());
 #ifdef DBG
-        if(err_msg != NULL){
+        if(err_msg != nullptr){
             cout << "[AIG]ERROR: " << err_msg << endl;
             exit(1);
         }
@@ -77,44 +80,41 @@ public:
         ifs.close();
         aiger_reset(input);
         parseRaw();
-        if (supportType == 0 || supportType == 2) {
-            findSupport();
-        }
-        if(supportType == 1 || supportType == 2){
-            findFunSupport();
-        }
     }
     const string &inputFromIndexToName(int index);
     const vector<string> &outputFromIndexToName(int idx);
-    const string &fromOrderToName(int idx);
+    const string &fromOrderToName(int order);
     int fromOrderToIndex(int order) const;
-    int fromNameToIndex(string name);
+    int fromNameToIndex(const string &name);
     int inputFromIndexToOrder(int idx);
     const vector<int> &outputFromIndexToOrder(int idx);
     int fromOrderToIndex(int order);
     int fromNameToOrder(string name);
-    int getInputNum();
-    int getOutputNum();
+    int getInputNum() const;
+    int getOutputNum() const;
     bool isInput(int idx);
-    set<string> getSupport(int idx);
-    set<string> getSupport(string name);
-    set<string> getFunSupport(int idx);
-    set<string> getFunSupport(string name);
+    bool isOutput(int idx);
+    bool portExist(string name);
+    bool portIsNegative(int order);
+    const set<string> & getSupport(const string &name, int supType); // 0: funSuppose 1: abcStrSuppose 2: recurStrSuppose
     vector<bool> generateOutput(vector<bool> input);
     const string &getRaw();
-    void changeName(string oldName, string newName);
-    void erasePort(vector<string> nameList);
+    void changeName(const string& oldName, const string& newName);
+    void erasePort(const vector<string>& nameList);
     const vector<string> &getZero() const;
     const vector<string> &getOne() const;
     void addNegativeOutput();
+    void addFloatInput(const vector<string>& name);
     void invertGate(const string &name);
-    void copyOutput(const string &origin,const string &newName);
+    void copyOutput(const string &origin, const string &newName, bool negative);
     void exportInput(const string &from, const string &to, bool negative);
     void setConstant(const string &origin, int val);
     void writeToAIGFile(const string &fileName);
+    void modifyAIG();
     void Debug();
+    void selfTest();
 };
 
-solverResult solveMiter(AIG &cir1, AIG &cir2, CNF *miter);
+void solveMiter(AIG &cir1, AIG &cir2, CNF &miter, AIG &miterAIG);
 
 #endif //MULTI_BIT_LARGE_SCALE_BOOLEAN_MATCHING_AIG_H

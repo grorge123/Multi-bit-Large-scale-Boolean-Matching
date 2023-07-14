@@ -16,6 +16,7 @@ class TwoStep {
     string outputFilePath;
     AIG cir1, cir2;
     int allOutputNumber{};
+    int startMs;
     // output solver
     set<size_t> forbid;
     stack<MP> backtrace;
@@ -27,22 +28,34 @@ class TwoStep {
     int lastCir1, lastCir2;
     vector<vector<string>> clauseStack;
     vector<int> clauseNum;
+    // input solver
+    int mappingSpaceLast = 0;
+    string mappingSpaceFileName = "TwoStepSolveMapping.cnf";
+
     // hyper parameter
     int maxRunTime = 1000 * 3500; // ms
+//    int maxRunTime = 1000 * 10; // ms
     bool outputSolverInit = false;
+    int iteratorCounter = 0;
+    int lastTime = 0;
+    int verbose = 0;
 
-
+    void recordMs();
     static int nowMs();
     vector<int> generateOutputGroups(vector<string> &f, vector<string> &g);
     MP outputSolver(bool projection, vector<MP> &R);
     void outputSolverPop();
     vector<MP> inputSolver(vector<MP> &R);
-    vector<MP> solveMapping(CNF &mapping, AIG &cir1, AIG &cir2, const int baseLength);
-    pair<vector<bool>, vector<bool>>
-    solveMiter(const vector<MP> &inputMatchPair, const vector<MP> &outputMatchPair, AIG &cir1, AIG &cir2);
-    void reduceSpace(CNF &mappingSpace, const pair<vector<bool>, vector<bool>> &counter, const int baseLength,
-                     AIG &cir1, AIG &cir2, const vector<MP> &mapping);
-    vector<int> getNonRedundant(const vector<bool> &input, AIG & cir); // return port order
+    vector<MP> solveMapping(CNF &mappingSpace, AIG &cir1, AIG &cir2, const int baseLength);
+    pair<pair<map<string, pair<int, bool>>, map<string, pair<int, bool>>>, vector<bool>>
+    solveMiter(const vector<MP> &inputMatchPair, const vector<MP> &outputMatchPair, AIG cir1, AIG cir2);
+    void reduceSpace(CNF &mappingSpace, const vector<bool> &counter, const int baseLength, AIG &cir1, AIG &cir2,
+                     const vector<MP> &mapping, pair<map<string, pair<int, bool>>, map<string, pair<int, bool>>> &nameToOrder
+#ifdef DBG
+                    , const vector<MP> &R
+#endif
+                     );
+    static vector<int> getNonRedundant(const vector<bool> &input, AIG &cir, vector<bool> counter); // return port order
     bool heuristicsOrderCmp(const string& a, const string& b);
     static pair<string, bool> analysisName(string name);
     struct PairHash {
@@ -69,12 +82,13 @@ class TwoStep {
 public:
     TwoStep()= default;
     TwoStep(const InputStructure& input, string outputFilePath) : outputFilePath(std::move(outputFilePath)){
-        cir1 = AIG(input.cir1AIGPath, 0, "!");
-        cir2 = AIG(input.cir2AIGPath, 0, "@");
+        cir1 = AIG(input.cir1AIGPath, "!");
+        cir2 = AIG(input.cir2AIGPath, "@");
         allOutputNumber = (cir2.getOutputNum() + cir1.getOutputNum());
     }
     void start();
+    void tsDebug(string msg, AIG cir1, AIG cir2);
 };
 
-
+extern TwoStep ts;
 #endif //MULTI_BIT_LARGE_SCALE_BOOLEAN_MATCHING_TWOSTEP_H
