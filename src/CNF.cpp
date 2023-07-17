@@ -199,9 +199,11 @@ bool CNF::isDC(const string &name) {
 #endif
 }
 
-void CNF::addClause(const vector<int> &clause) {
+list<vector<int>>::iterator CNF::addClause(const vector<int> &clause) {
     change = 1;
     clauses.emplace_back(clause);
+    auto it = prev(clauses.end());
+    return it;
 }
 
 const list<vector<int>> &CNF::getClauses() const {

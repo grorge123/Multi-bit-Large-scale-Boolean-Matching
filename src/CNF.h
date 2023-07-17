@@ -35,7 +35,7 @@ public:
     explicit CNF(AIG aig){
         readFromAIG(aig);
     }
-    void addClause(const vector<int> &clause);
+    list<vector<int>>::iterator addClause(const vector<int> &clause);
     void readFromAIG(AIG &aig);
     void readFromFile(string inputPath);
     void combine(const CNF &a);

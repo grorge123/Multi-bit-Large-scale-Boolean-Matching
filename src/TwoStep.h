@@ -13,6 +13,10 @@
 #include "CNF.h"
 typedef pair<string, string> MP;
 class TwoStep {
+    struct inputSolverRecord{
+        AIG cir1Reduce, cir2Reduce;
+        CNF mappingSpace;
+    };
     string outputFilePath;
     AIG cir1, cir2;
     int allOutputNumber{};
@@ -20,6 +24,7 @@ class TwoStep {
     // output solver
     set<size_t> forbid;
     stack<MP> backtrace;
+    stack<size_t> backtraceHash;
     vector<vector<bool> > initVe;
     vector<int> cir1Choose; // how many number be chosen by cir2 port
     vector<int> cir2Choose; // choose which cir1 port
@@ -28,10 +33,12 @@ class TwoStep {
     int lastCir1, lastCir2;
     vector<vector<string>> clauseStack;
     vector<int> clauseNum;
+    // Bus
+    map<string, int> cir1BusMapping, cir2BusMapping;
+    vector<vector<string> > cir1Bus, cir2Bus;
     // input solver
-    int mappingSpaceLast = 0;
     string mappingSpaceFileName = "TwoStepSolveMapping.cnf";
-
+    stack<inputSolverRecord> inputStack;
     // hyper parameter
     int maxRunTime = 1000 * 3500; // ms
 //    int maxRunTime = 1000 * 10; // ms
@@ -43,9 +50,10 @@ class TwoStep {
     void recordMs();
     static int nowMs();
     vector<int> generateOutputGroups(vector<string> &f, vector<string> &g);
-    MP outputSolver(bool projection, vector<MP> &R);
+    pair<MP, size_t> outputSolver(bool projection, vector<MP> &R);
     void outputSolverPop();
-    vector<MP> inputSolver(vector<MP> &R);
+    int recordOutput(const vector<MP> &inputMatch, const vector<MP> &R);
+    vector<MP> inputSolver(vector<MP> &R, bool init);
     vector<MP> solveMapping(CNF &mappingSpace, AIG &cir1, AIG &cir2, const int baseLength);
     pair<pair<map<string, pair<int, bool>>, map<string, pair<int, bool>>>, vector<bool>>
     solveMiter(const vector<MP> &inputMatchPair, const vector<MP> &outputMatchPair, AIG cir1, AIG cir2);
@@ -85,6 +93,18 @@ public:
         cir1 = AIG(input.cir1AIGPath, "!");
         cir2 = AIG(input.cir2AIGPath, "@");
         allOutputNumber = (cir2.getOutputNum() + cir1.getOutputNum());
+        cir1Bus = input.cir1Bus;
+        cir2Bus = input.cir2Bus;
+        for(int i = 0 ; i < static_cast<int>(cir1Bus.size()) ; i++){
+            for(const auto& name : cir1Bus[i]){
+                cir1BusMapping[name] = i;
+            }
+        }
+        for(int i = 0 ; i < static_cast<int>(cir2Bus.size()) ; i++){
+            for(const auto& name : cir2Bus[i]){
+                cir2BusMapping[name] = i;
+            }
+        }
     }
     void start();
     void tsDebug(string msg, AIG cir1, AIG cir2);
