@@ -64,7 +64,7 @@ void CNF::readFromAIG(AIG &aig) {
 }
 
 
-void CNF::readFromFile(string inputPath) {
+void CNF::readFromFile(const string& inputPath) {
     ifstream ifs;
     ifs.open(inputPath);
     string input;
@@ -106,7 +106,7 @@ string CNF::getRaw() {
 
 void CNF::combine(const CNF &a) {
     change = 2;
-    for(auto mapTable : a.varMap){
+    for(const auto& mapTable : a.varMap){
 #ifdef DBG
         if(varMap.find(mapTable.first) != varMap.end()){
             cout << "[CNF] ERROR: Multiple mapping" << endl;
@@ -114,7 +114,7 @@ void CNF::combine(const CNF &a) {
 #endif
         varMap[mapTable.first] = mapTable.second + maxIdx;
     }
-    for(auto clause : clauses){
+    for(const auto& clause : clauses){
         vector<int> ve;
         for(auto var : clause){
             int newVar = (abs(var) + maxIdx ) * (var > 0 ? 1 : -1);
@@ -208,4 +208,9 @@ list<vector<int>>::iterator CNF::addClause(const vector<int> &clause) {
 
 const list<vector<int>> &CNF::getClauses() const {
     return clauses;
+}
+
+void CNF::eraseClause(list<vector<int>>::iterator it) {
+    change = 2;
+    clauses.erase(it);
 }

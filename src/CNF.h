@@ -36,8 +36,9 @@ public:
         readFromAIG(aig);
     }
     list<vector<int>>::iterator addClause(const vector<int> &clause);
+    void eraseClause(list<vector<int>>::iterator it);
     void readFromAIG(AIG &aig);
-    void readFromFile(string inputPath);
+    void readFromFile(const string& inputPath);
     void combine(const CNF &a);
     bool isDC(const string &name);
     string getRaw();
