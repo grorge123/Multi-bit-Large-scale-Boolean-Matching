@@ -259,7 +259,24 @@ void AIG::selfTest() {
             exit(1);
         }
     }
-
+    //TODO launch it
+//    vector<bool> isInput, isOutput;
+//    isInput.resize(MAXIndex + 1);
+//    isOutput.resize(MAXIndex + 1);
+//    for(int i = 0 ; i < inputNum ; i++){
+//        isInput[indexMap[i]] = true;
+//    }
+//    for(int i = inputNum ; i < inputNum + outputNum ; i++){
+//        isOutput[indexMap[i]] = true;
+//    }
+//    for(unsigned int idx = 1 ; idx < tree.size() ; idx++) {
+//        if(tree[idx].isInput != isInput[idx]){
+//            cout << "[AIG] selfTest: isInput failed." << endl;
+//        }
+//        if(tree[idx].isOutput != isOutput[idx]){
+//            cout << "[AIG] selfTest: isInput failed." << endl;
+//        }
+//    }
 
 
 }
@@ -465,6 +482,16 @@ void AIG::erasePort(const vector<string>& nameList) {
                 existQueue.push(tree[now].r);
             }
         }
+    }
+    for(unsigned int idx = 1 ; idx < tree.size() ; idx++) {
+        tree[idx].isInput = false;
+        tree[idx].isOutput = false;
+    }
+    for(int i = 0 ; i < inputNum ; i++){
+        tree[indexMap[i]].isInput = true;
+    }
+    for(int i = inputNum ; i < inputNum + outputNum ; i++){
+        tree[indexMap[i]].isOutput = true;
     }
     for(unsigned int idx = 1 ; idx < tree.size() ; idx++){
         if(tree[idx].isInput)continue;
@@ -744,6 +771,7 @@ void AIG::exportInput(const string &from, const string &to, bool negative) {
             outputIndexMapInv[fromIdx].push_back(order);
             if(negative)invMap[order] = !invMap[order];
         }
+        tree[toIdx].isOutput = false;
         tree[fromIdx].isOutput = true;
     }
     outputIndexMapInv[toIdx].clear();
