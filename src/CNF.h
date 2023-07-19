@@ -40,6 +40,7 @@ public:
     void readFromAIG(AIG &aig);
     void readFromFile(const string& inputPath);
     void combine(const CNF &a);
+    const vector<int> &getClause(list<vector<int>>::iterator it);
     bool isDC(const string &name);
     string getRaw();
     bool solve();

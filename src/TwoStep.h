@@ -17,15 +17,19 @@ class TwoStep {
     struct matchStatus{
         int cir1Choose;
         int cir2Choose;
-        int minNum;
-        matchStatus(int cir1Choose, int cir2Choose, int minNum): cir1Choose(cir1Choose), cir2Choose(cir2Choose), minNum(minNum){}
+        int minNum = 0;
+        vector<list<vector<int> >::iterator > clauseRecord;
+        matchStatus(int cir1Choose, int cir2Choose, int minNum, vector<list<vector<int> >::iterator > clauseRecord):
+        cir1Choose(cir1Choose), cir2Choose(cir2Choose), minNum(minNum), clauseRecord(std::move(clauseRecord)){}
+        matchStatus(int cir1Choose, int cir2Choose):
+                cir1Choose(cir1Choose), cir2Choose(cir2Choose){}
     };
     struct inputSolverRecord{
         AIG cir1Reduce, cir2Reduce;
         CNF mappingSpace;
         set<pii> busMatch;
         set<size_t> busMatchHash;
-        stack<matchStatus> matchStack;
+        vector<matchStatus> matchStack;
         vector<int> cir1BusMatch;
         vector<int> cir2BusMatch;
         map<int, int> cir1BusCapacity;
@@ -33,7 +37,7 @@ class TwoStep {
         inputSolverRecord(AIG& cir1Reduce, AIG& cir2Reduce, CNF& mappingSpace,
                           set<std::pair<int, int>> busMatch,
                           set<size_t> busMatchHash,
-                          stack<matchStatus> matchStack,
+                          vector<matchStatus> matchStack,
                           vector<int> cir1BusMatch,
                           vector<int> cir2BusMatch,
                           map<int, int> cir1BusCapacity,
@@ -71,7 +75,7 @@ class TwoStep {
     bool outputSolverInit = false;
     int iteratorCounter = 0;
     int lastTime = 0;
-    int verbose = 1;
+    int verbose = 0;
 
     void recordMs();
     static int nowMs();
@@ -154,18 +158,18 @@ public:
             }
         }
 #ifdef  DBG
-        for(int i = 0 ; i < cir1.getInputNum() ; i++){
-            string name = cir1.fromOrderToName(i);
-            if(cir1BusMapping.find(name) == cir1BusMapping.end()){
-                cir1BusMapping[name] = -1;
-            }
-        }
-        for(int i = 0 ; i < cir2.getInputNum() ; i++){
-            string name = cir2.fromOrderToName(i);
-            if(cir2BusMapping.find(name) == cir2BusMapping.end()){
-                cir2BusMapping[name] = -1;
-            }
-        }
+//        for(int i = 0 ; i < cir1.getInputNum() ; i++){
+//            string name = cir1.fromOrderToName(i);
+//            if(cir1BusMapping.find(name) == cir1BusMapping.end()){
+//                cir1BusMapping[name] = -1;
+//            }
+//        }
+//        for(int i = 0 ; i < cir2.getInputNum() ; i++){
+//            string name = cir2.fromOrderToName(i);
+//            if(cir2BusMapping.find(name) == cir2BusMapping.end()){
+//                cir2BusMapping[name] = -1;
+//            }
+//        }
 #endif
         int cnt = 0;
         cout << "Bus1:" << endl;

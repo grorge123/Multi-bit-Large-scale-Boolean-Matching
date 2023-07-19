@@ -151,30 +151,32 @@ void CNF::combine(const CNF &a) {
 //    }
 //}
 bool CNF::solve() {
-    if(change == 0){
-        return satisfiable;
-    }else if(change == 2){
-        delete solver;
-        solver = new CaDiCaL::Solver();
-        lastClauses = 0;
-    }
-    int tmp = 0;
+    //TODO need optimize
+//    if(change == 0){
+//        return satisfiable;
+//    }else if(change == 2){
+//        delete solver;
+//        solver = new CaDiCaL::Solver();
+//        lastClauses = 0;
+//    }
+//    int tmp = 0;
+    CaDiCaL::Solver solver = CaDiCaL::Solver();
     for(const auto &clause: clauses){
-        if(tmp < lastClauses){
-            tmp++;
-            continue;
-        }
+//        if(tmp < lastClauses){
+//            tmp++;
+//            continue;
+//        }
         for(int number: clause){
-            solver->add(number);
+            solver.add(number);
         }
-        solver->add(0);
+        solver.add(0);
     }
-    int res = solver->solve();
+    int res = solver.solve();
     satisfiedInput.clear();
     if (res == 10) {
         satisfiable = true;
         for (int i = 1; i <= maxIdx; ++i) {
-            satisfiedInput.push_back(solver->val(i) > 0);
+            satisfiedInput.push_back(solver.val(i) > 0);
         }
     } else if (res == 20) {
         satisfiable = false;
@@ -213,4 +215,8 @@ const list<vector<int>> &CNF::getClauses() const {
 void CNF::eraseClause(list<vector<int>>::iterator it) {
     change = 2;
     clauses.erase(it);
+}
+
+const vector<int> &CNF::getClause(list<vector<int>>::iterator it) {
+    return *it;
 }
