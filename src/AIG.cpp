@@ -506,7 +506,7 @@ int AIG::fromNameToOrder(string name) {
     }
     if(name == "0")return -1;
 #ifdef DBG
-    cout << "[AIG] Error: Cant not from Name(" << name << ") to find Order" << endl;
+    cout << "[AIG] Error: Cant not from Name(" << name << ") to find Order." << endl;
     exit(1);
 #endif
 }
@@ -744,6 +744,7 @@ void AIG::exportInput(const string &from, const string &to, bool negative) {
             outputIndexMapInv[fromIdx].push_back(order);
             if(negative)invMap[order] = !invMap[order];
         }
+        tree[fromIdx].isOutput = true;
     }
     outputIndexMapInv[toIdx].clear();
     outputNameMapInv[toIdx].clear();
