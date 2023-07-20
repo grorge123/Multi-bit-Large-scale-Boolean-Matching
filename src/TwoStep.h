@@ -28,6 +28,7 @@ class TwoStep {
     struct inputSolverRecord{
         AIG cir1Reduce, cir2Reduce;
         CNF mappingSpace;
+        set<pii> allBusMatch;
         set<pii> busMatch;
         set<size_t> busMatchHash;
         vector<matchStatus> matchStack;
@@ -36,6 +37,7 @@ class TwoStep {
         map<int, int> cir1BusCapacity;
         map<int, int> cir2BusCapacity;
         inputSolverRecord(AIG& cir1Reduce, AIG& cir2Reduce, CNF& mappingSpace,
+                          set<std::pair<int, int>> allBusMatch,
                           set<std::pair<int, int>> busMatch,
                           set<size_t> busMatchHash,
                           vector<matchStatus> matchStack,
@@ -44,7 +46,7 @@ class TwoStep {
                           map<int, int> cir1BusCapacity,
                           map<int, int> cir2BusCapacity)
                 : cir1Reduce(cir1Reduce), cir2Reduce(cir2Reduce), mappingSpace(mappingSpace),
-                  busMatch(std::move(busMatch)), busMatchHash(std::move(busMatchHash)), matchStack(std::move(matchStack)),
+                  allBusMatch(std::move(allBusMatch)), busMatch(std::move(busMatch)), busMatchHash(std::move(busMatchHash)), matchStack(std::move(matchStack)),
                   cir1BusMatch(std::move(cir1BusMatch)), cir2BusMatch(std::move(cir2BusMatch)), cir1BusCapacity(std::move(cir1BusCapacity)), cir2BusCapacity(std::move(cir2BusCapacity))
         {}
     };
@@ -55,7 +57,7 @@ class TwoStep {
     // output solver
     set<size_t> forbid;
     stack<MP> backtrace;
-    stack<size_t> backtraceHash;
+    stack<vector<size_t> > forbidStack;
     vector<vector<bool> > initVe;
     vector<int> cir1Choose; // how many number be chosen by cir2 port
     vector<int> cir2Choose; // choose which cir1 port
@@ -76,7 +78,7 @@ class TwoStep {
     bool outputSolverInit = false;
     int iteratorCounter = 0;
     int lastTime = 0;
-    int verbose = 1;
+    int verbose = 0;
 
     void recordMs();
     static int nowMs();
