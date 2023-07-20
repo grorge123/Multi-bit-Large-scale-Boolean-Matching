@@ -19,6 +19,7 @@ class TwoStep {
         int cir2Choose;
         int minNum = 0;
         vector<list<vector<int> >::iterator > clauseRecord;
+        vector<bool> mapping;
         matchStatus(int cir1Choose, int cir2Choose, int minNum, vector<list<vector<int> >::iterator > clauseRecord):
         cir1Choose(cir1Choose), cir2Choose(cir2Choose), minNum(minNum), clauseRecord(std::move(clauseRecord)){}
         matchStatus(int cir1Choose, int cir2Choose):
@@ -75,7 +76,7 @@ class TwoStep {
     bool outputSolverInit = false;
     int iteratorCounter = 0;
     int lastTime = 0;
-    int verbose = 0;
+    int verbose = 1;
 
     void recordMs();
     static int nowMs();

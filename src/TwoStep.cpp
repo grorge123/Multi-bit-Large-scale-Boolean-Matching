@@ -371,7 +371,7 @@ vector<MP> TwoStep::inputSolver(vector<MP> &R, bool init) {
             if(static_cast<int>(now.matchStack.size()) == 0){
                 return 0;
             }
-            auto &[cir1ChooseBusLast, cir2ChooseBusLast, minNumRecordLast, clauseRecord] = now.matchStack.back();
+            auto &[cir1ChooseBusLast, cir2ChooseBusLast, minNumRecordLast, clauseRecord, mappingRecord] = now.matchStack.back();
             now.cir2BusCapacity[now.cir2BusMatch[cir2ChooseBusLast]] += minNumRecordLast;
             now.cir1BusCapacity[now.cir1BusMatch[cir1ChooseBusLast]] += minNumRecordLast;
             if(verbose){
@@ -390,9 +390,21 @@ vector<MP> TwoStep::inputSolver(vector<MP> &R, bool init) {
         if(matchStack.empty()){
             matchStack.emplace_back(0, 0);
         }else{
-            if(!popStack(inputStack.top())){
-                return {};
+#ifdef DBG
+            if(matchStack.back().mapping.empty()){
+                cout << "[TwoStep] Error: no record mapping." << endl;
+                exit(1);
             }
+#endif
+            vector<int> clause;
+            for(int i = 0 ; i < static_cast<int>(matchStack.back().mapping.size()) ; i++){
+                if(matchStack.back().mapping[i]){
+                    clause.emplace_back(-1 * i);
+                }else{
+                    clause.emplace_back(i);
+                }
+            }
+            mappingSpace.addClause(clause);
         }
         if(verbose){
             cout << "R:" << endl;
@@ -401,7 +413,7 @@ vector<MP> TwoStep::inputSolver(vector<MP> &R, bool init) {
             }
         }
         while (true) {
-            auto &[cir1ChooseBus, cir2ChooseBus, minNumRecord, clauseRecord] = matchStack.back();
+            auto &[cir1ChooseBus, cir2ChooseBus, minNumRecord, clauseRecord, mappingRecord] = matchStack.back();
             if(verbose){
                 cout << "current input solver:" << cir1ChooseBus << " " << cir2ChooseBus << " " << cir1BusMatch.size() << " " << cir2BusMatch.size() << endl;
             }
@@ -413,6 +425,7 @@ vector<MP> TwoStep::inputSolver(vector<MP> &R, bool init) {
 #endif
             if(cir1ChooseBus == static_cast<int>(cir1BusMatch.size())){
                 if(verbose){
+                    //TODO split every stack busMatch
                     cout << "BusMatch:" << " " << busMatch.size() << endl;
                     for(const auto &i : busMatch){
                         cout << i.first << " " << i.second << endl;
@@ -450,22 +463,23 @@ vector<MP> TwoStep::inputSolver(vector<MP> &R, bool init) {
                             cout << "No mapping result." << endl;
                         break;
                     }
-                    if (verbose) {
-                        cout << "Find Mapping" << endl;
-                        for (const auto &pair: mapping) {
-                            cout << pair.first << " " << pair.second << endl;
-                        }
-                        recordMs();
-                    }
                     pair<pair<map<string, pair<int, bool>>, map<string, pair<int, bool> > >, vector<bool> > counter = solveMiter(
                             mapping, R, cir1Reduce, cir2Reduce);
                     if (counter.second.empty()) {
+                        if (verbose) {
+                            cout << "Find Mapping" << endl;
+                            for (const auto &pair: mapping) {
+                                cout << pair.first << " " << pair.second << endl;
+                            }
+                            recordMs();
+                        }
+                        mappingRecord = mappingSpace.satisfiedInput;
                         break;
                     }
-                    if (verbose) {
-                        cout << "It is counterexample size:" << counter.second.size() << endl;
-                        recordMs();
-                    }
+//                    if (verbose) {
+//                        cout << "It is counterexample size:" << counter.second.size() << endl;
+//                        recordMs();
+//                    }
                     reduceSpace(mappingSpace, counter.second, baseLength, cir1Reduce, cir2Reduce, mapping, counter.first,
                                 R);
 
@@ -518,7 +532,7 @@ vector<MP> TwoStep::inputSolver(vector<MP> &R, bool init) {
                         if(!popStack(inputStack.top())){
                             return {};
                         }
-                        auto &[cir1ChooseBusLast, cir2ChooseBusLast, minNumRecordLast, clauseRecordLast] = matchStack.back();
+                        auto &[cir1ChooseBusLast, cir2ChooseBusLast, minNumRecordLast, clauseRecordLast, mappingRecordLast] = matchStack.back();
                         if(cir2ChooseBusLast < static_cast<int>(cir2BusMatch.size())){
                             break;
                         }
