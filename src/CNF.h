@@ -29,6 +29,40 @@ public:
 #endif
     int maxIdx = 0;
     CNF()= default;
+    CNF(const CNF& other) {
+        // Copy all other members
+        change = 2;
+        lastClauses = 0;
+        clauses = other.clauses;
+        satisfiedInput = other.satisfiedInput;
+        satisfiable = other.satisfiable;
+        inv = other.inv;
+        varMap = other.varMap;
+        DC = other.DC;
+        maxIdx = other.maxIdx;
+        solver = new CaDiCaL::Solver();
+    }
+
+    // Assignment operator
+    CNF& operator=(const CNF& other) {
+        if (this != &other) {
+            delete solver;
+            change = 2;
+            lastClauses = 0;
+            clauses = other.clauses;
+            satisfiedInput = other.satisfiedInput;
+            satisfiable = other.satisfiable;
+            inv = other.inv;
+            varMap = other.varMap;
+            DC = other.DC;
+            maxIdx = other.maxIdx;
+            solver = new CaDiCaL::Solver();
+        }
+        return *this;
+    }
+    ~CNF() {
+        delete solver;
+    }
     explicit CNF(string inputPath){
         readFromFile(std::move(inputPath));
     }

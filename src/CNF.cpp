@@ -152,31 +152,30 @@ void CNF::combine(const CNF &a) {
 //}
 bool CNF::solve() {
     //TODO need optimize
-//    if(change == 0){
-//        return satisfiable;
-//    }else if(change == 2){
-//        delete solver;
-//        solver = new CaDiCaL::Solver();
-//        lastClauses = 0;
-//    }
-//    int tmp = 0;
-    CaDiCaL::Solver solver = CaDiCaL::Solver();
-    for(const auto &clause: clauses){
-//        if(tmp < lastClauses){
-//            tmp++;
-//            continue;
-//        }
-        for(int number: clause){
-            solver.add(number);
-        }
-        solver.add(0);
+    if(change == 0){
+        return satisfiable;
+    }else if(change == 2){
+        delete solver;
+        solver = new CaDiCaL::Solver();
+        lastClauses = 0;
     }
-    int res = solver.solve();
+    int tmp = 0;
+    for(const auto &clause: clauses){
+        if(tmp < lastClauses){
+            tmp++;
+            continue;
+        }
+        for(int number: clause){
+            solver->add(number);
+        }
+        solver->add(0);
+    }
+    int res = solver->solve();
     satisfiedInput.clear();
     if (res == 10) {
         satisfiable = true;
         for (int i = 1; i <= maxIdx; ++i) {
-            satisfiedInput.push_back(solver.val(i) > 0);
+            satisfiedInput.push_back(solver->val(i) > 0);
         }
     } else if (res == 20) {
         satisfiable = false;
@@ -202,7 +201,8 @@ bool CNF::isDC(const string &name) {
 }
 
 list<vector<int>>::iterator CNF::addClause(const vector<int> &clause) {
-    change = 1;
+    if(change == 0)
+        change = 1;
     clauses.emplace_back(clause);
     auto it = prev(clauses.end());
     return it;
