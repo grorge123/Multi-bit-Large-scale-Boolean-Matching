@@ -390,28 +390,31 @@ vector<MP> TwoStep::inputSolver(vector<MP> &R, bool init) {
                 exit(1);
             }
 #endif
-            now.busMatch.erase(pii(cir1ChooseBusLast, cir2ChooseBusLast));
+            now.busMatch.erase(pii(now.cir1BusMatch[cir1ChooseBusLast], now.cir2BusMatch[cir2ChooseBusLast]));
             cir2ChooseBusLast++;
             return static_cast<int>(now.matchStack.size());
         };
         if(matchStack.empty()){
             matchStack.emplace_back(0, 0);
         }else{
-#ifdef DBG
-            if(matchStack.back().mapping.empty()){
-                cout << "[TwoStep] Error: no record mapping." << endl;
-                exit(1);
+//#ifdef DBG
+//            if(matchStack.back().mapping.empty()){
+//                cout << "[TwoStep] Error: no record mapping." << endl;
+//                exit(1);
+//            }
+//#endif
+//            vector<int> clause;
+//            for(int i = 0 ; i < static_cast<int>(matchStack.back().mapping.size()) ; i++){
+//                if(matchStack.back().mapping[i]){
+//                    clause.emplace_back(-1 * (i + 1));
+//                }else{
+//                    clause.emplace_back(i + 1);
+//                }
+//            }
+//            mappingSpace.addClause(clause);
+            if(!popStack(inputStack.top())){
+                return {};
             }
-#endif
-            vector<int> clause;
-            for(int i = 0 ; i < static_cast<int>(matchStack.back().mapping.size()) ; i++){
-                if(matchStack.back().mapping[i]){
-                    clause.emplace_back(-1 * (i + 1));
-                }else{
-                    clause.emplace_back(i + 1);
-                }
-            }
-            mappingSpace.addClause(clause);
         }
         if(verbose){
             cout << "R:" << endl;
@@ -587,6 +590,7 @@ TwoStep::generateBusMatchVector(AIG &cir1, AIG &cir2, set<pii> &matchBus) {
             exit(1);
         }
        if(cir1BusCapacity[match.first] <= 0 || cir2BusCapacity[match.second] <= 0){
+           cout << "MatchBus:" << endl;
            for(auto const & match2: matchBus){
                cout << match2.first << " ( " << cir1InputBus[match2.first].size() << " ) " << match2.second << " ( " << cir2InputBus[match2.second].size() << " ) " << endl;
            }
