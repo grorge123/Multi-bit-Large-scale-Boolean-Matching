@@ -35,10 +35,10 @@ pair<MP, size_t> TwoStep::outputSolver(bool projection, vector<MP> &R) {
             i.resize(cir1Output.size() * 2, true);
         }
         if(cir1Output.size() == cir2Output.size()){
-            vector<int> groupId = generateOutputGroups(cir1Output, cir2Output);
+            hGroupId = generateOutputGroups(cir1Output, cir2Output);
             for(int i = 0 ; i < static_cast<int>(cir2Output.size()) ; i++){
                 for(int q = 0 ; q < static_cast<int>(cir1Output.size()) ; q += 2){
-                    if(groupId[i] != groupId[q / 2]){
+                    if(hGroupId[i] != hGroupId[q / 2]){
                         initVe[i][q] = initVe[i][q + 1] = false;
                     }
                 }

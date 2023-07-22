@@ -56,6 +56,7 @@ class TwoStep {
     int allOutputNumber{};
     int startMs;
     // output solver
+    vector<int> hGroupId;
     set<size_t> forbid;
     stack<MP> backtrace;
     stack<vector<size_t> > forbidStack;
