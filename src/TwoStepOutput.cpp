@@ -60,7 +60,8 @@ pair<MP, size_t> TwoStep::outputSolver(bool projection, vector<MP> &R) {
         for(int i = 0 ; i < static_cast<int>(cir2Output.size()) ; i++){
             if(cir2Choose[i] == -1){
                 for(int q = 0 ; q < static_cast<int>(cir1Output.size() * 2) ; q++){
-                    if(!(!projection && cir1Choose[q / 2] != 0) && initVe[i][q]){
+                    if(!projection &&(cir1Choose[q / 2] != 0))continue;
+                    if(initVe[i][q]){
                         MP re = MP(cir1Output[q / 2] + (q % 2 == 0 ? "" : "\'"), cir2Output[i]);
                         if(nowSelect.find(re) != nowSelect.end())continue;
                         nowSelect.insert(re);
@@ -83,11 +84,12 @@ pair<MP, size_t> TwoStep::outputSolver(bool projection, vector<MP> &R) {
         return {MP{}, hashSet(nowSelect)};
     }
 }
-
+int cnt = 0;
 
 void TwoStep::outputSolverPop() {
     MP last = backtrace.top();
     backtrace.pop();
+    if(last.first.back() == '\'')last.first.pop_back();
     cir1Choose[cir1OutputMap[last.first]]--;
     cir2Choose[cir2OutputMap[last.second]] = -1;
     while (static_cast<int>(clauseStack.size()) > clauseNum.back()){

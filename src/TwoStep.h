@@ -36,6 +36,7 @@ class TwoStep {
         vector<int> cir2BusMatch;
         map<int, int> cir1BusCapacity;
         map<int, int> cir2BusCapacity;
+        inputSolverRecord()= default;
         inputSolverRecord(AIG& cir1Reduce, AIG& cir2Reduce, CNF& mappingSpace,
                           set<std::pair<int, int>> allBusMatch,
                           set<std::pair<int, int>> busMatch,
@@ -86,7 +87,8 @@ class TwoStep {
     pair<MP, size_t> outputSolver(bool projection, vector<MP> &R);
     void outputSolverPop();
     int recordOutput(const vector<MP> &inputMatch, const vector<MP> &R);
-    vector<MP> inputSolver(vector<MP> &R, bool init);
+    vector<MP> inputSolver(vector<MP> &R, bool init, bool outputProjection);
+    bool generateClause(CNF &mappingSpace, AIG &cir1Reduce, AIG &cir2Reduce, bool outputProjection);
     vector<MP> solveMapping(CNF &mappingSpace, AIG &cir1, AIG &cir2, const int baseLength);
     pair<pair<map<string, pair<int, bool>>, map<string, pair<int, bool>>>, vector<bool>>
     solveMiter(const vector<MP> &inputMatchPair, const vector<MP> &outputMatchPair, AIG cir1, AIG cir2);
@@ -94,7 +96,7 @@ class TwoStep {
     generateBusMatchVector(AIG& cir1, AIG& cir2, set<pii> &matchBus);
     void reduceSpace(CNF &mappingSpace, const vector<bool> &counter, const int baseLength, AIG &cir1, AIG &cir2,
                      const vector<MP> &mapping, pair<map<string, pair<int, bool>>, map<string, pair<int, bool>>> &nameToOrder, const vector<MP> &R);
-    static vector<int> getNonRedundant(const vector<bool> &input, AIG &cir, vector<bool> counter); // return port order
+    static vector<int> getNonRedundant(const vector<bool> &input, AIG &cir, int counterIdx); // return port order
     bool heuristicsOrderCmp(const string& a, const string& b);
     static pair<string, bool> analysisName(string name);
     struct PairHash {
@@ -194,6 +196,6 @@ public:
     void start();
     void tsDebug(string msg, AIG cir1, AIG cir2);
 };
-
+extern int cnt;
 extern TwoStep ts;
 #endif //MULTI_BIT_LARGE_SCALE_BOOLEAN_MATCHING_TWOSTEP_H

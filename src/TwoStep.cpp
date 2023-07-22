@@ -34,7 +34,7 @@ void TwoStep::start() {
                 outputSolverPop();
                 while (!R.empty()) {
                     auto oldAllBusMatch = inputStack.top().allBusMatch;
-                    auto inputMatch = inputSolver(R, false);
+                    auto inputMatch = inputSolver(R, false, projection);
                     if(inputMatch.empty()){
                         R.pop_back();
                         outputSolverPop();
@@ -64,7 +64,7 @@ void TwoStep::start() {
             recordMs();
         }
         clauseNum.push_back(clauseStack.size());
-        vector<MP> inputMatch = inputSolver(R, true);
+        vector<MP> inputMatch = inputSolver(R, true, projection);
         if (inputMatch.empty()) {
             vector<size_t> forbidVec;
             R.pop_back();

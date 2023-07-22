@@ -8,7 +8,116 @@
 #include "parser.h"
 #include "largeScale.h"
 
-vector<MP> TwoStep::inputSolver(vector<MP> &R, bool init) {
+bool TwoStep::generateClause(CNF &mappingSpace, AIG &cir1Reduce, AIG &cir2Reduce, bool outputProjection) {
+    int baseLength = (cir1Reduce.getInputNum() + 1) * 2;
+    //Equation 3
+    for (int i = 0; i < cir2Reduce.getInputNum(); i++) {
+        vector<int> clause;
+        clause.reserve(baseLength);
+        for (int q = 0; q < baseLength; q++) {
+            clause.push_back(i * baseLength + q + 1);
+        }
+        mappingSpace.addClause(clause);
+        clause.clear();
+        for (int q = 0; q < baseLength; q++) {
+            for (int k = q + 1; k < baseLength; k++) {
+                clause.push_back((i * baseLength + q + 1) * -1);
+                clause.push_back((i * baseLength + k + 1) * -1);
+                mappingSpace.addClause(clause);
+                clause.clear();
+            }
+        }
+    }
+    // circuit 1 input must match
+    for(int i = 0 ; i < cir1Reduce.getInputNum() ; i++){
+        vector<int> clause;
+        clause.reserve(2 * cir2Reduce.getInputNum());
+        for(int q = 0 ; q < cir2Reduce.getInputNum() ; q++){
+            clause.push_back(q * baseLength + i * 2 + 1);
+            clause.push_back(q * baseLength + i * 2 + 1 + 1);
+        }
+        mappingSpace.addClause(clause);
+        clause.clear();
+    }
+    if (cir1Reduce.getInputNum() == cir2Reduce.getInputNum()) {
+        //disable match constant
+        for (int i = 0; i < cir2Reduce.getInputNum(); i++) {
+            vector<int> clause;
+            clause.push_back(-1 * (i * baseLength + cir1Reduce.getInputNum() * 2 + 1));
+            mappingSpace.addClause(clause);
+            clause.clear();
+            clause.push_back(-1 * (i * baseLength + cir1Reduce.getInputNum() * 2 + 1 + 1));
+            mappingSpace.addClause(clause);
+        }
+        // disable input projection
+        for (int i = 0; i < cir1Reduce.getInputNum() ; i++) {
+            for(int u = 0 ; u < 2 ; u++){
+                for (int q = 0; q < cir2Reduce.getInputNum(); q++) {
+                    for(int d = 0 ; d < 2 ; d++){
+                        for (int k = q; k < cir2Reduce.getInputNum(); k++) {
+                            if(k == q && d <= u)continue;
+                            vector<int> clause;
+                            clause.push_back((q * baseLength + i + u + 1) * -1);
+                            clause.push_back((k * baseLength + i + d + 1) * -1);
+                            mappingSpace.addClause(clause);
+                        }
+                    }
+                }
+            }
+        }
+        if(!outputProjection){
+            LargeScale inputLg = LargeScale(cir1Reduce, cir2Reduce);
+            auto eigenValue = inputLg.calculateEigenvalue();
+            for (int i = 0; i < cir1Reduce.getInputNum(); i++) {
+                for (int q = 0; q < cir2Reduce.getInputNum(); q++) {
+                    if (eigenValue[cir1Reduce.fromOrderToName(i)] == eigenValue[cir2Reduce.fromOrderToName(q)])continue;
+                    vector<int> clause;
+                    clause.push_back(-1 * (q * baseLength + 2 * i + 1));
+                    mappingSpace.addClause(clause);
+                    clause.clear();
+                    clause.push_back(-1 * (q * baseLength + 2 * i + 1 + 1));
+                    mappingSpace.addClause(clause);
+                }
+            }
+        }
+    }else if(cir1Reduce.getInputNum() < cir2Reduce.getInputNum()){
+        if(!outputProjection){
+            LargeScale inputLg = LargeScale(cir1Reduce, cir2Reduce);
+            auto eigenValue = inputLg.calculateEigenvalue();
+            for (int i = 0; i < cir1Reduce.getInputNum(); i++) {
+                for (int q = 0; q < cir2Reduce.getInputNum(); q++) {
+                    if (cir1Reduce.getSupport(cir1Reduce.fromOrderToName(i), 1) <= cir2Reduce.getSupport(cir2Reduce.fromOrderToName(q), 1))continue;
+                    vector<int> clause;
+                    clause.push_back(-1 * (q * baseLength + 2 * i + 1));
+                    mappingSpace.addClause(clause);
+                    clause.clear();
+                    clause.push_back(-1 * (q * baseLength + 2 * i + 1 + 1));
+                    mappingSpace.addClause(clause);
+                }
+            }
+        }
+
+    }else if(cir1Reduce.getInputNum() > cir2Reduce.getInputNum()){
+        return false;
+    }
+    //remove funSupport not equal
+    //TODO add require constant and projection
+    LargeScale inputLg = LargeScale(cir1Reduce, cir2Reduce);
+    auto eigenValue = inputLg.calculateEigenvalue();
+    for (int i = 0; i < cir1Reduce.getInputNum(); i++) {
+        for (int q = 0; q < cir2Reduce.getInputNum(); q++) {
+            if (eigenValue[cir1Reduce.fromOrderToName(i)] == eigenValue[cir2Reduce.fromOrderToName(q)])continue;
+            vector<int> clause;
+            clause.push_back(-1 * (q * baseLength + 2 * i + 1));
+            mappingSpace.addClause(clause);
+            clause.clear();
+            clause.push_back(-1 * (q * baseLength + 2 * i + 1 + 1));
+            mappingSpace.addClause(clause);
+        }
+    }
+    return true;
+}
+vector<MP> TwoStep::inputSolver(vector<MP> &R, bool init, bool outputProjection) {
     //TODO define input solver stack recore input solver information
     if(init) {
         set<string> cir1ChoosePort;
@@ -92,71 +201,9 @@ vector<MP> TwoStep::inputSolver(vector<MP> &R, bool init) {
             mappingSpace.varMap["1_" + cir2Reduce.fromOrderToName(i)] =
                     i * baseLength + cir1Reduce.getInputNum() * 2 + 1 + 1;
         }
-        //Equation 3
-        for (int i = 0; i < cir2Reduce.getInputNum(); i++) {
-            vector<int> clause;
-            clause.reserve(baseLength);
-            for (int q = 0; q < baseLength; q++) {
-                clause.push_back(i * baseLength + q + 1);
-            }
-            mappingSpace.addClause(clause);
-            clause.clear();
-            for (int q = 0; q < baseLength; q++) {
-                for (int k = q + 1; k < baseLength; k++) {
-                    clause.push_back((i * baseLength + q + 1) * -1);
-                    clause.push_back((i * baseLength + k + 1) * -1);
-                    mappingSpace.addClause(clause);
-                    clause.clear();
-                }
-            }
-        }
-        if (cir1Reduce.getInputNum() == cir2Reduce.getInputNum()) {
-            //disable match constant
-            for (int i = 0; i < cir2Reduce.getInputNum(); i++) {
-                vector<int> clause;
-                clause.push_back(-1 * (i * baseLength + cir1Reduce.getInputNum() * 2 + 1));
-                mappingSpace.addClause(clause);
-                clause.clear();
-                clause.push_back(-1 * (i * baseLength + cir1Reduce.getInputNum() * 2 + 1 + 1));
-                mappingSpace.addClause(clause);
-            }
-            // disable input projection
-            for (int i = 0; i < cir1Reduce.getInputNum() * 2; i++) {
-                vector<int> clause;
-                for (int q = 0; q < cir2Reduce.getInputNum(); q++) {
-                    for (int k = q + 1; k < cir2Reduce.getInputNum(); k++) {
-                        clause.push_back((q * baseLength + i + 1) * -1);
-                        clause.push_back((k * baseLength + i + 1) * -1);
-                        mappingSpace.addClause(clause);
-                        clause.clear();
-                    }
-                }
-            }
-            for (int i = 0; i < cir1Reduce.getInputNum(); i++) {
-                vector<int> clause;
-                clause.reserve(2 * cir2Reduce.getInputNum());
-                for (int q = 0; q < cir2Reduce.getInputNum(); q++) {
-                    clause.push_back(q * baseLength + 2 * i + 1);
-                    clause.push_back(q * baseLength + 2 * i + 1 + 1);
-                }
-                mappingSpace.addClause(clause);
-                clause.clear();
-            }
-        }
-        //remove funSupport not equal
-        //TODO add require constant and projection
-        LargeScale inputLg = LargeScale(cir1Reduce, cir2Reduce);
-        auto eigenValue = inputLg.calculateEigenvalue();
-        for (int i = 0; i < cir1Reduce.getInputNum(); i++) {
-            for (int q = 0; q < cir2Reduce.getInputNum(); q++) {
-                if (eigenValue[cir1Reduce.fromOrderToName(i)] == eigenValue[cir2Reduce.fromOrderToName(q)])continue;
-                vector<int> clause;
-                clause.push_back(-1 * (q * baseLength + 2 * i + 1));
-                mappingSpace.addClause(clause);
-                clause.clear();
-                clause.push_back(-1 * (q * baseLength + 2 * i + 1 + 1));
-                mappingSpace.addClause(clause);
-            }
+        if(!generateClause(mappingSpace, cir1Reduce, cir2Reduce, outputProjection)){
+            inputStack.emplace();
+            return {};
         }
         // recover learning clause
         for (const auto &clauses: clauseStack) {
@@ -186,7 +233,7 @@ vector<MP> TwoStep::inputSolver(vector<MP> &R, bool init) {
             inputStack.emplace(cir1Reduce, cir2Reduce, mappingSpace, unionSet, set<pair<int,int> >(), inputStack.top().busMatchHash, vector<matchStatus>(), cir1BusMatch.first, cir2BusMatch.first, cir1BusMatch.second, cir2BusMatch.second);
         }
         tsDebug("Reduce Network", cir1Reduce, cir2Reduce);
-        return inputSolver(R, false);
+        return inputSolver(R, false, false);
     }else{
         auto &[cir1Reduce, cir2Reduce, mappingSpace, allBusMatch, busMatch, busMatchHash, matchStack, cir1BusMatch, cir2BusMatch, cir1BusCapacity, cir2BusCapacity] = inputStack.top();
         int baseLength = (cir1Reduce.getInputNum() + 1) * 2;
@@ -218,21 +265,6 @@ vector<MP> TwoStep::inputSolver(vector<MP> &R, bool init) {
         if(matchStack.empty()){
             matchStack.emplace_back(0, 0);
         }else{
-//#ifdef DBG
-//            if(matchStack.back().mapping.empty()){
-//                cout << "[TwoStep] Error: no record mapping." << endl;
-//                exit(1);
-//            }
-//#endif
-//            vector<int> clause;
-//            for(int i = 0 ; i < static_cast<int>(matchStack.back().mapping.size()) ; i++){
-//                if(matchStack.back().mapping[i]){
-//                    clause.emplace_back(-1 * (i + 1));
-//                }else{
-//                    clause.emplace_back(i + 1);
-//                }
-//            }
-//            mappingSpace.addClause(clause);
             if(!popStack(inputStack.top())){
                 return {};
             }
@@ -266,6 +298,9 @@ vector<MP> TwoStep::inputSolver(vector<MP> &R, bool init) {
                     }
                 }
                 vector<MP> mapping;
+//                allBusMatch.insert(pii(0,1));
+//                allBusMatch.insert(pii(1,0));
+//                allBusMatch.insert(pii(2,2));
                 for (int i = 0; i < cir1Reduce.getInputNum(); i++) {
                     for (int q = 0; q < cir2Reduce.getInputNum(); q++) {
                         bool cir1InBus = (cir1BusMapping.find(cir1Reduce.fromOrderToName(i)) != cir1BusMapping.end());
@@ -289,6 +324,7 @@ vector<MP> TwoStep::inputSolver(vector<MP> &R, bool init) {
                         clauseRecord.emplace_back(mappingSpace.addClause(clause));
                     }
                 }
+//                allBusMatch.clear();
                 while (true) {
                     if (nowMs() - startMs > maxRunTime) {
                         return {};
