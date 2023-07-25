@@ -14,12 +14,8 @@ void TwoStep::start() {
     startMs = nowMs();
     bool optimal = false, timeout = false, projection = false;
     vector<MP> R;
-    forbidStack.emplace();
     while (!optimal && !timeout){
-        auto [newPair, hashValue] = outputSolver(projection, R);
-        forbid.insert(hashValue);
-        forbidStack.top().push_back(hashValue);
-        forbidStack.emplace();
+        MP newPair = outputSolver(projection, R);
         if(!newPair.first.empty()){
             R.push_back(newPair);
         }else{
@@ -32,26 +28,6 @@ void TwoStep::start() {
                 }
                 R.pop_back();
                 outputSolverPop();
-                while (!R.empty()) {
-                    auto oldAllBusMatch = inputStack.top().allBusMatch;
-                    auto inputMatch = inputSolver(R, false, projection);
-                    if(inputMatch.empty()){
-                        R.pop_back();
-                        outputSolverPop();
-                    }else{
-                        auto newAllBusMatch2 = inputStack.top().allBusMatch;
-                        if(oldAllBusMatch != newAllBusMatch2){
-                            for(const auto &i :forbidStack.top()){
-                                forbid.erase(i);
-                            }
-                        }
-                        break;
-                    }
-                }
-                if(R.empty()){
-                    optimal = true;
-                    break;
-                }
                 projection = false;
             }
             continue;
@@ -64,14 +40,50 @@ void TwoStep::start() {
             recordMs();
         }
         clauseNum.push_back(clauseStack.size());
-        vector<MP> inputMatch = inputSolver(R, true, projection);
-        if (inputMatch.empty()) {
-            vector<size_t> forbidVec;
+        vector<MP> inputMatch = inputSolver(R, projection);
+        if(inputMatch.empty()){
             R.pop_back();
             outputSolverPop();
-        } else {
-            int matchOutput = recordOutput(inputMatch, R);
-            if (matchOutput == allOutputNumber)optimal = true;
+        }else{
+            map<string, int> nameMap;
+            vector<Group> inputGroups, outputGroups;
+            vector<string> one, zero;
+            int matchOutput = 0;
+            for(const auto& pair : R){
+                if(nameMap.find(pair.first) == nameMap.end()){
+                    Group newGroup;
+                    newGroup.cir1 = pair.first;
+                    nameMap[pair.first] = outputGroups.size();
+                    outputGroups.push_back(newGroup);
+                    matchOutput++;
+                }
+                outputGroups[nameMap[pair.first]].cir2.push_back(pair.second);
+                outputGroups[nameMap[pair.first]].invVector.push_back(false);
+                matchOutput++;
+            }
+            for(const auto& pair : inputMatch){
+                if(pair.first.size() == 1){
+                    if(pair.first == "1"){
+                        one.push_back(pair.second);
+                    }else{
+                        zero.push_back(pair.second);
+                    }
+                }else{
+                    if(nameMap.find(pair.first) == nameMap.end()){
+                        Group newGroup;
+                        newGroup.cir1 = pair.first;
+                        nameMap[pair.first] = inputGroups.size();
+                        inputGroups.push_back(newGroup);
+                    }
+                    inputGroups[nameMap[pair.first]].cir2.push_back(pair.second);
+                    inputGroups[nameMap[pair.first]].invVector.push_back(false);
+                }
+            }
+#ifdef INF
+            cout << "Two step matching port number: " << matchOutput << "(" << (float)matchOutput / (float)allOutputNumber * 100 << "%) in " << iteratorCounter << " iterations."<< endl;
+#endif
+            parseOutput(outputFilePath, OutputStructure{inputGroups, outputGroups, one, zero}, matchOutput);
+            if( matchOutput == allOutputNumber)optimal = true;
         }
         if(nowMs() - startMs > maxRunTime){
             timeout = true;

@@ -19,37 +19,10 @@ class TwoStep {
         int cir2Choose;
         int minNum = 0;
         vector<list<vector<int> >::iterator > clauseRecord;
-        vector<bool> mapping;
         matchStatus(int cir1Choose, int cir2Choose, int minNum, vector<list<vector<int> >::iterator > clauseRecord):
         cir1Choose(cir1Choose), cir2Choose(cir2Choose), minNum(minNum), clauseRecord(std::move(clauseRecord)){}
         matchStatus(int cir1Choose, int cir2Choose):
                 cir1Choose(cir1Choose), cir2Choose(cir2Choose){}
-    };
-    struct inputSolverRecord{
-        AIG cir1Reduce, cir2Reduce;
-        CNF mappingSpace;
-        set<pii> allBusMatch;
-        set<pii> busMatch;
-        set<size_t> busMatchHash;
-        vector<matchStatus> matchStack;
-        vector<int> cir1BusMatch;
-        vector<int> cir2BusMatch;
-        map<int, int> cir1BusCapacity;
-        map<int, int> cir2BusCapacity;
-        inputSolverRecord()= default;
-        inputSolverRecord(AIG& cir1Reduce, AIG& cir2Reduce, CNF& mappingSpace,
-                          set<std::pair<int, int>> allBusMatch,
-                          set<std::pair<int, int>> busMatch,
-                          set<size_t> busMatchHash,
-                          vector<matchStatus> matchStack,
-                          vector<int> cir1BusMatch,
-                          vector<int> cir2BusMatch,
-                          map<int, int> cir1BusCapacity,
-                          map<int, int> cir2BusCapacity)
-                : cir1Reduce(cir1Reduce), cir2Reduce(cir2Reduce), mappingSpace(mappingSpace),
-                  allBusMatch(std::move(allBusMatch)), busMatch(std::move(busMatch)), busMatchHash(std::move(busMatchHash)), matchStack(std::move(matchStack)),
-                  cir1BusMatch(std::move(cir1BusMatch)), cir2BusMatch(std::move(cir2BusMatch)), cir1BusCapacity(std::move(cir1BusCapacity)), cir2BusCapacity(std::move(cir2BusCapacity))
-        {}
     };
     string outputFilePath;
     AIG cir1, cir2;
@@ -59,7 +32,6 @@ class TwoStep {
     vector<int> hGroupId;
     set<size_t> forbid;
     stack<MP> backtrace;
-    stack<vector<size_t> > forbidStack;
     vector<vector<bool> > initVe;
     vector<int> cir1Choose; // how many number be chosen by cir2 port
     vector<int> cir2Choose; // choose which cir1 port
@@ -73,29 +45,28 @@ class TwoStep {
     vector<vector<string> > cir1InputBus, cir2InputBus;
     // input solver
     string mappingSpaceFileName = "TwoStepSolveMapping.cnf";
-    stack<inputSolverRecord> inputStack;
     // hyper parameter
     int maxRunTime = 1000 * 3500; // ms
 //    int maxRunTime = 1000 * 10; // ms
     bool outputSolverInit = false;
     int iteratorCounter = 0;
     int lastTime = 0;
-    int verbose =  1;
+    int verbose =  0;
 
     void recordMs();
     static int nowMs();
     vector<int> generateOutputGroups(vector<string> &f, vector<string> &g);
-    pair<MP, size_t> outputSolver(bool projection, vector<MP> &R);
+    MP outputSolver(bool projection, vector<MP> &R);
     void outputSolverPop();
     int recordOutput(const vector<MP> &inputMatch, const vector<MP> &R);
-    vector<MP> inputSolver(vector<MP> &R, bool init, bool outputProjection);
+    vector<MP> inputSolver(vector<MP> &R, bool outputProjection);
     bool generateClause(CNF &mappingSpace, AIG &cir1Reduce, AIG &cir2Reduce, const vector<MP> &R,
                         bool outputProjection);
     vector<MP> solveMapping(CNF &mappingSpace, AIG &cir1, AIG &cir2, const int baseLength);
     pair<pair<map<string, pair<int, bool>>, map<string, pair<int, bool>>>, vector<bool>>
     solveMiter(const vector<MP> &inputMatchPair, const vector<MP> &outputMatchPair, AIG cir1, AIG cir2);
     pair<pair<vector<int>, map<int, int>>, pair<vector<int>, map<int, int>>>
-    generateBusMatchVector(AIG& cir1, AIG& cir2, set<pii> &matchBus);
+    generateBusMatchVector(AIG &cir1, AIG &cir2);
     void reduceSpace(CNF &mappingSpace, const vector<bool> &counter, const int baseLength, AIG &cir1, AIG &cir2,
                      const vector<MP> &mapping, pair<map<string, pair<int, bool>>, map<string, pair<int, bool>>> &nameToOrder, const vector<MP> &R);
     static vector<int> getNonRedundant(const vector<bool> &input, AIG &cir, int counterIdx); // return port order

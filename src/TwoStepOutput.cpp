@@ -7,7 +7,7 @@
 #include "utility.h"
 #include "parser.h"
 
-pair<MP, size_t> TwoStep::outputSolver(bool projection, vector<MP> &R) {
+MP TwoStep::outputSolver(bool projection, vector<MP> &R) {
     if(!outputSolverInit){
         forbid.clear();
         // Output Matching Order Heuristics
@@ -69,19 +69,18 @@ pair<MP, size_t> TwoStep::outputSolver(bool projection, vector<MP> &R) {
                         if(forbid.find(hashValue) != forbid.end()){
                             nowSelect.erase(re);
                             continue;
+                        }else{
+                            forbid.insert(hashValue);
                         }
-//                        else{
-//                            forbid.insert(hashValue);
-//                        }
                         cir1Choose[q / 2]++;
                         cir2Choose[i] = q;
                         backtrace.push(re);
-                        return {re, hashValue};
+                        return re;
                     }
                 }
             }
         }
-        return {MP{}, hashSet(nowSelect)};
+        return {};
     }
 }
 int cnt = 0;
@@ -96,11 +95,7 @@ void TwoStep::outputSolverPop() {
         clauseStack.pop_back();
     }
     clauseNum.pop_back();
-    for(const auto &i : forbidStack.top()){
-        forbid.erase(i);
-    }
-    forbidStack.pop();
-    inputStack.pop();
+
 }
 
 bool TwoStep::heuristicsOrderCmp(const string& a, const string& b) {
