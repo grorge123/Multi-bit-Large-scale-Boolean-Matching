@@ -25,5 +25,5 @@ int main (int argc, char *argv[]){
     ts = TwoStep(input, argv[2]);
     ts.start();
     Abc_Stop();
-    cout << "Optimize:" << allOptimize << endl;
+    cout << "Optimize:" << allOptimize / 1000000 << endl;
 }

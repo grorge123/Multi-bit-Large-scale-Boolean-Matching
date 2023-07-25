@@ -8,7 +8,8 @@
 #include "parser.h"
 #include "largeScale.h"
 
-bool TwoStep::generateClause(CNF &mappingSpace, AIG &cir1Reduce, AIG &cir2Reduce, bool outputProjection) {
+bool TwoStep::generateClause(CNF &mappingSpace, AIG &cir1Reduce, AIG &cir2Reduce, const vector<MP> &R,
+                             bool outputProjection) {
     int baseLength = (cir1Reduce.getInputNum() + 1) * 2;
     //Equation 3
     for (int i = 0; i < cir2Reduce.getInputNum(); i++) {
@@ -79,6 +80,18 @@ bool TwoStep::generateClause(CNF &mappingSpace, AIG &cir1Reduce, AIG &cir2Reduce
                     mappingSpace.addClause(clause);
                 }
             }
+//            for (int i = 0; i < cir1Reduce.getInputNum(); i++) {
+//                for (int q = 0; q < cir2Reduce.getInputNum(); q++) {
+//                    if (cir1Reduce.getSupport(cir1Reduce.fromOrderToName(i), 1).size() == cir2Reduce.getSupport(cir2Reduce.fromOrderToName(q), 1).size())continue;
+////                    if (cir1Reduce.getSupport(cir1Reduce.fromOrderToName(i), 1).size() > cir2Reduce.getSupport(cir2Reduce.fromOrderToName(q), 1).size() + 3)continue;
+//                    vector<int> clause;
+//                    clause.push_back(-1 * (q * baseLength + 2 * i + 1));
+//                    mappingSpace.addClause(clause);
+//                    clause.clear();
+//                    clause.push_back(-1 * (q * baseLength + 2 * i + 1 + 1));
+//                    mappingSpace.addClause(clause);
+//                }
+//            }
         }
     }else if(cir1Reduce.getInputNum() < cir2Reduce.getInputNum()){
         if(!outputProjection){
@@ -101,11 +114,38 @@ bool TwoStep::generateClause(CNF &mappingSpace, AIG &cir1Reduce, AIG &cir2Reduce
     }
     //remove funSupport not equal
 //    //TODO add require constant and projection
-    LargeScale inputLg = LargeScale(cir1Reduce, cir2Reduce);
-    auto eigenValue = inputLg.calculateEigenvalue();
+//    LargeScale inputLg = LargeScale(cir1Reduce, cir2Reduce);
+//    auto eigenValue = inputLg.calculateEigenvalue();
+//    for (int i = 0; i < cir1Reduce.getInputNum(); i++) {
+//        for (int q = 0; q < cir2Reduce.getInputNum(); q++) {
+//            if (eigenValue[cir1Reduce.fromOrderToName(i)] == eigenValue[cir2Reduce.fromOrderToName(q)])continue;
+//            vector<int> clause;
+//            clause.push_back(-1 * (q * baseLength + 2 * i + 1));
+//            mappingSpace.addClause(clause);
+//            clause.clear();
+//            clause.push_back(-1 * (q * baseLength + 2 * i + 1 + 1));
+//            mappingSpace.addClause(clause);
+//        }
+//    }
+    //Output Group Signature Heuristics
     for (int i = 0; i < cir1Reduce.getInputNum(); i++) {
         for (int q = 0; q < cir2Reduce.getInputNum(); q++) {
-            if (eigenValue[cir1Reduce.fromOrderToName(i)] == eigenValue[cir2Reduce.fromOrderToName(q)])continue;
+            bool equal = true;
+            auto cir2Sup = cir2Reduce.getSupport(cir2Reduce.fromOrderToName(q), 1);
+            for(const auto& supName: cir1Reduce.getSupport(cir1Reduce.fromOrderToName(i), 1)){
+                bool find = false;
+                for(const auto& pair : R){
+                    auto [gateName, negative] = analysisName(pair.first);
+                    if(cir1.cirName + gateName == supName && cir2Sup.find(pair.second) != cir2Sup.end()){
+                        find = true;
+                        break;
+                    }
+                }
+                if(!find){
+                    equal = false;
+                }
+            }
+            if(equal)continue;
             vector<int> clause;
             clause.push_back(-1 * (q * baseLength + 2 * i + 1));
             mappingSpace.addClause(clause);
@@ -114,32 +154,6 @@ bool TwoStep::generateClause(CNF &mappingSpace, AIG &cir1Reduce, AIG &cir2Reduce
             mappingSpace.addClause(clause);
         }
     }
-        // Output Group Signature Heuristics
-//    for (int i = 0; i < cir1Reduce.getInputNum(); i++) {
-//        for (int q = 0; q < cir2Reduce.getInputNum(); q++) {
-//            set<int> cir1OHIdx, cir2OHIdx;
-//            for(const string &name : cir1Reduce.getSupport(cir1Reduce.fromOrderToName(i), 1)){
-//                cir1OHIdx.insert(hGroupId[cir1OutputMap[name]]);
-//            }
-//            for(const string &name : cir2Reduce.getSupport(cir2Reduce.fromOrderToName(i), 1)){
-//                cir2OHIdx.insert(hGroupId[cir2OutputMap[name]]);
-//            }
-//            bool notExit = false;
-//            for(auto id : cir1OHIdx){
-//                if(cir2OHIdx.find(id) == cir2OHIdx.end()){
-//                    notExit = true;
-//                }
-//            }
-//            if(!notExit)continue;
-//            vector<int> clause;
-//            clause.push_back(-1 * (q * baseLength + 2 * i + 1));
-//            mappingSpace.addClause(clause);
-//            clause.clear();
-//            clause.push_back(-1 * (q * baseLength + 2 * i + 1 + 1));
-//            mappingSpace.addClause(clause);
-//            hgr++;
-//        }
-//    }
     return true;
 }
 vector<MP> TwoStep::inputSolver(vector<MP> &R, bool init, bool outputProjection) {
@@ -226,7 +240,7 @@ vector<MP> TwoStep::inputSolver(vector<MP> &R, bool init, bool outputProjection)
             mappingSpace.varMap["1_" + cir2Reduce.fromOrderToName(i)] =
                     i * baseLength + cir1Reduce.getInputNum() * 2 + 1 + 1;
         }
-        if(!generateClause(mappingSpace, cir1Reduce, cir2Reduce, outputProjection)){
+        if(!generateClause(mappingSpace, cir1Reduce, cir2Reduce, R, outputProjection)){
             inputStack.emplace();
             return {};
         }

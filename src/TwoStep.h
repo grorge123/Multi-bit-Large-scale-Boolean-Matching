@@ -80,7 +80,7 @@ class TwoStep {
     bool outputSolverInit = false;
     int iteratorCounter = 0;
     int lastTime = 0;
-    int verbose = 0;
+    int verbose =  1;
 
     void recordMs();
     static int nowMs();
@@ -89,7 +89,8 @@ class TwoStep {
     void outputSolverPop();
     int recordOutput(const vector<MP> &inputMatch, const vector<MP> &R);
     vector<MP> inputSolver(vector<MP> &R, bool init, bool outputProjection);
-    bool generateClause(CNF &mappingSpace, AIG &cir1Reduce, AIG &cir2Reduce, bool outputProjection);
+    bool generateClause(CNF &mappingSpace, AIG &cir1Reduce, AIG &cir2Reduce, const vector<MP> &R,
+                        bool outputProjection);
     vector<MP> solveMapping(CNF &mappingSpace, AIG &cir1, AIG &cir2, const int baseLength);
     pair<pair<map<string, pair<int, bool>>, map<string, pair<int, bool>>>, vector<bool>>
     solveMiter(const vector<MP> &inputMatchPair, const vector<MP> &outputMatchPair, AIG cir1, AIG cir2);

@@ -7,6 +7,30 @@
 #include "utility.h"
 #include "parser.h"
 
+void generate_combinations(int index, vector<int>& input, vector<vector<bool>>& output){
+    if(index == static_cast<int>(input.size())){
+        vector<bool> temp(input.begin(), input.end());
+        output.push_back(temp);
+        return;
+    }
+
+    if(input[index] == 2){
+        input[index] = 0;
+        generate_combinations(index + 1, input, output);
+        input[index] = 1;
+        generate_combinations(index + 1, input, output);
+        input[index] = 2;
+    } else {
+        generate_combinations(index + 1, input, output);
+    }
+}
+
+vector<vector<bool>> convert_pair(vector<int> input){
+    vector<vector<bool>> output;
+    generate_combinations(0, input, output);
+    return output;
+}
+
 pair<pair<map<string, pair<int, bool>>, map<string, pair<int, bool>>>, vector<bool>>
 TwoStep::solveMiter(const vector<MP> &inputMatchPair, const vector<MP> &outputMatchPair, AIG cir1, AIG cir2) {
     map<string, pair<int, bool> > cir1NameToOrder; // only input
@@ -297,12 +321,18 @@ vector<int> TwoStep::getNonRedundant(const vector<bool> &input, AIG &cir, int co
     fi.reserve(cir.getInputNum());
     set<string> funSup = cir.getSupport(cir.fromOrderToName(cir.getInputNum() + counterIdx), 1);
     for (int p = 0; p < cir.getInputNum(); p++) {
-        if(funSup.find(cir.fromOrderToName(p)) != funSup.end())continue;
+        if(funSup.find(cir.fromOrderToName(p)) == funSup.end())continue;
         fi.push_back(p);
-        vector<bool> input2 = input;
+        vector<int> input2(input.size());
+        for(int i = 0 ; i < static_cast<int>(input.size()) ; i++){
+            input2[i] = input[i];
+        }
         for(auto q : fi){
-            input2[q] = !input2[p];
-            if (originOutput[counterIdx] != cir.generateOutput(input2)[counterIdx]) {
+            input2[q] = 2;
+        }
+        auto allTest = convert_pair(input2);
+        for(const auto &test : allTest){
+            if (originOutput[counterIdx] != cir.generateOutput(test)[counterIdx]) {
                 fi.pop_back();
                 break;
             }
