@@ -233,7 +233,7 @@ void TwoStep::reduceSpace(CNF &mappingSpace, const vector<bool> &counter, const 
         cout << "[TwoStep] SelfTest fail: cir1 == cir2!" << endl;
         exit(1);
     }
-    for(auto i : mapping){
+    for(const auto& i : mapping){
         if(i.first.size() == 1){
             if(cir2Input[cir2.fromNameToOrder(i.second)] != stoi(i.first)){
                 cout << "SelfCheck failed:" << i.first << " " << i.second << endl;
@@ -248,6 +248,7 @@ void TwoStep::reduceSpace(CNF &mappingSpace, const vector<bool> &counter, const 
     }
 #endif
     set<vector<int> > cir1NRSet, cir2NRSet;
+    vector<int> cir1MaxNRSet, cir2MaxNRSet;
     set<pair<int, vector<int>> > clauseSet;
     vector<vector<string> > recordVe;
     for(int counterIdx = 0 ; counterIdx < static_cast<int>(cir1Counter.size()) ; counterIdx++){
@@ -258,7 +259,6 @@ void TwoStep::reduceSpace(CNF &mappingSpace, const vector<bool> &counter, const 
         if(!cir2Counter[counterIdx])continue;
         cir2NRSet.insert(getNonRedundant(cir2Input, cir2, counterIdx));
     }
-
     for(const auto &cir1NonRedundant : cir1NRSet){
         for(const auto &cir2NonRedundant : cir2NRSet){
             vector<int> clause;
@@ -282,11 +282,11 @@ void TwoStep::reduceSpace(CNF &mappingSpace, const vector<bool> &counter, const 
                     record.push_back("1_" + cir2.fromOrderToName(i));
                 }
             }
-        //    cout << "clause:" << endl;
-        //    for(auto i : clause){
-        //        cout << i << " ";
-        //    }
-        //    cout << endl;
+            cout << "clause:" << endl;
+            for(auto i : clause){
+                cout << i << " ";
+            }
+            cout << endl;
             clauseSet.insert({recordVe.size(), clause});
             recordVe.push_back(record);
         }
@@ -321,7 +321,7 @@ vector<int> TwoStep::getNonRedundant(const vector<bool> &input, AIG &cir, int co
     fi.reserve(cir.getInputNum());
     set<string> funSup = cir.getSupport(cir.fromOrderToName(cir.getInputNum() + counterIdx), 1);
     for (int p = 0; p < cir.getInputNum(); p++) {
-        if(funSup.find(cir.fromOrderToName(p)) == funSup.end())continue;
+//        if(funSup.find(cir.fromOrderToName(p)) == funSup.end())continue;
         fi.push_back(p);
         vector<int> input2(input.size());
         for(int i = 0 ; i < static_cast<int>(input.size()) ; i++){
@@ -338,11 +338,11 @@ vector<int> TwoStep::getNonRedundant(const vector<bool> &input, AIG &cir, int co
             }
         }
     }
-    for (int p = 0; p < cir.getInputNum(); p++) {
-        if (funSup.find(cir.fromOrderToName( p)) == funSup.end()){
-            fi.push_back(p);
-        }
-    }
+//    for (int p = 0; p < cir.getInputNum(); p++) {
+//        if (funSup.find(cir.fromOrderToName( p)) == funSup.end()){
+//            fi.push_back(p);
+//        }
+//    }
     sort(fi.begin(), fi.end());
     vector<int> nf;
     int ptr = 0;
