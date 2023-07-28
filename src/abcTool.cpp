@@ -25,6 +25,8 @@ void ABCTool::init(string &path){
     IoCommandReadAiger(pAbc, 2, argv);
     stdoutRecovery(saveStdout);
     mainNtk = Abc_FrameReadNtk(pAbc);
+    delete[] argv;
+    delete[] pathArr;
 }
 
 void ABCTool::init(AIG &cir) {
@@ -77,6 +79,7 @@ map<string, set<string> > ABCTool::funSupport(){
                 re[inputName].insert(outputName);
             }
         }
+    if ( vSuppFun )     Sim_UtilInfoFree( vSuppFun );
     return re;
 }
 
@@ -98,5 +101,6 @@ map<string, set<string> > ABCTool::strSupport() {
                 re[inputName].insert(outputName);
             }
         }
+    if ( vSuppStr )     Sim_UtilInfoFree( vSuppStr);
     return re;
 }

@@ -70,7 +70,7 @@ Vec_Ptr_t * Sim_ComputeStrSupp( Abc_Ntk_t * pNtk );
 Vec_Ptr_t * Sim_ComputeFunSupp( Abc_Ntk_t * pNtk, int fVerbose );
 int IoCommandReadAiger( Abc_Frame_t * pAbc, int argc, char **argv );
 Abc_Ntk_t * Abc_FrameReadNtk( Abc_Frame_t * p );
-
+void Sim_UtilInfoFree( Vec_Ptr_t * p );
 #if defined(ABC_NAMESPACE)
 }
 using namespace ABC_NAMESPACE;

@@ -225,7 +225,8 @@ void aigtocnf(const char *fileName, const char *outputName){
     strcpy(argv[2], outputName);
     argv[3] = arg;
     _aigtocnf(argc, argv);
-    return;
+    free(argv[1]);
+    free(argv[2]);
 }
 
 #ifdef __cplusplus
