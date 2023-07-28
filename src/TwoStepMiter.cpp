@@ -247,49 +247,91 @@ void TwoStep::reduceSpace(CNF &mappingSpace, const vector<bool> &counter, const 
         }
     }
 #endif
-    set<vector<int> > cir1NRSet, cir2NRSet;
+    vector<vector<int> > cir1NRSet, cir2NRSet;
     vector<int> cir1MaxNRSet, cir2MaxNRSet;
     set<pair<int, vector<int>> > clauseSet;
     vector<vector<string> > recordVe;
-    for(int counterIdx = 0 ; counterIdx < static_cast<int>(cir1Counter.size()) ; counterIdx++){
-        if(!cir1Counter[counterIdx])continue;
-        cir1NRSet.insert(getNonRedundant(cir1Input, cir1, counterIdx));
-    }
-    for(int counterIdx = 0 ; counterIdx < static_cast<int>(cir2Counter.size()) ; counterIdx++){
-        if(!cir2Counter[counterIdx])continue;
-        cir2NRSet.insert(getNonRedundant(cir2Input, cir2, counterIdx));
-    }
-    for(const auto &cir1NonRedundant : cir1NRSet){
-        for(const auto &cir2NonRedundant : cir2NRSet){
-            vector<int> clause;
-            vector<string> record;
-            for(auto i : cir2NonRedundant){
-                for(auto j : cir1NonRedundant){
-
-                    if(cir1Input[j] == cir2Input[i]){
-                        clause.push_back(i * baseLength + j * 2 + 1 + 1);
-                        record.push_back(cir1.fromOrderToName(j) + '\'' + "_" + cir2.fromOrderToName(i));
-                    }else{
-                        clause.push_back(i * baseLength + j * 2 + 1);
-                        record.push_back(cir1.fromOrderToName(j) + "_" + cir2.fromOrderToName(i));
-                    }
-                }
-                if(cir2Input[i]){
-                    clause.push_back(i * baseLength  + cir1.getInputNum() * 2 + 1);
-                    record.push_back("0_" + cir2.fromOrderToName(i));
-                }else{
-                    clause.push_back(i * baseLength  + cir1.getInputNum() * 2 + 1 + 1);
-                    record.push_back("1_" + cir2.fromOrderToName(i));
-                }
-            }
-            cout << "clause:" << endl;
-            for(auto i : clause){
-                cout << i << " ";
-            }
-            cout << endl;
-            clauseSet.insert({recordVe.size(), clause});
-            recordVe.push_back(record);
+    for(const auto & pair : R) {
+        int cir1CounterIdx = cir1.fromNameToOrder(cir1.cirName + analysisName(pair.first).first) - cir1.getInputNum();
+        int cir2CounterIdx = cir2.fromNameToOrder(pair.second) - cir2.getInputNum();
+#ifdef DBG
+        if(cir1CounterIdx >= static_cast<int>(cir1Counter.size()) && cir2CounterIdx >= static_cast<int>(cir2Counter.size())){
+            cout << "[TwoStepMiter] Error: get wrong counter Idx." << endl;
+            exit(1);
         }
+#endif
+        if (!cir1Counter[cir1CounterIdx] || !cir2Counter[cir2CounterIdx]) {
+            continue;
+        }
+        auto cir1NR = getNonRedundant(cir1Input, cir1, cir1CounterIdx);
+#ifdef DBG
+        {
+            auto original = cir1.generateOutput(cir1Input);
+            vector<int> input2(cir1Input.size(), 2);
+            for (auto q: cir1NR) {
+                input2[q] = cir1Input[q];
+            }
+            auto allTest = convert_pair(input2);
+            for (const auto &testCase: allTest) {
+                if (original[cir1CounterIdx] != cir1.generateOutput(testCase)[cir1CounterIdx]) {
+                    cout << "[TwoStepMiter] Error: selfTest fail. NR1 is wrong." << endl;
+                    exit(1);
+                }
+            }
+        }
+#endif
+        cir1NRSet.emplace_back(std::move(cir1NR));
+        auto cir2NR = getNonRedundant(cir2Input, cir2, cir2CounterIdx);
+#ifdef DBG
+        {
+            auto original = cir2.generateOutput(cir2Input);
+            vector<int> input2(cir2Input.size(), 2);
+            for(auto q : cir2NR){
+                input2[q] = cir2Input[q];
+            }
+            auto allTest = convert_pair(input2);
+            for(const auto& testCase : allTest){
+                if(original[cir2CounterIdx] != cir2.generateOutput(testCase)[cir2CounterIdx]){
+                    cout << "[TwoStepMiter] Error: selfTest fail. NR2 is wrong." << endl;
+                    exit(1);
+                }
+            }
+        }
+#endif
+        cir2NRSet.emplace_back(std::move(cir2NR));
+    }
+
+    for(int idx = 0 ; idx < static_cast<int> (cir1NRSet.size()) ; idx++){
+        const auto &cir1NonRedundant = cir1NRSet[idx];
+        const auto &cir2NonRedundant = cir2NRSet[idx];
+        vector<int> clause;
+        vector<string> record;
+        for(auto i : cir2NonRedundant){
+            for(auto j : cir1NonRedundant){
+
+                if(cir1Input[j] == cir2Input[i]){
+                    clause.push_back(i * baseLength + j * 2 + 1 + 1);
+                    record.push_back(cir1.fromOrderToName(j) + '\'' + "_" + cir2.fromOrderToName(i));
+                }else{
+                    clause.push_back(i * baseLength + j * 2 + 1);
+                    record.push_back(cir1.fromOrderToName(j) + "_" + cir2.fromOrderToName(i));
+                }
+            }
+            if(cir2Input[i]){
+                clause.push_back(i * baseLength  + cir1.getInputNum() * 2 + 1);
+                record.push_back("0_" + cir2.fromOrderToName(i));
+            }else{
+                clause.push_back(i * baseLength  + cir1.getInputNum() * 2 + 1 + 1);
+                record.push_back("1_" + cir2.fromOrderToName(i));
+            }
+        }
+//        cout << "clause:" << endl;
+//        for(auto i : clause){
+//            cout << i << " ";
+//        }
+//        cout << endl;
+        clauseSet.insert({recordVe.size(), clause});
+        recordVe.push_back(record);
     }
 #ifdef DBG
     bool infinite = true;
