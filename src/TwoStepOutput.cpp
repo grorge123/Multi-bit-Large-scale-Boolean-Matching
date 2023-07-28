@@ -34,10 +34,11 @@ MP TwoStep::outputSolver(bool projection, vector<MP> &R) {
         for(auto & i : initVe){
             i.resize(cir1Output.size() * 2, true);
         }
+        cout << endl;
         if(cir1Output.size() == cir2Output.size()){
             hGroupId = generateOutputGroups(cir1Output, cir2Output);
             for(int i = 0 ; i < static_cast<int>(cir2Output.size()) ; i++){
-                for(int q = 0 ; q < static_cast<int>(cir1Output.size()) ; q += 2){
+                for(int q = 0 ; q < static_cast<int>(cir1Output.size() * 2) ; q += 2){
                     if(hGroupId[i] != hGroupId[q / 2]){
                         initVe[i][q] = initVe[i][q + 1] = false;
                     }
@@ -131,7 +132,7 @@ vector<int> TwoStep::generateOutputGroups(vector<string> &f, vector<string> &g) 
     group.emplace_back();
     for(int i = static_cast<int>(f.size()) - 1; i >= 0 ; i--){
         group.back().push_back(i);
-        if(cir1.getSupport(f[i], 1).size() > cir2.getSupport(g[i], 1).size()){
+        if(i > 0 && cir1.getSupport(f[i], 1).size() > cir2.getSupport(g[i - 1], 1).size()){
             group.emplace_back();
         }
     }
