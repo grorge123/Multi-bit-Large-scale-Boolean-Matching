@@ -39,7 +39,6 @@ void TwoStep::start() {
             for(const auto& pair : R){
                 cout << pair.first << ' ' << pair.second << endl;
             }
-            recordMs();
         }
         clauseNum.push_back(clauseStack.size());
         startStatistic("inputMatch");
@@ -102,14 +101,6 @@ int TwoStep::nowMs() {
     return static_cast<int>(chrono::duration_cast<chrono::milliseconds>(chrono::system_clock::now().time_since_epoch()).count());
 }
 int recordCounter = 0;
-void TwoStep::recordMs() {
-//    if(!verbose)
-        return;
-    int now = nowMs();
-    cout <<"During:"<< now - lastTime << " Iteration:" << recordCounter << endl;
-    recordCounter++;
-    lastTime = now;
-}
 
 int TwoStep::recordOutput(const vector<MP> &inputMatch, const vector<MP> &R) {
     map<string, int> nameMap;

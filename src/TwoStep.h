@@ -53,7 +53,6 @@ class TwoStep {
     int lastTime = 0;
     int verbose = 0;
 
-    void recordMs();
     static int nowMs();
     vector<int> generateOutputGroups(vector<string> &f, vector<string> &g);
     MP outputSolver(bool projection, vector<MP> &R);
