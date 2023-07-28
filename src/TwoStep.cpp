@@ -15,7 +15,9 @@ void TwoStep::start() {
     bool optimal = false, timeout = false, projection = false;
     vector<MP> R;
     while (!optimal && !timeout){
+        startStatistic("outputSolver");
         MP newPair = outputSolver(projection, R);
+        stopStatistic("outputSolver");
         if(!newPair.first.empty()){
             R.push_back(newPair);
         }else{
@@ -40,7 +42,9 @@ void TwoStep::start() {
             recordMs();
         }
         clauseNum.push_back(clauseStack.size());
+        startStatistic("inputMatch");
         vector<MP> inputMatch = inputSolver(R, projection);
+        stopStatistic("inputMatch");
         if(inputMatch.empty()){
             R.pop_back();
             outputSolverPop();
@@ -89,6 +93,7 @@ void TwoStep::start() {
             timeout = true;
         }
         iteratorCounter++;
+//        cout << iteratorCounter << endl;
     }
     cout << "Final iteration: " << iteratorCounter << endl;
 }

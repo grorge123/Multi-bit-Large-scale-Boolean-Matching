@@ -158,6 +158,7 @@ bool TwoStep::generateClause(CNF &mappingSpace, AIG &cir1Reduce, AIG &cir2Reduce
 }
 vector<MP> TwoStep::inputSolver(vector<MP> &R, bool outputProjection) {
     //TODO define input solver stack recore input solver information
+    startStatistic("initCNF");
     set<string> cir1ChoosePort;
     set<string> cir2ChoosePort;
     for (auto pair: R) {
@@ -239,10 +240,14 @@ vector<MP> TwoStep::inputSolver(vector<MP> &R, bool outputProjection) {
         mappingSpace.varMap["1_" + cir2Reduce.fromOrderToName(i)] =
                 i * baseLength + cir1Reduce.getInputNum() * 2 + 1 + 1;
     }
+    stopStatistic("initCNF");
+    startStatistic("generateClause");
     if(!generateClause(mappingSpace, cir1Reduce, cir2Reduce, R, outputProjection)){
         return {};
     }
+    stopStatistic("generateClause");
     // recover learning clause
+    startStatistic("RecoverClause");
     for (const auto &clauses: clauseStack) {
         vector<int> clause;
         clause.reserve(clauses.size());
@@ -258,6 +263,7 @@ vector<MP> TwoStep::inputSolver(vector<MP> &R, bool outputProjection) {
         mappingSpace.addClause(clause);
         clause.clear();
     }
+    stopStatistic("RecoverClause");
     tsDebug("Reduce Network", cir1Reduce, cir2Reduce);
     auto [cir1BusPair, cir2BusPair]= generateBusMatchVector(cir1Reduce, cir2Reduce);
     auto cir1BusMatch = std::move(cir1BusPair.first);
@@ -341,14 +347,18 @@ vector<MP> TwoStep::inputSolver(vector<MP> &R, bool outputProjection) {
                 if (nowMs() - startMs > maxRunTime) {
                     return {};
                 }
+                startStatistic("solveMapping");
                 mapping = solveMapping(mappingSpace, cir1Reduce, cir2Reduce, baseLength);
+                stopStatistic("solveMapping");
                 if (mapping.empty()){
                     if(verbose)
                         cout << "No mapping result." << endl;
                     break;
                 }
+                startStatistic("solveMiter");
                 pair<pair<map<string, pair<int, bool>>, map<string, pair<int, bool> > >, vector<bool> > counter = solveMiter(
                         mapping, R, cir1Reduce, cir2Reduce);
+                stopStatistic("solveMiter");
                 if (counter.second.empty()) {
                     if (verbose) {
                         cout << "Find Mapping" << endl;
@@ -363,8 +373,10 @@ vector<MP> TwoStep::inputSolver(vector<MP> &R, bool outputProjection) {
 //                        cout << "It is counterexample size:" << counter.second.size() << endl;
 //                        recordMs();
 //                    }
+                startStatistic("reduceSpace");
                 reduceSpace(mappingSpace, counter.second, baseLength, cir1Reduce, cir2Reduce, mapping, counter.first,
                             R);
+                stopStatistic("reduceSpace");
             }
             if(!mapping.empty()){
                 return mapping;

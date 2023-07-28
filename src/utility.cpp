@@ -13,6 +13,8 @@ Abc_Frame_t * pAbc;
 #endif
 long long int allOptimize = 0;
 long long int lastOptimize = 0;
+map<string, long long int> allTimeMap;
+map<string, long long int> lastTimeMap;
 ifstream* readFile(string fileName){
     ifstream* file = new ifstream;
     file->open(fileName, std::ios::in);
@@ -51,4 +53,18 @@ void startOptimize() {
 
 void stopOptimize() {
     allOptimize += nowTime() - lastOptimize;
+}
+
+void startStatistic(const string& name) {
+    lastTimeMap[name] = nowTime();
+}
+
+void stopStatistic(const string& name) {
+    allTimeMap[name] += nowTime() - lastTimeMap[name];
+}
+
+void printStatistic() {
+    for(const auto& pair : allTimeMap){
+        cout << pair.first << ": " << pair.second / 1000000 << endl;
+    }
 }

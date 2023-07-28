@@ -264,43 +264,42 @@ void TwoStep::reduceSpace(CNF &mappingSpace, const vector<bool> &counter, const 
             continue;
         }
         auto cir1NR = getNonRedundant(cir1Input, cir1, cir1CounterIdx);
-#ifdef DBG
-        {
-            auto original = cir1.generateOutput(cir1Input);
-            vector<int> input2(cir1Input.size(), 2);
-            for (auto q: cir1NR) {
-                input2[q] = cir1Input[q];
-            }
-            auto allTest = convert_pair(input2);
-            for (const auto &testCase: allTest) {
-                if (original[cir1CounterIdx] != cir1.generateOutput(testCase)[cir1CounterIdx]) {
-                    cout << "[TwoStepMiter] Error: selfTest fail. NR1 is wrong." << endl;
-                    exit(1);
-                }
-            }
-        }
-#endif
+//#ifdef DBG
+//        {
+//            auto original = cir1.generateOutput(cir1Input);
+//            vector<int> input2(cir1Input.size(), 2);
+//            for (auto q: cir1NR) {
+//                input2[q] = cir1Input[q];
+//            }
+//            auto allTest = convert_pair(input2);
+//            for (const auto &testCase: allTest) {
+//                if (original[cir1CounterIdx] != cir1.generateOutput(testCase)[cir1CounterIdx]) {
+//                    cout << "[TwoStepMiter] Error: selfTest fail. NR1 is wrong." << endl;
+//                    exit(1);
+//                }
+//            }
+//        }
+//#endif
         cir1NRSet.emplace_back(std::move(cir1NR));
         auto cir2NR = getNonRedundant(cir2Input, cir2, cir2CounterIdx);
-#ifdef DBG
-        {
-            auto original = cir2.generateOutput(cir2Input);
-            vector<int> input2(cir2Input.size(), 2);
-            for(auto q : cir2NR){
-                input2[q] = cir2Input[q];
-            }
-            auto allTest = convert_pair(input2);
-            for(const auto& testCase : allTest){
-                if(original[cir2CounterIdx] != cir2.generateOutput(testCase)[cir2CounterIdx]){
-                    cout << "[TwoStepMiter] Error: selfTest fail. NR2 is wrong." << endl;
-                    exit(1);
-                }
-            }
-        }
-#endif
+//#ifdef DBG
+//        {
+//            auto original = cir2.generateOutput(cir2Input);
+//            vector<int> input2(cir2Input.size(), 2);
+//            for(auto q : cir2NR){
+//                input2[q] = cir2Input[q];
+//            }
+//            auto allTest = convert_pair(input2);
+//            for(const auto& testCase : allTest){
+//                if(original[cir2CounterIdx] != cir2.generateOutput(testCase)[cir2CounterIdx]){
+//                    cout << "[TwoStepMiter] Error: selfTest fail. NR2 is wrong." << endl;
+//                    exit(1);
+//                }
+//            }
+//        }
+//#endif
         cir2NRSet.emplace_back(std::move(cir2NR));
     }
-
     for(int idx = 0 ; idx < static_cast<int> (cir1NRSet.size()) ; idx++){
         const auto &cir1NonRedundant = cir1NRSet[idx];
         const auto &cir2NonRedundant = cir2NRSet[idx];
@@ -363,7 +362,7 @@ vector<int> TwoStep::getNonRedundant(const vector<bool> &input, AIG &cir, int co
     fi.reserve(cir.getInputNum());
     set<string> funSup = cir.getSupport(cir.fromOrderToName(cir.getInputNum() + counterIdx), 1);
     for (int p = 0; p < cir.getInputNum(); p++) {
-//        if(funSup.find(cir.fromOrderToName(p)) == funSup.end())continue;
+        if(funSup.find(cir.fromOrderToName(p)) == funSup.end())continue;
         fi.push_back(p);
         vector<int> input2(input.size());
         for(int i = 0 ; i < static_cast<int>(input.size()) ; i++){
@@ -380,11 +379,11 @@ vector<int> TwoStep::getNonRedundant(const vector<bool> &input, AIG &cir, int co
             }
         }
     }
-//    for (int p = 0; p < cir.getInputNum(); p++) {
-//        if (funSup.find(cir.fromOrderToName( p)) == funSup.end()){
-//            fi.push_back(p);
-//        }
-//    }
+    for (int p = 0; p < cir.getInputNum(); p++) {
+        if (funSup.find(cir.fromOrderToName( p)) == funSup.end()){
+            fi.push_back(p);
+        }
+    }
     sort(fi.begin(), fi.end());
     vector<int> nf;
     int ptr = 0;

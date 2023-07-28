@@ -26,4 +26,5 @@ int main (int argc, char *argv[]){
     ts.start();
     Abc_Stop();
     cout << "Optimize:" << allOptimize / 1000000 << endl;
+    printStatistic();
 }

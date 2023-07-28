@@ -46,6 +46,9 @@ extern long long  int allOptimize;
 extern long long  int lastOptimize;
 void startOptimize();
 void stopOptimize();
+void startStatistic(const string& name);
+void stopStatistic(const string& name);
+void printStatistic();
 
 #if defined(ABC_NAMESPACE)
 namespace ABC_NAMESPACE

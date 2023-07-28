@@ -5,6 +5,7 @@
 #include "CNF.h"
 #include "satsolver.h"
 #include "aigtocnf.h"
+#include "utility.h"
 void CNF::readFromAIG(AIG &aig) {
     string fileName = "tmpCNFConstructor";
     string aigContent = aig.getRaw();
@@ -159,18 +160,18 @@ bool CNF::solve() {
         solver = new CaDiCaL::Solver();
         lastClauses = 0;
     }
-    int tmp = 0;
-    for(const auto &clause: clauses){
-        if(tmp < lastClauses){
-            tmp++;
-            continue;
-        }
-        for(int number: clause){
+    int setCnt = lastClauses - static_cast<int>(clauses.size());
+    for(auto it = clauses.rbegin() ; it != clauses.rend() ; ++it){
+        for(int number: *it){
             solver->add(number);
         }
         solver->add(0);
+        --setCnt;
+        if(!setCnt)break;
     }
+    startStatistic("CNF");
     int res = solver->solve();
+    stopStatistic("CNF");
     satisfiedInput.clear();
     if (res == 10) {
         satisfiable = true;

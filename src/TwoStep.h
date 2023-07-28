@@ -145,26 +145,26 @@ public:
 //            }
 //        }
 #endif
-        int cnt = 0;
-        cout << "Bus1:" << endl;
-        for(auto &bus : cir1InputBus){
-            cout << cnt << ": ";
-            cnt++;
-            for(auto &name : bus){
-                cout << name << " ";
-            }
-            cout << endl;
-        }
-        cnt = 0;
-        cout << "Bus2:" << endl;
-        for(auto &bus : cir2InputBus){
-            cout << cnt << ": ";
-            cnt++;
-            for(auto &name : bus){
-                cout << name << " ";
-            }
-            cout << endl;
-        }
+//        int cnt = 0;
+//        cout << "Bus1:" << endl;
+//        for(auto &bus : cir1InputBus){
+//            cout << cnt << ": ";
+//            cnt++;
+//            for(auto &name : bus){
+//                cout << name << " ";
+//            }
+//            cout << endl;
+//        }
+//        cnt = 0;
+//        cout << "Bus2:" << endl;
+//        for(auto &bus : cir2InputBus){
+//            cout << cnt << ": ";
+//            cnt++;
+//            for(auto &name : bus){
+//                cout << name << " ";
+//            }
+//            cout << endl;
+//        }
     }
     void start();
     void tsDebug(string msg, AIG cir1, AIG cir2);
