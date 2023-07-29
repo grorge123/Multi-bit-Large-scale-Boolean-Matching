@@ -132,20 +132,26 @@ bool TwoStep::generateClause(CNF &mappingSpace, AIG &cir1Reduce, AIG &cir2Reduce
         for (int q = 0; q < cir2Reduce.getInputNum(); q++) {
             bool equal = true;
             auto cir2Sup = cir2Reduce.getSupport(cir2Reduce.fromOrderToName(q), 1);
-            for(const auto& supName: cir1Reduce.getSupport(cir1Reduce.fromOrderToName(i), 1)){
-                bool find = false;
-                for(const auto& pair : R){
-                    auto [gateName, negative] = analysisName(pair.first);
-                    if(cir1.cirName + gateName == supName && cir2Sup.find(pair.second) != cir2Sup.end()){
-                        find = true;
-                        break;
+            auto cir1Sup = cir1Reduce.getSupport(cir1Reduce.fromOrderToName(i), 1);
+                for(const auto& supName: cir1Sup){
+                    bool find = false;
+                    for(const auto& pair : R){
+                        auto [gateName, negative] = analysisName(pair.first);
+                        if(cir1.cirName + gateName == supName && cir2Sup.find(pair.second) != cir2Sup.end()){
+                            find = true;
+                            break;
+                        }
+                    }
+                    if(!find){
+                        equal = false;
                     }
                 }
-                if(!find){
-                    equal = false;
-                }
+            if(cir1Sup.size() == cir2Sup.size()){
+                if(equal)continue;
+            }else{
+                if(equal && cir2Sup.size() <= 3)continue;
             }
-            if(equal)continue;
+
             vector<int> clause;
             clause.push_back(-1 * (q * baseLength + 2 * i + 1));
             mappingSpace.addClause(clause);
