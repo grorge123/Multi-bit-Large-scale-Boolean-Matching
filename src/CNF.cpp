@@ -160,7 +160,8 @@ bool CNF::solve() {
         solver = new CaDiCaL::Solver();
         lastClauses = 0;
     }
-    int setCnt = lastClauses - static_cast<int>(clauses.size());
+    int setCnt = static_cast<int>(clauses.size()) - lastClauses;
+    startStatistic("addCNF");
     for(auto it = clauses.rbegin() ; it != clauses.rend() ; ++it){
         for(int number: *it){
             solver->add(number);
@@ -169,9 +170,10 @@ bool CNF::solve() {
         --setCnt;
         if(!setCnt)break;
     }
-    startStatistic("CNF");
+    stopStatistic("addCNF");
+    startStatistic("solveCNF");
     int res = solver->solve();
-    stopStatistic("CNF");
+    stopStatistic("solveCNF");
     satisfiedInput.clear();
     if (res == 10) {
         satisfiable = true;
@@ -196,7 +198,7 @@ bool CNF::isDC(const string &name) {
         exit(1);
     }
     return reIsDC;
-#elif
+#else
     return varMap.find(name) == varMap.end();
 #endif
 }

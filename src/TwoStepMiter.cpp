@@ -260,7 +260,7 @@ void TwoStep::reduceSpace(CNF &mappingSpace, const vector<bool> &counter, const 
             exit(1);
         }
 #endif
-        if (!cir1Counter[cir1CounterIdx] && !cir2Counter[cir2CounterIdx]) {
+        if (!cir1Counter[cir1CounterIdx] || !cir2Counter[cir2CounterIdx]) {
             continue;
         }
         auto cir1NR = getNonRedundant(cir1Input, cir1, cir1CounterIdx);

@@ -38,7 +38,9 @@ public:
         satisfiable = other.satisfiable;
         inv = other.inv;
         varMap = other.varMap;
+#ifdef DBG
         DC = other.DC;
+#endif
         maxIdx = other.maxIdx;
         solver = new CaDiCaL::Solver();
     }
@@ -54,7 +56,9 @@ public:
             satisfiable = other.satisfiable;
             inv = other.inv;
             varMap = other.varMap;
+#ifdef DBG
             DC = other.DC;
+#endif
             maxIdx = other.maxIdx;
             solver = new CaDiCaL::Solver();
         }
