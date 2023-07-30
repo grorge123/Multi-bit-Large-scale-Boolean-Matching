@@ -9,6 +9,7 @@
 #include "CNF.h"
 #include <sstream>
 #include <queue>
+#include <unordered_set>
 
 void AIG::parseRaw() {
     stringstream ss;
@@ -120,7 +121,7 @@ void AIG::recursiveFindSupport(int output, int now, vector<bool> &visit) {
     visit[now] = true;
     if(now == 0)return;
     if(tree[now].isInput){
-        for(auto outputPort : outputFromIndexToName(output)){
+        for(const auto& outputPort : outputFromIndexToName(output)){
             strSupport[inputFromIndexToName(now)].insert(outputPort);
             strSupport[outputPort].insert(inputFromIndexToName(now));
         }
@@ -248,7 +249,7 @@ void AIG::selfTest() {
         if(tree[fromOrderToIndex(i)].isInput && inputFromIndexToName(fromOrderToIndex(i)) == orderToName[i]){
             safe = true;
         }else{
-            for(auto order : outputFromIndexToName(fromOrderToIndex(i))){
+            for(const auto& order : outputFromIndexToName(fromOrderToIndex(i))){
                 if(order == orderToName[i]){
                     safe = true;
                 }
@@ -867,6 +868,89 @@ void AIG::modifyAIG() {
     raw = "";
     funSupport.clear();
     strSupport.clear();
+    posSym.clear();
+    negSym.clear();
+}
+
+void AIG::calSymmetry() {
+    ABCTool abcT(*this);
+    auto symPairMap = abcT.calSymmetry();
+    for(const auto &output : symPairMap){
+        int outputOrder = fromNameToOrder(output.first);
+        for(const auto &pair : output.second){
+            int xiOrder = fromNameToOrder(pair.first);
+            int xjOrder = fromNameToOrder(pair.second);
+            vector<bool> input1(inputNum);
+            vector<bool> input2(inputNum);
+            for(auto && it : input1){
+                it = random();
+            }
+            for(auto && it : input2){
+                it = random();
+            }
+            input1[xiOrder] = input1[xjOrder] = false;
+            input2[xiOrder] = input2[xjOrder] = true;
+            auto genOutput1 = generateOutput(input1);
+            auto genOutput2 = generateOutput(input2);
+            if(genOutput1[outputOrder] == genOutput2[outputOrder]){
+                negSym[output.first].emplace_back(pair);
+            }
+            input1[xiOrder] = true;
+            input1[xjOrder] = false;
+            input2[xiOrder] = false;
+            input2[xjOrder] = true;
+            genOutput1 = generateOutput(input1);
+            genOutput2 = generateOutput(input2);
+            if(genOutput1[outputOrder] == genOutput2[outputOrder]){
+                posSym[output.first].emplace_back(pair);
+            }
+        }
+    }
+}
+
+vector<vector<string> > AIG::getHardSym() {
+    if(posSym.empty() && negSym.empty())calSymmetry();
+    auto hardSym = [](map<string, vector<MP>> Sym){
+        auto isExist = [](set<MP> se, const MP& mp) -> bool{
+            if(se.find(mp) != se.end() || se.find(MP(mp.second, mp.first)) != se.end())return true;
+            return false;
+        };
+        set<MP> se;
+        for(auto it = Sym.begin() ; it != Sym.end() ; ++it){
+            if(it == Sym.begin()){
+                for(auto &mp : it->second){
+                    se.insert(mp);
+                }
+            }else{
+                set<MP> newSe;
+                for(auto &mp : it->second){
+                    if(isExist(se, mp) && !isExist(newSe, mp)){
+                        newSe.insert(mp);
+                    }
+                }
+                se = std::move(newSe);
+            }
+        }
+        unordered_set<string> disSet;
+        for(const auto & mp: se){
+            disSet.insert(mp.first);
+            disSet.insert(mp.second);
+        }
+        vector<string> ve;
+        for(const auto & name : disSet){
+            ve.emplace_back(name);
+        }
+        vector<int> fa;
+        for(int i = 0 ; i < static_cast<int>(ve.size()) ; i++){
+            fa.emplace_back(i);
+        }
+        auto fifa = [&](auto && fifa, int a) -> int{
+            if(fa[a] == a)return a;
+            return fa[a] = fifa(fifa, a);
+        };
+        // TODO not implement
+    };
+    return vector<vector<string>>();
 }
 
 void solveMiter(AIG &cir1, AIG &cir2, CNF &miter, AIG &miterAIG) {

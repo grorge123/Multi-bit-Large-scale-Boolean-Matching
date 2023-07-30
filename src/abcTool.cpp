@@ -104,3 +104,46 @@ map<string, set<string> > ABCTool::strSupport() {
     if ( vSuppStr )     Sim_UtilInfoFree( vSuppStr);
     return re;
 }
+static inline void * Vec_PtrEntryCopy( Vec_Ptr_t * p, int i )
+{
+    return p->pArray[i];
+}
+static inline Vec_Int_t * Vec_VecEntryIntCopy( Vec_Vec_t * p, int i )
+{
+    return (Vec_Int_t *)p->pArray[i];
+}
+map<string, vector<pair<string, string> > > ABCTool::calSymmetry() {
+    Abc_Obj_t * pNode;
+    map<string, vector<pair<string, string>>> re;
+    FILE * saveStdout = stdoutSave();
+    Sym_Man_t *p = Sim_ComputeTwoVarSymms2(mainNtk, 0);
+    vector<string> nameMap(p->nOutputs);
+    int d;
+    Abc_NtkForEachCo( mainNtk, pNode, d ){
+        nameMap[d] = Abc_ObjName(pNode);
+    }
+    for (int i = 0; i < p->nOutputs; i++ ){
+        re[nameMap[i]] = calSymmetryPair((Extra_BitMat_t *) Vec_PtrEntryCopy(p->vMatrSymms, i), Vec_VecEntryIntCopy(p->vSupports, i), p);
+    }
+    Sym_ManStop( p );
+    stdoutRecovery(saveStdout);
+    return re;
+}
+
+vector<pair<string, string>> ABCTool::calSymmetryPair(Extra_BitMat_t *pMat, Vec_Int_t *vSupport, Sym_Man_t *p) {
+    Abc_Obj_t * pNodeCi;
+    int v;
+    vector<string> nameMap(p->nInputs);
+    Abc_NtkForEachCi( mainNtk, pNodeCi, v ){
+        nameMap[v] = Abc_ObjName(pNodeCi);
+    }
+    vector<pair<string, string>> re;
+    int i, k, Index1, Index2;
+    Vec_IntForEachEntry( vSupport, i, Index1 )
+    Vec_IntForEachEntryStart( vSupport, k, Index2, Index1+1 )
+        if ( Extra_BitMatrixLookup1( pMat, i, k ) ){
+            printf( "(%d,%d) ", i, k );
+            re.emplace_back(nameMap[i], nameMap[k]);
+        }
+    return re;
+}

@@ -18,6 +18,10 @@ typedef struct Abc_Ntk_t_       Abc_Ntk_t;
 typedef struct Abc_Obj_t_       Abc_Obj_t;
 typedef struct Vec_Ptr_t_       Vec_Ptr_t;
 typedef struct Vec_Int_t_       Vec_Int_t;
+typedef struct Vec_Vec_t_       Vec_Vec_t;
+typedef struct Extra_BitMat_t_ Extra_BitMat_t;
+typedef long ABC_INT64_T;
+typedef ABC_INT64_T abctime;
 struct Vec_Int_t_
 {
     int              nCap;
@@ -54,6 +58,63 @@ struct Vec_Ptr_t_
     int              nSize;
     void **          pArray;
 };
+struct Vec_Vec_t_
+{
+    int              nCap;
+    int              nSize;
+    void **          pArray;
+};
+typedef struct Sym_Man_t_ Sym_Man_t;
+struct Sym_Man_t_
+{
+    // info about the network
+    Abc_Ntk_t *       pNtk;          // the network
+    Vec_Ptr_t *       vNodes;        // internal nodes in topological order
+    int               nInputs;
+    int               nOutputs;
+    // internal simulation information
+    int               nSimWords;     // the number of bits in simulation info
+    Vec_Ptr_t *       vSim;          // simulation info
+    // support information
+    Vec_Ptr_t *       vSuppFun;      // bit representation
+    Vec_Vec_t *       vSupports;     // integer representation
+    // symmetry info for each output
+    Vec_Ptr_t *       vMatrSymms;    // symmetric pairs
+    Vec_Ptr_t *       vMatrNonSymms; // non-symmetric pairs
+    Vec_Int_t *       vPairsTotal;   // total pairs
+    Vec_Int_t *       vPairsSym;     // symmetric pairs
+    Vec_Int_t *       vPairsNonSym;  // non-symmetric pairs
+    // temporary simulation info
+    unsigned *        uPatRand;
+    unsigned *        uPatCol;
+    unsigned *        uPatRow;
+    // temporary
+    Vec_Int_t *       vVarsU;
+    Vec_Int_t *       vVarsV;
+    int               iOutput;
+    int               iVar1;
+    int               iVar2;
+    int               iVar1Old;
+    int               iVar2Old;
+    // internal data structures
+    int               nSatRuns;
+    int               nSatRunsSat;
+    int               nSatRunsUnsat;
+    // pairs
+    int               nPairsSymm;
+    int               nPairsSymmStr;
+    int               nPairsNonSymm;
+    int               nPairsRem;
+    int               nPairsTotal;
+    // runtime statistics
+    abctime           timeStruct;
+    abctime           timeCount;
+    abctime           timeMatr;
+    abctime           timeSim;
+    abctime           timeFraig;
+    abctime           timeSat;
+    abctime           timeTotal;
+};
 int Abc_NtkCiNum( Abc_Ntk_t * pNtk );
 int Abc_NtkCoNum( Abc_Ntk_t * pNtk );
 Abc_Obj_t * Abc_NtkCi( Abc_Ntk_t * pNtk, int i );
@@ -65,12 +126,27 @@ Abc_Obj_t * Abc_NtkCo( Abc_Ntk_t * pNtk, int i );
 #define Sim_HasBit(p,i)      (((p)[(i)>>5]  & (1<<((i) & 31))) > 0)
 #define Sim_SuppFunHasVar(vSupps,Output,v)    Sim_HasBit((unsigned*)(vSupps)->pArray[Output],(v))
 #define Sim_SuppStrHasVar(vSupps,pNode,v)     Sim_HasBit((unsigned*)(vSupps)->pArray[(pNode)->Id],(v))
+static inline int Vec_IntSizeCopy( Vec_Int_t * p )
+{
+    return p->nSize;
+}
+static inline int Vec_IntEntryCopy( Vec_Int_t * p, int i )
+{
+    return p->pArray[i];
+}
+#define Vec_IntForEachEntry( vVec, Entry, i )                                               \
+    for ( i = 0; (i < Vec_IntSizeCopy(vVec)) && (((Entry) = Vec_IntEntryCopy(vVec, i)), 1); i++ )
+#define Vec_IntForEachEntryStart( vVec, Entry, i, Start )                                   \
+    for ( i = Start; (i < Vec_IntSizeCopy(vVec)) && (((Entry) = Vec_IntEntryCopy(vVec, i)), 1); i++ )
 char * Abc_ObjName( Abc_Obj_t * pObj );
 Vec_Ptr_t * Sim_ComputeStrSupp( Abc_Ntk_t * pNtk );
 Vec_Ptr_t * Sim_ComputeFunSupp( Abc_Ntk_t * pNtk, int fVerbose );
 int IoCommandReadAiger( Abc_Frame_t * pAbc, int argc, char **argv );
 Abc_Ntk_t * Abc_FrameReadNtk( Abc_Frame_t * p );
 void Sim_UtilInfoFree( Vec_Ptr_t * p );
+void Sym_ManStop( Sym_Man_t * p );
+Sym_Man_t * Sim_ComputeTwoVarSymms2( Abc_Ntk_t * pNtk, int fVerbose );
+int Extra_BitMatrixLookup1( Extra_BitMat_t * p, int i, int k );
 #if defined(ABC_NAMESPACE)
 }
 using namespace ABC_NAMESPACE;
@@ -94,6 +170,8 @@ public:
     void init(AIG &cir);
     map<string, set<string> > funSupport();
     map<string, set<string> > strSupport();
+    vector<pair<string, string>> calSymmetryPair(Extra_BitMat_t *pMat, Vec_Int_t *vSupport, Sym_Man_t *p);
+    map<string, vector<pair<string, string> > > calSymmetry();
 };
 #endif //MULTI_BIT_LARGE_SCALE_BOOLEAN_MATCHING_ABCTOOL_H
 

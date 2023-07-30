@@ -17,6 +17,7 @@
 using namespace std;
 class CNF;
 class AIG {
+    typedef pair<string,string> MP;
     struct Node{
         bool inv[3] = {}; // self, l, r if invert
         int l = -1, r = -1;
@@ -41,6 +42,8 @@ private:
     map<string , set<string> > strSupport; // input Name to strSupport set search by recursive
     map<string , set<string> > abcStrSupport; // input Name to strSupport set search by abc
     map<string , set<string> > funSupport; // input Name to funSupport set
+    map<string , vector<MP> > posSym;
+    map<string , vector<MP> > negSym;
     void parseRaw();
     void recursiveFindSupport(int output, int now, vector<bool> &visit);
     bool recursiveGenerateOutput(int now, vector<int>& signal, vector<bool>& input);
@@ -113,6 +116,8 @@ public:
     void modifyAIG();
     void Debug();
     void selfTest();
+    void calSymmetry();
+    vector<vector<string> > getHardSym();
 };
 
 void solveMiter(AIG &cir1, AIG &cir2, CNF &miter, AIG &miterAIG);
