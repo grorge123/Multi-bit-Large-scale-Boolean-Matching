@@ -52,6 +52,7 @@ class TwoStep {
     int iteratorCounter = 0;
     int lastTime = 0;
     int verbose = 0;
+    bool enableBus = true;
 
     static int nowMs();
     vector<int> generateOutputGroups(vector<string> &f, vector<string> &g);
@@ -61,6 +62,8 @@ class TwoStep {
     vector<MP> inputSolver(vector<MP> &R, bool outputProjection);
     bool generateClause(CNF &mappingSpace, AIG &cir1Reduce, AIG &cir2Reduce, const vector<MP> &R,
                         bool outputProjection);
+    void generateBusClause(CNF &mappingSpace, AIG &cir1Reduce, AIG &cir2Reduce, const vector<int> &cir1BusMatch,
+                           const vector<int> &cir2BusMatch, const int lastMaxIdx);
     static vector<MP> solveMapping(CNF &mappingSpace, AIG &cir1, AIG &cir2, const int baseLength);
     pair<pair<map<string, pair<int, bool>>, map<string, pair<int, bool>>>, vector<bool>>
     solveMiter(const vector<MP> &inputMatchPair, const vector<MP> &outputMatchPair, AIG cir1, AIG cir2);
@@ -129,6 +132,11 @@ public:
             for(const auto& name : cir2InputBus[i]){
                 cir2BusMapping[name] = i;
             }
+        }
+        if(verbose){
+            cout << "Basic Information" << endl;
+            cout << "Input Num:" << cir1.getInputNum() << " " << cir2.getInputNum() << endl;
+            cout << "Output Num:" << cir1.getOutputNum() << " " << cir2.getOutputNum() << endl;
         }
 #ifdef  DBG
 //        for(int i = 0 ; i < cir1.getInputNum() ; i++){

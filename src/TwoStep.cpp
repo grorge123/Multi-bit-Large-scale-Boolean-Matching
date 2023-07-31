@@ -21,6 +21,7 @@ void TwoStep::start() {
         if(!newPair.first.empty()){
             R.push_back(newPair);
         }else{
+            // TODO disable projection
             if(!projection){
                 projection = true;
             }else{
