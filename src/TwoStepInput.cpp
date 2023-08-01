@@ -164,11 +164,19 @@ bool TwoStep::generateClause(CNF &mappingSpace, AIG &cir1Reduce, AIG &cir2Reduce
 }
 
 void TwoStep::generateBusClause(CNF &mappingSpace, AIG &cir1Reduce, AIG &cir2Reduce, const vector<int> &cir1BusMatch,
-                                const vector<int> &cir2BusMatch, const int lastMaxIdx) {
+                                const vector<int> &cir2BusMatch, const int lastMaxIdx, const vector<MP> &R) {
     int baseLength = (cir1Reduce.getInputNum() + 1) * 2;
     int busBaseLength = static_cast<int>(cir1BusMatch.size());
     int cir1BMS = static_cast<int>(cir1BusMatch.size());
     int cir2BMS = static_cast<int>(cir2BusMatch.size());
+    map<int, int> cir1BusMatchInv, cir2BusMatchInv;
+    for(int i = 0 ; i < static_cast<int>(cir1BusMatch.size()) ; i++){
+        cir1BusMatchInv[cir1BusMatch[i]] = i;
+    }
+    for(int i = 0 ; i < static_cast<int>(cir2BusMatch.size()) ; i++){
+        cir2BusMatchInv[cir2BusMatch[i]] = i;
+    }
+    // set 1 to 1
     if(cir1BusMatch.size() > cir2BusMatch.size()){
         for(int i = 0 ; i < cir2BMS ; i++){
             vector<int> clause;
@@ -206,18 +214,58 @@ void TwoStep::generateBusClause(CNF &mappingSpace, AIG &cir1Reduce, AIG &cir2Red
             mappingSpace.addClause(clause);
         }
     }
+    // set match constraint
     for(int i = 0 ; i < cir2BMS ; i++){
         for(int q = 0 ; q < cir1BMS ; q++){
             int nowBusIdx = -1 * (lastMaxIdx + busBaseLength * i + q + 1);
-            for(int d = 0 ; d < static_cast<int>(cir1InputBus[q].size()) ; d++){
+            for(const auto & cir1BusPort : cir1InputBus[q]){
                 for(int k = 0 ; k < cir2Reduce.getInputNum() ; k++){
-                    if(cir2BusMapping.find(cir2.fromOrderToName(k)) != cir2BusMapping.end() && cir2BusMapping[cir2.fromOrderToName(k)] == q)continue;
+                    if(cir2BusMapping.find(cir2.fromOrderToName(k)) != cir2BusMapping.end()){
+                        if(cir2BusMatchInv[cir2BusMapping[cir2.fromOrderToName(k)]] == i) continue;
+                    }else{
+                        continue;
+                    }
                     vector<int> clause = {nowBusIdx};
-                    clause.emplace_back(-1 * (baseLength * k + cir1.fromNameToOrder(cir1InputBus[q][d]) + 1));
+                    clause.emplace_back(-1 * (baseLength * k + cir1.fromNameToOrder(cir1BusPort) + 1));
                 }
             }
         }
     }
+    vector<vector<bool>> groupVE(cir2BusMatch.size(), vector<bool>(cir1BusMatch.size(), true));
+    // pruning by output
+    for(const auto& pair : R){
+        auto [gateName, negation] = analysisName(pair.first);
+        auto cir1Sup = cir1.getSupport(cir1.cirName + gateName, 1);
+        auto cir2Sup = cir2.getSupport(pair.second, 1);
+        set<int> cir1SupBus;
+        set<int> cir2SupBus;
+        for(const auto &cir1SupPort : cir1Sup){
+            if(cir1BusMapping.find(cir1SupPort) != cir1BusMapping.end())
+                cir1SupBus.insert(cir1BusMapping[cir1SupPort]);
+        }
+        for(const auto &cir2SupPort : cir2Sup){
+            if(cir2BusMapping.find(cir2SupPort) != cir2BusMapping.end())
+                cir2SupBus.insert(cir2BusMapping[cir2SupPort]);
+        }
+        for(const auto &cir1BusIdx : cir1BusMatch){
+            for(const auto &cir2BusIdx : cir2BusMatch){
+                if(cir1SupBus.find(cir1BusIdx) == cir1SupBus.end() || cir2SupBus.find(cir2BusIdx) == cir2SupBus.end())
+                    groupVE[cir2BusMatchInv[cir1BusIdx]][cir1BusMatchInv[cir2BusIdx]] = false;
+            }
+        }
+    }
+    int lgn = 0;
+    for(int i = 0 ; i < cir1BMS ; i++){
+        for(int q = 0 ; q < cir2BMS ; q++){
+            if(!groupVE[q][i]){
+                vector<int> clause;
+                clause.emplace_back(-1 * (busBaseLength * q + i));
+                mappingSpace.addClause(clause);
+                lgn++;
+            }
+        }
+    }
+    cout << "reduce bus:" << lgn << endl;
 }
 
 vector<MP> TwoStep::inputSolver(vector<MP> &R, bool outputProjection) {
@@ -338,7 +386,8 @@ vector<MP> TwoStep::inputSolver(vector<MP> &R, bool outputProjection) {
 
         int lastMaxIdx = mappingSpace.maxIdx;
         mappingSpace.maxIdx += static_cast<int>(cir1BusMatch.size() * cir2BusMatch.size());
-        generateBusClause(mappingSpace, cir1Reduce, cir2Reduce, cir1BusMatch, cir2BusMatch, lastMaxIdx);
+        generateBusClause(mappingSpace, cir1Reduce, cir2Reduce, cir1BusMatch, cir2BusMatch, lastMaxIdx,
+                          R);
     }
 
     tsDebug("Reduce Network", cir1Reduce, cir2Reduce);
@@ -388,6 +437,9 @@ vector<MP> TwoStep::inputSolver(vector<MP> &R, bool outputProjection) {
         reduceSpace(mappingSpace, counter.second, baseLength, cir1Reduce, cir2Reduce, mapping, counter.first,
                     R);
         stopStatistic("reduceSpace");
+        if(nowMs() - startMs > maxRunTime){
+            return {};
+        }
     }
     return {};
 }

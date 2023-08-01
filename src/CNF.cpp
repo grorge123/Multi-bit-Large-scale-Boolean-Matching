@@ -171,6 +171,9 @@ bool CNF::solve() {
         if(!setCnt)break;
     }
     stopStatistic("addCNF");
+    startStatistic("CNF_optimize");
+    solver->optimize(9);
+    stopStatistic("CNF_optimize");
     startStatistic("solveCNF");
     int res = solver->solve();
     stopStatistic("solveCNF");

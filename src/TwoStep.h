@@ -14,20 +14,10 @@
 typedef pair<string, string> MP;
 typedef pair<int, int> pii;
 class TwoStep {
-    struct matchStatus{
-        int cir1Choose;
-        int cir2Choose;
-        int minNum = 0;
-        vector<list<vector<int> >::iterator > clauseRecord;
-        matchStatus(int cir1Choose, int cir2Choose, int minNum, vector<list<vector<int> >::iterator > clauseRecord):
-        cir1Choose(cir1Choose), cir2Choose(cir2Choose), minNum(minNum), clauseRecord(std::move(clauseRecord)){}
-        matchStatus(int cir1Choose, int cir2Choose):
-                cir1Choose(cir1Choose), cir2Choose(cir2Choose){}
-    };
     string outputFilePath;
     AIG cir1, cir2;
     int allOutputNumber{};
-    int startMs;
+    int startMs = nowMs();
     // output solver
     vector<int> hGroupId;
     set<size_t> forbid;
@@ -37,7 +27,7 @@ class TwoStep {
     vector<int> cir2Choose; // choose which cir1 port
     vector<string> cir1Output, cir2Output;
     map<string, int> cir1OutputMap, cir2OutputMap;
-    int lastCir1, lastCir2;
+//    int lastCir1, lastCir2;
     vector<vector<string>> clauseStack;
     vector<int> clauseNum;
     // Bus
@@ -46,12 +36,12 @@ class TwoStep {
     // input solver
     string mappingSpaceFileName = "TwoStepSolveMapping.cnf";
     // hyper parameter
-    int maxRunTime = 1000 * 3500; // ms
-//    int maxRunTime = 1000 * 10; // ms
+//    int maxRunTime = 1000 * 3500; // ms
+    int maxRunTime = 1000 * 10; // ms
     bool outputSolverInit = false;
     int iteratorCounter = 0;
     int lastTime = 0;
-    int verbose = 0;
+    int verbose = 1;
     bool enableBus = true;
 
     static int nowMs();
@@ -63,7 +53,7 @@ class TwoStep {
     bool generateClause(CNF &mappingSpace, AIG &cir1Reduce, AIG &cir2Reduce, const vector<MP> &R,
                         bool outputProjection);
     void generateBusClause(CNF &mappingSpace, AIG &cir1Reduce, AIG &cir2Reduce, const vector<int> &cir1BusMatch,
-                           const vector<int> &cir2BusMatch, const int lastMaxIdx);
+                           const vector<int> &cir2BusMatch, const int lastMaxIdx, const vector<MP> &R);
     static vector<MP> solveMapping(CNF &mappingSpace, AIG &cir1, AIG &cir2, const int baseLength);
     pair<pair<map<string, pair<int, bool>>, map<string, pair<int, bool>>>, vector<bool>>
     solveMiter(const vector<MP> &inputMatchPair, const vector<MP> &outputMatchPair, AIG cir1, AIG cir2);

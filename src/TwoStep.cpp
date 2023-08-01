@@ -11,7 +11,6 @@
 
 TwoStep ts;
 void TwoStep::start() {
-    startMs = nowMs();
     bool optimal = false, timeout = false, projection = false;
     vector<MP> R;
     while (!optimal && !timeout){
