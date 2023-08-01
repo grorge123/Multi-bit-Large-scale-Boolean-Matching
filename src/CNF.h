@@ -80,6 +80,7 @@ public:
     void combine(const CNF &a);
     const vector<int> &getClause(list<vector<int>>::iterator it);
     bool isDC(const string &name);
+    void addAssume(int lit);
     string getRaw();
     bool solve();
 };

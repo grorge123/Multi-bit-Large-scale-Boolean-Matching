@@ -960,7 +960,8 @@ void solveMiter(AIG &cir1, AIG &cir2, CNF &miter, AIG &miterAIG) {
     cir2.writeToAIGFile(savePath2);
 
     //TODO optimize abc command
-    string abcCmd = "miter " + savePath1 + " " + savePath2 + "; write_aiger -s miter.aig;";
+    string resyn3 = "balance; resub; resub -K 6; balance; resub -z; resub -z -K 6; balance; resub -z -K 5; balance;";
+    string abcCmd = "miter " + savePath1 + " " + savePath2 + ";" + resyn3 + resyn3 + " write_aiger -s miter.aig;";
     string resultPath = "stdoutOutput.txt";
     cout.flush();
     FILE *saveStdout = stdout;

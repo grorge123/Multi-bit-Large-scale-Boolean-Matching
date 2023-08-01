@@ -92,7 +92,7 @@ void TwoStep::start() {
             timeout = true;
         }
         iteratorCounter++;
-//        cout << iteratorCounter << endl;
+//        cout << "iteration: " << iteratorCounter << endl;
     }
     cout << "Final iteration: " << iteratorCounter << endl;
 }

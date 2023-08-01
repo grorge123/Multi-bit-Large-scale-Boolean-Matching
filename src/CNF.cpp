@@ -226,3 +226,7 @@ void CNF::eraseClause(list<vector<int>>::iterator it) {
 const vector<int> &CNF::getClause(list<vector<int>>::iterator it) {
     return *it;
 }
+
+void CNF::addAssume(int lit) {
+    solver->assume(lit);
+}
