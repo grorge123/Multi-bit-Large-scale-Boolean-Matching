@@ -230,3 +230,18 @@ const vector<int> &CNF::getClause(list<vector<int>>::iterator it) {
 void CNF::addAssume(int lit) {
     solver->assume(lit);
 }
+
+void CNF::copy(CNF &other) {
+    other.change = change;
+    other.lastClauses = lastClauses;
+    other.clauses = clauses;
+    other.satisfiable = satisfiable;
+    other.satisfiedInput = satisfiedInput;
+    other.inv = inv;
+    other.varMap = varMap;
+#ifdef DBG
+    other.DC = DC;
+#endif
+    other.maxIdx = maxIdx;
+    solver->copy(*other.solver);
+}

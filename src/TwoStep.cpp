@@ -147,4 +147,3 @@ int TwoStep::recordOutput(const vector<MP> &inputMatch, const vector<MP> &R) {
     return  matchOutput;
 }
 
-

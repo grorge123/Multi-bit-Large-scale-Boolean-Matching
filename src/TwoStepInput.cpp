@@ -450,6 +450,13 @@ vector<MP> TwoStep::inputSolver(vector<MP> &R, bool outputProjection) {
 
     tsDebug("Reduce Network", cir1Reduce, cir2Reduce);
     vector<MP> mapping;
+    CNF miter = generateMiter(R, cir1Reduce, cir2Reduce);
+    if(!miter.satisfiable){
+        if(verbose){
+            cout << "Can not found possible match." << endl;
+        }
+        return {};
+    }
     while (true) {
         if (nowMs() - startMs > maxRunTime) {
             return {};
@@ -463,8 +470,7 @@ vector<MP> TwoStep::inputSolver(vector<MP> &R, bool outputProjection) {
             break;
         }
         startStatistic("solveMiter");
-        pair<pair<map<string, pair<int, bool>>, map<string, pair<int, bool> > >, vector<bool> > counter = solveMiter(
-                mapping, R, cir1Reduce, cir2Reduce);
+        auto counter = solveMiter(mapping, miter, cir1Reduce, cir2Reduce);
         stopStatistic("solveMiter");
 #ifdef DBG
         if(((cir1Reduce.getInputNum() + 1) * 2) * cir2Reduce.getInputNum() + cir1BusMatch.size() * cir2BusMatch.size() != mappingSpace.satisfiedInput.size()){
@@ -472,7 +478,7 @@ vector<MP> TwoStep::inputSolver(vector<MP> &R, bool outputProjection) {
             exit(1);
         }
 #endif
-        if (counter.second.empty()) {
+        if (counter.first.empty()) {
             if (verbose) {
                 cout << "Find Mapping" << endl;
                 for (const auto &pair: mapping) {
@@ -506,8 +512,8 @@ vector<MP> TwoStep::inputSolver(vector<MP> &R, bool outputProjection) {
 //                        recordMs();
 //                    }
         startStatistic("reduceSpace");
-        reduceSpace(mappingSpace, counter.second, baseLength, cir1Reduce, cir2Reduce, mapping, counter.first,
-                    R);
+        reduceSpace(mappingSpace, baseLength, cir1Reduce, cir2Reduce, mapping,
+                    R, counter.first, counter.second);
         stopStatistic("reduceSpace");
         if(nowMs() - startMs > maxRunTime){
             return {};

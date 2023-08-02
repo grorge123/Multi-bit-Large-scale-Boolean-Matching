@@ -31,12 +31,8 @@ vector<vector<bool>> convert_pair(vector<int> input){
     return output;
 }
 
-pair<pair<map<string, pair<int, bool>>, map<string, pair<int, bool>>>, vector<bool>>
-TwoStep::solveMiter(const vector<MP> &inputMatchPair, const vector<MP> &outputMatchPair, AIG cir1, AIG cir2) {
-    map<string, pair<int, bool> > cir1NameToOrder; // only input
-    map<string, pair<int, bool> > cir2NameToOrder;
-    set<string> projectiveInput, projectiveOutput;
-    vector<string> inverter2;
+CNF TwoStep::generateMiter(const vector<MP> &outputMatchPair, AIG cir1, AIG cir2) {
+    set<string> projectiveOutput;
     for(const auto &pair : outputMatchPair){
         auto [gateName, negative] = analysisName(pair.first);
         if(projectiveOutput.find(gateName) == projectiveOutput.end()){
@@ -47,101 +43,110 @@ TwoStep::solveMiter(const vector<MP> &inputMatchPair, const vector<MP> &outputMa
             cir1.copyOutput(cir1.cirName + gateName, pair.second, negative);
         }
     }
-    for(const auto &pair : inputMatchPair){
-        if(pair.first.size() == 1){
-            cir2.setConstant(pair.second, stoi(pair.first));
-            cir2NameToOrder[pair.second] = {-1, stoi(pair.first)}; // constant to special order
-        }else{
-            auto [gateName, negative] = analysisName(pair.first);
-            if(projectiveInput.find(gateName) == projectiveInput.end() && projectiveInput.find(gateName + "'") == projectiveInput.end()){
-                cir1NameToOrder[cir1.cirName + gateName] = {cir1.fromNameToOrder(cir1.cirName + gateName), false};
-                cir2NameToOrder[pair.second] = {cir2.fromNameToOrder(pair.second), negative};
-                cir2.changeName(pair.second, cir1.cirName + gateName);
-                if(negative)cir2.invertGate(cir1.cirName + gateName);
-                projectiveInput.insert(gateName + (negative ? "'" : ""));
-            }else{
-                cir2NameToOrder[pair.second] = {cir2.fromNameToOrder(cir1.cirName + gateName), negative};
-                cir2.exportInput(cir1.cirName + gateName, pair.second, negative);
-            }
-        }
+    vector<string> cir1NameArray;
+    vector<string> cir2NameArray;
+    for(int i = 0 ; i < cir1.getInputNum() ; i++){
+         cir2NameArray.emplace_back(cir1.fromOrderToName(i));
     }
-    vector<string> additionalInput;
-    for(int i = 0 ; i < cir1.getInputNum() + cir1.getOutputNum() ; i++){
-        string name = cir1.fromOrderToName(i);
-        if(!cir2.portExist(name)){
-            additionalInput.push_back(name);
-            cir1NameToOrder[name] = {cir1.fromNameToOrder(name), false};
-        }
+    for(int i = 0 ; i < cir2.getInputNum() ; i++){
+        cir1NameArray.emplace_back(cir2.fromOrderToName(i));
     }
-    cir2.addFloatInput(additionalInput);
-    tsDebug("Matching Network", cir1, cir2);
-    //TODO solve miter may mapping may be negative with AIG
+    cir1.addFloatInput(cir1NameArray);
+    cir2.addFloatInput(cir2NameArray);
     CNF miter;
     AIG miterAIG;
     ::solveMiter(cir1, cir2, miter, miterAIG);
-    if(miter.satisfiable){
-        vector<bool> counter;
-        counter.resize(miterAIG.getInputNum());
-        vector<bool> testCir1Input(cir1.getInputNum(), false), testCir2Input(cir2.getInputNum(), false);
-        vector<bool> testMiterInput(miterAIG.getInputNum(), false);
-        for(int order = 0 ; order < miterAIG.getInputNum() ; order++){
-            string name = miterAIG.fromOrderToName(order);
-            if(miter.isDC(name)){
-                counter[order] = 0;
-            }else{
+    return miter;
+}
+
+pair<vector<bool>, vector<bool>>
+TwoStep::solveMiter(const vector<MP> &inputMatchPair, CNF originMiter, AIG &cir1, AIG &cir2) {
+    CNF miter;
+    originMiter.copy(miter);
+    for(const auto &pair : inputMatchPair){
 #ifdef DBG
-                if(miter.varMap.find(name) == miter.varMap.end()){
-                    cout << "[TwoStep] Error: Cant not found " << miterAIG.cirName << "(" << name << ") in cnf." << endl;
-                    exit(1);
-                }
-#endif
-                counter[order] = miter.satisfiedInput[miter.varMap[name] - 1];
-#ifdef DBG
-                testCir1Input[cir1.fromNameToOrder(name)] = counter[order];
-                testCir2Input[cir2.fromNameToOrder(name)] = counter[order];
-                testMiterInput[order] = counter[order];
-//                if(verbose){
-//                    cout << "miter name :" << name << " " << counter[order] << endl;
-//                }
-#endif
-            }
-        }
-#ifdef DBG
-        bool notEqual = false;
-        vector<bool> testCir1Output = cir1.generateOutput(testCir1Input);
-        vector<bool> testCir2Output = cir2.generateOutput(testCir2Input);
-        for(int i = cir1.getInputNum() ; i < cir1.getInputNum() + cir1.getOutputNum() ; i++){
-            string name = cir1.fromOrderToName(i);
-            if(testCir1Output[cir1.fromNameToOrder(name) - cir1.getInputNum()] != testCir2Output[cir2.fromNameToOrder(name) - cir2.getInputNum()]){
-                notEqual = true;
-            }
-        }
-//        if(verbose){
-//            cout << "testCir1Input:" << endl;
-//            for(int i = 0 ; i < static_cast<int>(testCir1Input.size()) ; i++){
-//                cout << testCir1Input[i] << " ";
-//            }
-//            cout << endl;
-//            cout << "testCir2Input:" << endl;
-//            for(int i = 0 ; i < static_cast<int>(testCir2Input.size()) ; i++){
-//                cout << testCir2Input[i] << " ";
-//            }
-//            cout << endl;
-//        }
-        if(!notEqual){
-            cout << "[TwoStep] SelfTest fail: match network are equal!" <<endl;
-            cout <<"miter Result:"<< miterAIG.generateOutput(testMiterInput)[0];
+        if(miter.varMap.find(pair.second) == miter.varMap.end()){
+            cout << "[TwoStepMiter] Error: miter cant not found cir2 port." << endl;
             exit(1);
         }
 #endif
-        for(auto &order : cir1NameToOrder){
-            order.second.first = miterAIG.fromNameToOrder(cir1.fromOrderToName(order.second.first));
+        if(pair.first == "0"){
+            miter.addClause({-1 * miter.varMap[pair.second]});
+        }else if(pair.first == "1"){
+            miter.addClause({miter.varMap[pair.second]});
+        }else{
+            auto [gateName, negation] = analysisName(pair.first);
+#ifdef DBG
+            if(miter.varMap.find(cir1.cirName + gateName) == miter.varMap.end()){
+                cout << "[TwoStepMiter] Error: miter cant not found cir1 port. " << cir1.cirName + gateName << endl;
+                exit(1);
+            }
+#endif
+            int A = miter.varMap[cir1.cirName + gateName];
+            int B = miter.varMap[pair.second];
+            if(negation){
+                miter.addClause({A, B});
+                miter.addClause({-1 * A, -1 * B});
+            }else{
+                miter.addClause({A, -1 * B});
+                miter.addClause({-1 * A, B});
+            }
         }
-        for(auto &order : cir2NameToOrder){
-            if(order.second.first == -1)continue;
-            order.second.first = miterAIG.fromNameToOrder(cir2.fromOrderToName(order.second.first));
+    }
+
+    miter.solve();
+    vector<bool> cir1Input(cir1.getInputNum());
+    vector<bool> cir2Input(cir2.getInputNum());
+    if(miter.satisfiable){
+        for(int i = 0 ; i < cir1.getInputNum() ; i++){
+            string name = cir1.fromOrderToName(i);
+#ifdef DBG
+            if(miter.varMap.find(name) == miter.varMap.end()){
+                cout << "[TwoStepMiter] Error: miter can not found cir1 after solve." << endl;
+                exit(1);
+            }
+#endif
+            cir1Input[i] = miter.satisfiedInput[miter.varMap[name] - 1];
         }
-        return  {{cir1NameToOrder, cir2NameToOrder}, counter};
+        for(int i = 0 ; i < cir2.getInputNum() ; i++){
+            string name = cir2.fromOrderToName(i);
+#ifdef DBG
+            if(miter.varMap.find(name) == miter.varMap.end()){
+                cout << "[TwoStepMiter] Error: miter can not found cir1 after solve." << endl;
+                exit(1);
+            }
+#endif
+            cir2Input[i] = miter.satisfiedInput[miter.varMap[name] - 1];
+        }
+#ifdef DBG
+        bool fail = false;
+        for(const auto &pair: inputMatchPair){
+            if(pair.first.size() == 1){
+                if(stoi(pair.first) != cir2Input[cir2.fromNameToOrder(pair.second)]){
+                    cout <<"A:"<< pair.first << " " << pair.second << " " << pair.first << " " << cir2Input[cir2.fromNameToOrder(pair.second)] << endl;
+                    fail = true;
+                }
+            }else{
+                auto [gateName, negation] = analysisName(pair.first);
+                if(negation){
+                    if(cir1Input[cir1.fromNameToOrder(cir1.cirName + gateName)] == cir2Input[cir2.fromNameToOrder(pair.second)]){
+                        cout << "B:" << pair.first << " " << pair.second << " " << cir1Input[cir1.fromNameToOrder(cir1.cirName + gateName)] << " " << cir2Input[cir2.fromNameToOrder(pair.second)] << endl;
+                        fail = true;
+                    }
+                }else{
+                    if(cir1Input[cir1.fromNameToOrder(cir1.cirName + gateName)] != cir2Input[cir2.fromNameToOrder(pair.second)]){
+                        cout << "C:" << pair.first << " " << pair.second << " " << cir1Input[cir1.fromNameToOrder(cir1.cirName + gateName)] << " " << cir2Input[cir2.fromNameToOrder(pair.second)] << endl;
+                        fail = true;
+                    }
+                }
+            }
+        }
+        if(fail){
+            cout << "[TwoStepMiter] Error: selfTest miter assign failed. " << endl;
+            exit(1);
+        }
+#endif
+        return {cir1Input, cir2Input};
     }else{
         return {};
     }
@@ -158,41 +163,9 @@ pair<string, bool> TwoStep::analysisName(string name) {
 }
 
 
-void TwoStep::reduceSpace(CNF &mappingSpace, const vector<bool> &counter, const int baseLength, AIG &cir1, AIG &cir2,
-                          const vector<MP> &mapping, pair<map<string, pair<int, bool>>, map<string, pair<int, bool>>> &nameToOrder, const vector<MP> &R) {
-    auto& [cir1NameToOrder, cir2NameToOrder] = nameToOrder;
-    vector<bool> cir1Input, cir2Input;
-    cir1Input.reserve(cir1.getInputNum());
-    cir2Input.reserve(cir2.getInputNum());
-    // TODO optimize multiple transfer
-    for(auto i = 0 ; i < cir1.getInputNum() ; i++){
-        auto order = cir1NameToOrder[cir1.fromOrderToName(i)];
-        if(order.second){
-            cir1Input.push_back(!counter[order.first]);
-        }else{
-            cir1Input.push_back(counter[order.first]);
-        }
-    }
-    for(auto i = 0 ; i < cir2.getInputNum() ; i++){
-        auto order = cir2NameToOrder[cir2.fromOrderToName(i)];
-        if(order.first >= 0){
-            if(order.second){
-                cir2Input.push_back(!counter[order.first]);
-            }else{
-                cir2Input.push_back(counter[order.first]);
-            }
-        }else{
-            if(order.first == -1){
-                cir2Input.push_back(order.second);
-            }
-#ifdef DBG
-            else{
-                cout << "[TwoStep] Error: can not handle." << order.first << endl;
-                exit(1);
-            }
-#endif
-        }
-    }
+void TwoStep::reduceSpace(CNF &mappingSpace, const int baseLength, AIG &cir1, AIG &cir2, const vector<MP> &mapping,
+                          const vector<MP> &R, const vector<bool> &cir1Input, const vector<bool> &cir2Input) {
+
     bool notEqual = false;
     vector<bool> testCir1Output = cir1.generateOutput(cir1Input);
     vector<bool> testCir2Output = cir2.generateOutput(cir2Input);

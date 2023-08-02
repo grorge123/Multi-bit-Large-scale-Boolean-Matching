@@ -55,12 +55,13 @@ class TwoStep {
     void generateBusClause(CNF &mappingSpace, AIG &cir1Reduce, AIG &cir2Reduce, const vector<int> &cir1BusMatch,
                            const vector<int> &cir2BusMatch, const int lastMaxIdx, const vector<MP> &R);
     static vector<MP> solveMapping(CNF &mappingSpace, AIG &cir1, AIG &cir2, const int baseLength);
-    pair<pair<map<string, pair<int, bool>>, map<string, pair<int, bool>>>, vector<bool>>
-    solveMiter(const vector<MP> &inputMatchPair, const vector<MP> &outputMatchPair, AIG cir1, AIG cir2);
+    CNF generateMiter(const vector<MP> &outputMatchPair, AIG cir1, AIG cir2);
+    pair<vector<bool>, vector<bool>>
+    solveMiter(const vector<MP> &inputMatchPair, CNF originMiter, AIG &cir1, AIG &cir2);
     pair<pair<vector<int>, map<int, int>>, pair<vector<int>, map<int, int>>>
     generateBusMatchVector(AIG &cir1, AIG &cir2);
-    void reduceSpace(CNF &mappingSpace, const vector<bool> &counter, const int baseLength, AIG &cir1, AIG &cir2,
-                     const vector<MP> &mapping, pair<map<string, pair<int, bool>>, map<string, pair<int, bool>>> &nameToOrder, const vector<MP> &R);
+    void reduceSpace(CNF &mappingSpace, const int baseLength, AIG &cir1, AIG &cir2, const vector<MP> &mapping,
+                     const vector<MP> &R, const vector<bool> &cir1Input, const vector<bool> &cir2Input);
     static vector<int> getNonRedundant(const vector<bool> &input, AIG &cir, int counterIdx); // return port order
     bool heuristicsOrderCmp(const string& a, const string& b);
     static pair<string, bool> analysisName(string name);

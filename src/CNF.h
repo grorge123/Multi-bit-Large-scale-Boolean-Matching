@@ -82,6 +82,7 @@ public:
     bool isDC(const string &name);
     void addAssume(int lit);
     string getRaw();
+    void copy(CNF &other); // copy this to other
     bool solve();
 };
 
