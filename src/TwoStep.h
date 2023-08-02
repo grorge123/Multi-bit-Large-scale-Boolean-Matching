@@ -36,12 +36,12 @@ class TwoStep {
     // input solver
     string mappingSpaceFileName = "TwoStepSolveMapping.cnf";
     // hyper parameter
-//    int maxRunTime = 1000 * 3500; // ms
-    int maxRunTime = 1000 * 10; // ms
+    int maxRunTime = 1000 * 3500; // ms
+//    int maxRunTime = 1000 * 10; // ms
     bool outputSolverInit = false;
     int iteratorCounter = 0;
     int lastTime = 0;
-    int verbose = 1;
+    int verbose = 0;
     bool enableBus = true;
 
     static int nowMs();

@@ -215,7 +215,7 @@ void TwoStep::generateBusClause(CNF &mappingSpace, AIG &cir1Reduce, AIG &cir2Red
             }
         }
     }
-    // set match constraint
+    // disable match diff bus idx
     for(int i = 0 ; i < cir2BMS ; i++){
         for(int q = 0 ; q < cir1BMS ; q++){
             int nowBusIdx = -1 * (lastMaxIdx + busBaseLength * i + q + 1);
@@ -236,6 +236,39 @@ void TwoStep::generateBusClause(CNF &mappingSpace, AIG &cir1Reduce, AIG &cir2Red
                     clause.emplace_back(nowBusIdx);
                     clause.emplace_back(-1 * (baseLength * k + (cir1Reduce.fromNameToOrder(cir1BusPort) * 2 + 1) + 1));
                     mappingSpace.addClause(clause);
+                }
+            }
+        }
+    }
+    // need to match all
+    for(int i = 0 ; i < cir2BMS ; i++) {
+        for (int q = 0; q < cir1BMS; q++) {
+            int nowBusIdx = -1 * (lastMaxIdx + busBaseLength * i + q + 1);
+            if(cir1InputBus[cir1BusMatch[q]].size() < cir2InputBus[cir2BusMatch[i]].size()){
+                for(auto &cir1Name : cir1InputBus[cir1BusMatch[q]]){
+                    if(!cir1Reduce.portExist(cir1Name))continue;
+                    vector<int> clause = {nowBusIdx};
+                    for(auto &cir2Name : cir2InputBus[cir2BusMatch[i]]){
+                        if(!cir2Reduce.portExist(cir2Name))continue;
+                        clause.emplace_back(baseLength * cir2Reduce.fromNameToOrder(cir2Name) + cir1Reduce.fromNameToOrder(cir1Name) * 2 + 1);
+                        clause.emplace_back(baseLength * cir2Reduce.fromNameToOrder(cir2Name) + cir1Reduce.fromNameToOrder(cir1Name) * 2 + 1 + 1);
+                    }
+                    if(clause.size() > 1){
+                        mappingSpace.addClause(clause);
+                    }
+                }
+            }else{
+                for(auto &cir2Name : cir2InputBus[cir2BusMatch[i]]){
+                    if(!cir2Reduce.portExist(cir2Name))continue;
+                    vector<int> clause = {nowBusIdx};
+                    for(auto &cir1Name : cir1InputBus[cir1BusMatch[q]]){
+                        if(!cir1Reduce.portExist(cir1Name))continue;
+                        clause.emplace_back(baseLength * cir2Reduce.fromNameToOrder(cir2Name) + cir1Reduce.fromNameToOrder(cir1Name) * 2 + 1);
+                        clause.emplace_back(baseLength * cir2Reduce.fromNameToOrder(cir2Name) + cir1Reduce.fromNameToOrder(cir1Name) * 2 + 1 + 1);
+                    }
+                    if(clause.size() > 1){
+                        mappingSpace.addClause(clause);
+                    }
                 }
             }
         }
@@ -272,7 +305,22 @@ void TwoStep::generateBusClause(CNF &mappingSpace, AIG &cir1Reduce, AIG &cir2Red
             }
         }
     }
-    cout << "reduce bus:" << lgn << endl;
+//    if(cir1BusMatchInv.find(1) != cir1BusMatchInv.end() && cir2BusMatchInv.find(1) != cir2BusMatchInv.end())
+//        mappingSpace.addClause({lastMaxIdx + busBaseLength * cir2BusMatchInv[1] + cir1BusMatchInv[1] + 1});
+//    if(cir1BusMatchInv.find(5) != cir1BusMatchInv.end() && cir2BusMatchInv.find(6) != cir2BusMatchInv.end())
+//        mappingSpace.addClause({lastMaxIdx + busBaseLength * cir2BusMatchInv[6] + cir1BusMatchInv[5] + 1});
+//    if(cir1BusMatchInv.find(4) != cir1BusMatchInv.end() && cir2BusMatchInv.find(8) != cir2BusMatchInv.end())
+//        mappingSpace.addClause({lastMaxIdx + busBaseLength * cir2BusMatchInv[8] + cir1BusMatchInv[4] + 1});
+//    if(cir1BusMatchInv.find(2) != cir1BusMatchInv.end() && cir2BusMatchInv.find(3) != cir2BusMatchInv.end())
+//        mappingSpace.addClause({lastMaxIdx + busBaseLength * cir2BusMatchInv[3] + cir1BusMatchInv[2] + 1});
+//    if(cir1BusMatchInv.find(8) != cir1BusMatchInv.end() && cir2BusMatchInv.find(5) != cir2BusMatchInv.end())
+//        mappingSpace.addClause({lastMaxIdx + busBaseLength * cir2BusMatchInv[5] + cir1BusMatchInv[8] + 1});
+//    if(cir1BusMatchInv.find(7) != cir1BusMatchInv.end() && cir2BusMatchInv.find(0) != cir2BusMatchInv.end())
+//        mappingSpace.addClause({lastMaxIdx + busBaseLength * cir2BusMatchInv[0] + cir1BusMatchInv[7] + 1});
+//    if(cir1BusMatchInv.find(3) != cir1BusMatchInv.end() && cir2BusMatchInv.find(2) != cir2BusMatchInv.end())
+//        mappingSpace.addClause({lastMaxIdx + busBaseLength * cir2BusMatchInv[2] + cir1BusMatchInv[3] + 1});
+//    if(cir1BusMatchInv.find(0) != cir1BusMatchInv.end() && cir2BusMatchInv.find(7) != cir2BusMatchInv.end())
+//        mappingSpace.addClause({lastMaxIdx + busBaseLength * cir2BusMatchInv[7] + cir1BusMatchInv[0] + 1});
 }
 
 vector<MP> TwoStep::inputSolver(vector<MP> &R, bool outputProjection) {
