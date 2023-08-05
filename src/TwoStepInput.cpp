@@ -378,14 +378,14 @@ vector<MP> TwoStep::inputSolver(vector<MP> &R, bool outputProjection) {
         return re;
     };
     cir1Erase = eraseNonUsedPort(cir1, cir1ChoosePort, cir1Constant);
-    cir2Erase = eraseNonUsedPort(cir2, cir2ChoosePort, cir1Constant);
+    cir2Erase = eraseNonUsedPort(cir2, cir2ChoosePort, cir2Constant);
     AIG cir1Reduce = cir1;
     AIG cir2Reduce = cir2;
     for (const auto &name: cir1Constant) {
-        cir1.setConstant(name, 0);
+        cir1Reduce.setConstant(name, 0);
     }
     for (const auto &name: cir2Constant) {
-        cir2.setConstant(name, 0);
+        cir2Reduce.setConstant(name, 0);
     }
     cir1Reduce.erasePort(cir1Erase);
     cir2Reduce.erasePort(cir2Erase);
@@ -451,7 +451,8 @@ vector<MP> TwoStep::inputSolver(vector<MP> &R, bool outputProjection) {
     tsDebug("Reduce Network", cir1Reduce, cir2Reduce);
     vector<MP> mapping;
     CNF miter = generateMiter(R, cir1Reduce, cir2Reduce);
-    if(!miter.satisfiable){
+    // TODO add unsatisfied
+    if(miter.maxIdx == 0){
         if(verbose){
             cout << "Can not found possible match." << endl;
         }
