@@ -300,7 +300,9 @@ const string &AIG::fromOrderToName(int order) {
 int AIG::getOutputNum() const {
     return outputNum;
 }
-
+int AIG::getMaxNum() const {
+    return MAXIndex;
+}
 int AIG::inputFromIndexToOrder(int idx) {
 #ifdef DBG
     if(inputIndexMapInv.find(idx) == inputIndexMapInv.end()){
@@ -458,6 +460,11 @@ void AIG::erasePort(const vector<string>& nameList) {
     exist.resize(tree.size());
     queue<int> existQueue;
     int maxIdx = 0;
+    for(int order = 0 ; order < inputNum ; order++){
+        if(tree[indexMap[order]].exist){
+            maxIdx = max(maxIdx, indexMap[order]);
+        }
+    }
     for(int order = inputNum ; order < inputNum + outputNum ; order++){
         int idx = indexMap[order];
         if(idx != 0){

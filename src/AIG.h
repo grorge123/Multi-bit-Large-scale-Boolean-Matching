@@ -95,6 +95,7 @@ public:
     int fromNameToOrder(string name);
     int getInputNum() const;
     int getOutputNum() const;
+    int getMaxNum() const;
     bool isInput(int idx);
     bool isOutput(int idx);
     bool portExist(string name);

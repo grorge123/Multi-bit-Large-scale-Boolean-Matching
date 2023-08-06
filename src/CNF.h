@@ -24,9 +24,6 @@ public:
     bool satisfiable = false;
     vector<int> inv;
     map<string, int> varMap;
-#ifdef DBG
-    set<string> DC;
-#endif
     int maxIdx = 0;
     CNF()= default;
     CNF(const CNF& other) {
@@ -38,9 +35,6 @@ public:
         satisfiable = other.satisfiable;
         inv = other.inv;
         varMap = other.varMap;
-#ifdef DBG
-        DC = other.DC;
-#endif
         maxIdx = other.maxIdx;
         solver = new CaDiCaL::Solver();
     }
@@ -56,9 +50,6 @@ public:
             satisfiable = other.satisfiable;
             inv = other.inv;
             varMap = other.varMap;
-#ifdef DBG
-            DC = other.DC;
-#endif
             maxIdx = other.maxIdx;
             solver = new CaDiCaL::Solver();
         }
@@ -79,7 +70,6 @@ public:
     void readFromFile(const string& inputPath);
     void combine(const CNF &a);
     const vector<int> &getClause(list<vector<int>>::iterator it);
-    bool isDC(const string &name);
     void addAssume(int lit);
     string getRaw();
     void copy(CNF &other); // copy this to other
