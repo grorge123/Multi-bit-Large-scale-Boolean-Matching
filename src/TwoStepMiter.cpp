@@ -236,8 +236,8 @@ void TwoStep::reduceSpace(CNF &mappingSpace, const int baseLength, AIG &cir1, AI
         if (!cir1Counter[cir1CounterIdx] || !cir2Counter[cir2CounterIdx]) {
             continue;
         }
-        auto cir1NR = getNonRedundant(cir1Input, cir1, cir1CounterIdx);
-//#ifdef DBG
+        auto cir1NR = getNonRedundant2(cir1Input, cir1, cir1CounterIdx);
+#ifdef DBG
 //        {
 //            auto original = cir1.generateOutput(cir1Input);
 //            vector<int> input2(cir1Input.size(), 2);
@@ -252,10 +252,10 @@ void TwoStep::reduceSpace(CNF &mappingSpace, const int baseLength, AIG &cir1, AI
 //                }
 //            }
 //        }
-//#endif
+#endif
         cir1NRSet.emplace_back(std::move(cir1NR));
-        auto cir2NR = getNonRedundant(cir2Input, cir2, cir2CounterIdx);
-//#ifdef DBG
+        auto cir2NR = getNonRedundant2(cir2Input, cir2, cir2CounterIdx);
+#ifdef DBG
 //        {
 //            auto original = cir2.generateOutput(cir2Input);
 //            vector<int> input2(cir2Input.size(), 2);
@@ -270,7 +270,7 @@ void TwoStep::reduceSpace(CNF &mappingSpace, const int baseLength, AIG &cir1, AI
 //                }
 //            }
 //        }
-//#endif
+#endif
         cir2NRSet.emplace_back(std::move(cir2NR));
     }
     for(int idx = 0 ; idx < static_cast<int> (cir1NRSet.size()) ; idx++){
@@ -344,6 +344,7 @@ vector<int> TwoStep::getNonRedundant(const vector<bool> &input, AIG &cir, int co
         for(auto q : fi){
             input2[q] = 2;
         }
+        // TODO optimize convert_pair used last result produce next result
         auto allTest = convert_pair(input2);
         for(const auto &test : allTest){
             if (originOutput[counterIdx] != cir.generateOutput(test)[counterIdx]) {
@@ -366,6 +367,62 @@ vector<int> TwoStep::getNonRedundant(const vector<bool> &input, AIG &cir, int co
         }
         if(ptr < static_cast<int>(fi.size()) && fi[ptr] == i)continue;
         nf.push_back(i);
+    }
+    return nf;
+}
+
+vector<int> TwoStep::getNonRedundant2(const vector<bool> &input, AIG &cir, int counterIdx) {
+    auto originOutput = cir.generateOutput(input);
+    set<string> funSup = cir.getSupport(cir.fromOrderToName(cir.getInputNum() + counterIdx), 2);
+    vector<string> removeVe;
+    for(int i = 0 ; i < cir.getInputNum() ; i++){
+        if(funSup.find(cir.fromOrderToName(i)) == funSup.end()){
+            removeVe.emplace_back(cir.fromOrderToName(i));
+        }
+    }
+    for(int i = cir.getInputNum() ; i < cir.getInputNum() + cir.getOutputNum() ; i++){
+        if(i == counterIdx + cir.getInputNum())continue;
+        removeVe.emplace_back(cir.fromOrderToName(i));
+    }
+    AIG cirCopy = cir;
+    cirCopy.erasePort(removeVe);
+#ifdef DBG
+    if(cirCopy.getOutputNum() != 1 || cirCopy.getInputNum() != static_cast<int>(funSup.size())){
+        cout << "[TwoStepMiter] Error: cirCopy incorrect." << endl;
+        exit(1);
+    }
+#endif
+    if(originOutput[counterIdx]){
+        cirCopy.invertGate(cirCopy.fromOrderToName(cirCopy.getInputNum()));
+    }
+    CNF ntk(cirCopy);
+    set<string> f;
+    vector<int> nf;
+    for (int p = 0; p < cirCopy.getInputNum(); p++) {
+        if(ntk.varMap.find(cirCopy.fromOrderToName(p)) == ntk.varMap.end()){
+            continue;
+        }
+        f.insert(cirCopy.fromOrderToName(p));
+        for(int q = p + 1 ; q < cirCopy.getInputNum() ; q++){
+            string name = cirCopy.fromOrderToName(q);
+            if(ntk.varMap.find(name) != ntk.varMap.end()){
+                if(input[cir.fromNameToOrder(name)]){
+                    ntk.addAssume(ntk.varMap[name]);
+                }else{
+                    ntk.addAssume(-1 * ntk.varMap[name]);
+                }
+            }
+        }
+        ntk.solve();
+        if(ntk.satisfiable){
+            string name = cirCopy.fromOrderToName(p);
+            if(input[cir.fromNameToOrder(name)]){
+                ntk.addClause({ntk.varMap[name]});
+            }else{
+                ntk.addClause({-1 * ntk.varMap[name]});
+            }
+            nf.push_back(cir.fromNameToOrder(name));
+        }
     }
     return nf;
 }
