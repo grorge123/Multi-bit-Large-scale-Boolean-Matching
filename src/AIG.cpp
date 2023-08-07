@@ -877,6 +877,7 @@ void AIG::modifyAIG() {
     strSupport.clear();
     posSym.clear();
     negSym.clear();
+    symInit = false;
 }
 
 void AIG::calSymmetry() {
@@ -913,11 +914,60 @@ void AIG::calSymmetry() {
             }
         }
     }
+    symInit = true;
 }
 
-vector<vector<string> > AIG::getHardSym() {
-    if(posSym.empty() && negSym.empty())calSymmetry();
-    auto hardSym = [](map<string, vector<MP>> Sym){
+vector<vector<string>> AIG::getSymGroup(const vector<MP> &sym) {
+    map<string, int> disMap;
+    vector<string> disMapInv = {""};
+    int cnt = 1;
+    for(const auto &i : sym){
+        if(disMap.find(i.first) == disMap.end()){
+            disMap[i.first] = cnt++;
+            disMapInv.emplace_back(i.first);
+        }
+        if(disMap.find(i.second) == disMap.end()){
+            disMap[i.second] = cnt++;
+            disMapInv.emplace_back(i.second);
+        }
+    }
+    vector<int> fa;
+    for(int i = 0 ; i < cnt ; i++){
+        fa.emplace_back(i);
+    }
+    auto fifa = [&](auto && fifa, int a) -> int{
+        if(fa[a] == a)return a;
+        return fa[a] = fifa(fifa, a);
+    };
+    for(const auto &i : sym){
+        if(fifa(fifa, disMap[i.first]) != fifa(fifa, disMap[i.second])){
+            fa[fifa(fifa, disMap[i.first])] = fifa(fifa, disMap[i.second]);
+        }
+    }
+    map<int, set<string> > disjointGroup;
+    for(const auto &i : sym){
+        if(disjointGroup[fifa(fifa, disMap[i.first])].find(i.first) == disjointGroup[fifa(fifa, disMap[i.first])].end()){
+            disjointGroup[fifa(fifa, disMap[i.first])].insert(i.first);
+        }
+        if(disjointGroup[fifa(fifa, disMap[i.second])].find(i.second) == disjointGroup[fifa(fifa, disMap[i.second])].end()){
+            disjointGroup[fifa(fifa, disMap[i.second])].insert(i.second);
+        }
+    }
+    vector<vector<string> > re;
+    for(const auto &group : disjointGroup){
+        vector<string> tmp;
+        for(const auto &i :group.second){
+            tmp.emplace_back(i);
+        }
+        re.emplace_back(std::move(tmp));
+    }
+    return re;
+}
+
+
+vector<vector<string>> AIG::getNPSym(bool positive) {
+    if(!symInit)calSymmetry();
+    auto getAllExist = [](map<string, vector<MP>> Sym){
         auto isExist = [](set<MP> se, const MP& mp) -> bool{
             if(se.find(mp) != se.end() || se.find(MP(mp.second, mp.first)) != se.end())return true;
             return false;
@@ -938,26 +988,56 @@ vector<vector<string> > AIG::getHardSym() {
                 se = std::move(newSe);
             }
         }
-        unordered_set<string> disSet;
+        vector<MP> re;
         for(const auto & mp: se){
-            disSet.insert(mp.first);
-            disSet.insert(mp.second);
+            re.emplace_back(mp);
         }
-        vector<string> ve;
-        for(const auto & name : disSet){
-            ve.emplace_back(name);
-        }
-        vector<int> fa;
-        for(int i = 0 ; i < static_cast<int>(ve.size()) ; i++){
-            fa.emplace_back(i);
-        }
-        auto fifa = [&](auto && fifa, int a) -> int{
-            if(fa[a] == a)return a;
-            return fa[a] = fifa(fifa, a);
-        };
-        // TODO not implement
+        return re;
     };
-    return vector<vector<string>>();
+    if(positive){
+
+        return getSymGroup(getAllExist(posSym));
+    }else{
+        return getSymGroup(getAllExist(negSym));
+    }
+}
+
+vector<vector<string>> AIG::getNP3Sym(const string& output, bool positive, int fsg = -1, int fsf = -1) {
+    const vector<MP> &mpVe = (positive ? posSym[output] : negSym[output]);
+    auto re = getSymGroup(mpVe);
+    if(fsg != -1){
+        for(auto it = re.begin() ; it != re.end() ; it++){
+            if(fsg - static_cast<int>(it->size()) >= fsf){
+                it = re.erase(it);
+            }
+        }
+    }
+    return re;
+}
+
+
+vector<vector<int> > AIG::getSymSign() {
+    if(!symInit)calSymmetry();
+    vector<vector<int> > re;
+    re.resize(inputNum);
+    for(auto &i : re){
+        re.resize(2 * outputNum);
+    }
+    for(const auto &symVe : posSym){
+        int order = fromNameToOrder(symVe.first);
+        for(const auto &pair : symVe.second){
+            re[fromNameToOrder(pair.first)][2 * order]++;
+            re[fromNameToOrder(pair.second)][2 * order]++;
+        }
+    }
+    for(const auto &symVe : negSym){
+        int order = fromNameToOrder(symVe.first);
+        for(const auto &pair : symVe.second){
+            re[fromNameToOrder(pair.first)][2 * order + 1]++;
+            re[fromNameToOrder(pair.second)][2 * order + 1]++;
+        }
+    }
+    return re;
 }
 
 void solveMiter(AIG &cir1, AIG &cir2, CNF &miter, AIG &miterAIG) {

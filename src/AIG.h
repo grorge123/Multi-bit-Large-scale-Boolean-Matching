@@ -44,6 +44,7 @@ private:
     map<string , set<string> > funSupport; // input Name to funSupport set
     map<string , vector<MP> > posSym;
     map<string , vector<MP> > negSym;
+    bool symInit = false;
     void parseRaw();
     void recursiveFindSupport(int output, int now, vector<bool> &visit);
     bool recursiveGenerateOutput(int now, vector<int>& signal, vector<bool>& input);
@@ -118,7 +119,10 @@ public:
     void Debug();
     void selfTest();
     void calSymmetry();
-    vector<vector<string> > getHardSym();
+    vector<vector<string>> getSymGroup(const vector<MP> &sym);
+    vector<vector<string>> getNP3Sym(const string& output, bool positive, int fsg, int fsf);
+    vector<vector<string>> getNPSym(bool positive);
+    vector<vector<int> > getSymSign();
 };
 
 void solveMiter(AIG &cir1, AIG &cir2, CNF &miter, AIG &miterAIG);
