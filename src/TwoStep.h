@@ -63,6 +63,7 @@ class TwoStep {
     void reduceSpace(CNF &mappingSpace, const int baseLength, AIG &cir1, AIG &cir2, const vector<MP> &mapping,
                      const vector<MP> &R, const vector<bool> &cir1Input, const vector<bool> &cir2Input);
     static vector<int> getNonRedundant(const vector<bool> &input, AIG &cir, int counterIdx); // return port order
+    static vector<int> getNonRedundant2(const vector<bool> &input, AIG &cir, int counterIdx); // return port order
     bool heuristicsOrderCmp(const string& a, const string& b);
     static pair<string, bool> analysisName(string name);
     struct PairHash {
