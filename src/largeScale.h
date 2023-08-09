@@ -77,7 +77,7 @@ public:
         int idx = 0;
         for(auto clusters : record){
             for(auto cluster : clusters ){
-                for(auto port: partition[idx]){
+                for(const auto& port: partition[idx]){
                     hashTable[port] = combineHashes(hashTable[port], computeHash(cluster));
                 }
                 idx++;

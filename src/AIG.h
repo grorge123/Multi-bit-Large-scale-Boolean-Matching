@@ -8,6 +8,7 @@
 #include "satsolver.h"
 #include <cstring>
 #include <map>
+#include <unordered_map>
 #include <set>
 #include <iostream>
 #include <utility>
@@ -30,20 +31,20 @@ class AIG {
 
 private:
     int MAXIndex, inputNum, outputNum, latchNum, andNum;
-    map<string, int> nameMap; // verilog input name to AIG Node index
-    map<int, string> inputNameMapInv; // AIG Node index to verilog input name
-    map<int, vector<string> > outputNameMapInv; // AIG Node index to verilog input name
+    unordered_map<string, int> nameMap; // verilog input name to AIG Node index
+    unordered_map<int, string> inputNameMapInv; // AIG Node index to verilog input name
+    unordered_map<int, vector<string> > outputNameMapInv; // AIG Node index to verilog input name
     vector<int> indexMap; // AIG input order to AIG Node index
-    map<int, int> inputIndexMapInv; // AIG Node index to AIG input order
-    map<int, vector<int> > outputIndexMapInv; // AIG Node index to AIG input order
+    unordered_map<int, int> inputIndexMapInv; // AIG Node index to AIG input order
+    unordered_map<int, vector<int> > outputIndexMapInv; // AIG Node index to AIG input order
     vector<string> orderToName; // AIG input order to verilog name
                                 // verilog input name to order
     vector<bool> invMap; // AIG input order if is inverted
-    map<string , set<string> > strSupport; // input Name to strSupport set search by recursive
-    map<string , set<string> > abcStrSupport; // input Name to strSupport set search by abc
-    map<string , set<string> > funSupport; // input Name to funSupport set
-    map<string , vector<MP> > posSym;
-    map<string , vector<MP> > negSym;
+    unordered_map<string , set<string> > strSupport; // input Name to strSupport set search by recursive
+    unordered_map<string , set<string> > abcStrSupport; // input Name to strSupport set search by abc
+    unordered_map<string , set<string> > funSupport; // input Name to funSupport set
+    unordered_map<string , vector<MP> > posSym;
+    unordered_map<string , vector<MP> > negSym;
     bool symInit = false;
     void parseRaw();
     void recursiveFindSupport(int output, int now, vector<bool> &visit);

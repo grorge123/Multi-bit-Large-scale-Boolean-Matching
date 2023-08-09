@@ -875,16 +875,22 @@ void AIG::modifyAIG() {
     raw = "";
     funSupport.clear();
     strSupport.clear();
+    abcStrSupport.clear();
     posSym.clear();
     negSym.clear();
     symInit = false;
 }
 
 void AIG::calSymmetry() {
+    if(inputNum == 0) {
+        symInit = true;
+        return;
+    }
     ABCTool abcT(*this);
     auto symPairMap = abcT.calSymmetry();
     for(const auto &output : symPairMap){
-        int outputOrder = fromNameToOrder(output.first);
+        int outputOrder = fromNameToOrder(output.first) - inputNum;
+        bool type = false;
         for(const auto &pair : output.second){
             int xiOrder = fromNameToOrder(pair.first);
             int xjOrder = fromNameToOrder(pair.second);
@@ -893,15 +899,14 @@ void AIG::calSymmetry() {
             for(auto && it : input1){
                 it = random();
             }
-            for(auto && it : input2){
-                it = random();
-            }
+            input2 = input1;
             input1[xiOrder] = input1[xjOrder] = false;
             input2[xiOrder] = input2[xjOrder] = true;
             auto genOutput1 = generateOutput(input1);
             auto genOutput2 = generateOutput(input2);
             if(genOutput1[outputOrder] == genOutput2[outputOrder]){
                 negSym[output.first].emplace_back(pair);
+                type = true;
             }
             input1[xiOrder] = true;
             input1[xjOrder] = false;
@@ -911,14 +916,21 @@ void AIG::calSymmetry() {
             genOutput2 = generateOutput(input2);
             if(genOutput1[outputOrder] == genOutput2[outputOrder]){
                 posSym[output.first].emplace_back(pair);
+                type = true;
             }
+#ifdef DBG
+            if(!type){
+                cout << "[AIG] Error: symmetric pair can not found type." << endl;
+                exit(1);
+            }
+#endif
         }
     }
     symInit = true;
 }
 
 vector<vector<string>> AIG::getSymGroup(const vector<MP> &sym) {
-    map<string, int> disMap;
+    unordered_map<string, int> disMap;
     vector<string> disMapInv = {""};
     int cnt = 1;
     for(const auto &i : sym){
@@ -937,14 +949,14 @@ vector<vector<string>> AIG::getSymGroup(const vector<MP> &sym) {
     }
     auto fifa = [&](auto && fifa, int a) -> int{
         if(fa[a] == a)return a;
-        return fa[a] = fifa(fifa, a);
+        return fa[a] = fifa(fifa, fa[a]);
     };
     for(const auto &i : sym){
         if(fifa(fifa, disMap[i.first]) != fifa(fifa, disMap[i.second])){
             fa[fifa(fifa, disMap[i.first])] = fifa(fifa, disMap[i.second]);
         }
     }
-    map<int, set<string> > disjointGroup;
+    unordered_map<int, set<string> > disjointGroup;
     for(const auto &i : sym){
         if(disjointGroup[fifa(fifa, disMap[i.first])].find(i.first) == disjointGroup[fifa(fifa, disMap[i.first])].end()){
             disjointGroup[fifa(fifa, disMap[i.first])].insert(i.first);
@@ -967,7 +979,7 @@ vector<vector<string>> AIG::getSymGroup(const vector<MP> &sym) {
 
 vector<vector<string>> AIG::getNPSym(bool positive) {
     if(!symInit)calSymmetry();
-    auto getAllExist = [](map<string, vector<MP>> Sym){
+    auto getAllExist = [](unordered_map<string, vector<MP>> Sym){
         auto isExist = [](set<MP> se, const MP& mp) -> bool{
             if(se.find(mp) != se.end() || se.find(MP(mp.second, mp.first)) != se.end())return true;
             return false;
@@ -1021,17 +1033,17 @@ vector<vector<int> > AIG::getSymSign() {
     vector<vector<int> > re;
     re.resize(inputNum);
     for(auto &i : re){
-        re.resize(2 * outputNum);
+        i.resize(2 * outputNum);
     }
     for(const auto &symVe : posSym){
-        int order = fromNameToOrder(symVe.first);
+        int order = fromNameToOrder(symVe.first) - inputNum;
         for(const auto &pair : symVe.second){
             re[fromNameToOrder(pair.first)][2 * order]++;
             re[fromNameToOrder(pair.second)][2 * order]++;
         }
     }
     for(const auto &symVe : negSym){
-        int order = fromNameToOrder(symVe.first);
+        int order = fromNameToOrder(symVe.first) - inputNum;
         for(const auto &pair : symVe.second){
             re[fromNameToOrder(pair.first)][2 * order + 1]++;
             re[fromNameToOrder(pair.second)][2 * order + 1]++;

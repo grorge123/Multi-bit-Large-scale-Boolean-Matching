@@ -26,12 +26,12 @@ class TwoStep {
     vector<int> cir1Choose; // how many number be chosen by cir2 port
     vector<int> cir2Choose; // choose which cir1 port
     vector<string> cir1Output, cir2Output;
-    map<string, int> cir1OutputMap, cir2OutputMap;
+    unordered_map<string, int> cir1OutputMap, cir2OutputMap;
 //    int lastCir1, lastCir2;
     vector<vector<string>> clauseStack;
     vector<int> clauseNum;
     // Bus
-    map<string, int> cir1BusMapping, cir2BusMapping;
+    unordered_map<string, int> cir1BusMapping, cir2BusMapping;
     vector<vector<string> > cir1InputBus, cir2InputBus;
     // input solver
     string mappingSpaceFileName = "TwoStepSolveMapping.cnf";
@@ -58,7 +58,7 @@ class TwoStep {
     CNF generateMiter(const vector<MP> &outputMatchPair, AIG cir1, AIG cir2);
     pair<vector<bool>, vector<bool>>
     solveMiter(const vector<MP> &inputMatchPair, CNF originMiter, AIG &cir1, AIG &cir2);
-    pair<pair<vector<int>, map<int, int>>, pair<vector<int>, map<int, int>>>
+    pair<pair<vector<int>, unordered_map<int, int>>, pair<vector<int>, unordered_map<int, int>>>
     generateBusMatchVector(AIG &cir1, AIG &cir2);
     void reduceSpace(CNF &mappingSpace, const int baseLength, AIG &cir1, AIG &cir2, const vector<MP> &mapping,
                      const vector<MP> &R, const vector<bool> &cir1Input, const vector<bool> &cir2Input);

@@ -62,9 +62,9 @@ void ABCTool::init(AIG &cir) {
     }
 }
 
-map<string, set<string> > ABCTool::funSupport(){
+unordered_map<string, set<string>> ABCTool::funSupport(){
     Abc_Obj_t * pNode, * pNodeCi;
-    map<string, set<string> > re;
+    unordered_map<string, set<string> > re;
     int i, v;
     FILE * saveStdout = stdoutSave();
     Vec_Ptr_t * vSuppFun = Sim_ComputeFunSupp( mainNtk, 0 );
@@ -83,9 +83,9 @@ map<string, set<string> > ABCTool::funSupport(){
     return re;
 }
 
-map<string, set<string> > ABCTool::strSupport() {
+unordered_map<string, set<string>> ABCTool::strSupport() {
     Abc_Obj_t * pNode, * pNodeCi;
-    map<string, set<string> > re;
+    unordered_map<string, set<string> > re;
     int i, v;
     FILE * saveStdout = stdoutSave();
     Vec_Ptr_t * vSuppStr = Sim_ComputeStrSupp( mainNtk );
@@ -112,9 +112,9 @@ static inline Vec_Int_t * Vec_VecEntryIntCopy( Vec_Vec_t * p, int i )
 {
     return (Vec_Int_t *)p->pArray[i];
 }
-map<string, vector<pair<string, string> > > ABCTool::calSymmetry() {
+unordered_map<string, vector<pair<string, string>>> ABCTool::calSymmetry() {
     Abc_Obj_t * pNode;
-    map<string, vector<pair<string, string>>> re;
+    unordered_map<string, vector<pair<string, string>>> re;
     FILE * saveStdout = stdoutSave();
     Sym_Man_t *p = Sim_ComputeTwoVarSymms2(mainNtk, 0);
     vector<string> nameMap(p->nOutputs);

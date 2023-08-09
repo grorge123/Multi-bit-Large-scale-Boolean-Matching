@@ -48,7 +48,7 @@ void TwoStep::start() {
             R.pop_back();
             outputSolverPop();
         }else{
-            map<string, int> nameMap;
+            unordered_map<string, int> nameMap;
             vector<Group> inputGroups, outputGroups;
             vector<string> one, zero;
             int matchOutput = 0;
@@ -103,7 +103,7 @@ int TwoStep::nowMs() {
 int recordCounter = 0;
 
 int TwoStep::recordOutput(const vector<MP> &inputMatch, const vector<MP> &R) {
-    map<string, int> nameMap;
+    unordered_map<string, int> nameMap;
     vector<Group> inputGroups, outputGroups;
     vector<string> one, zero;
     int matchOutput = 0;

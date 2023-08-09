@@ -23,7 +23,7 @@ public:
     vector<bool> satisfiedInput;
     bool satisfiable = false;
     vector<int> inv;
-    map<string, int> varMap;
+    unordered_map<string, int> varMap;
     int maxIdx = 0;
     CNF()= default;
     CNF(const CNF& other) {
@@ -38,11 +38,9 @@ public:
         maxIdx = other.maxIdx;
         solver = new CaDiCaL::Solver();
     }
-
     // Assignment operator
     CNF& operator=(const CNF& other) {
         if (this != &other) {
-            delete solver;
             change = 2;
             lastClauses = 0;
             clauses = other.clauses;
@@ -51,6 +49,7 @@ public:
             inv = other.inv;
             varMap = other.varMap;
             maxIdx = other.maxIdx;
+            delete solver;
             solver = new CaDiCaL::Solver();
         }
         return *this;
@@ -58,8 +57,8 @@ public:
     ~CNF() {
         delete solver;
     }
-    explicit CNF(string inputPath){
-        readFromFile(std::move(inputPath));
+    explicit CNF(const string& inputPath){
+        readFromFile(inputPath);
     }
     explicit CNF(AIG aig){
         readFromAIG(aig);

@@ -34,7 +34,6 @@ MP TwoStep::outputSolver(bool projection, vector<MP> &R) {
         for(auto & i : initVe){
             i.resize(cir1Output.size() * 2, true);
         }
-        cout << endl;
         if(cir1Output.size() == cir2Output.size()){
             hGroupId = generateOutputGroups(cir1Output, cir2Output);
             for(int i = 0 ; i < static_cast<int>(cir2Output.size()) ; i++){
