@@ -218,3 +218,7 @@ void CNF::copy(CNF &other) {
     other.maxIdx = maxIdx;
     solver->copy(*other.solver);
 }
+
+int CNF::getLastClauses() const {
+    return max(lastClauses, static_cast<int>(clauses.size()));
+}

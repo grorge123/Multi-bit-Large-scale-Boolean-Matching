@@ -428,11 +428,10 @@ vector<int> TwoStep::getNonRedundant2(const vector<bool> &input, AIG &cir, int c
 }
 
 void TwoStep::tsDebug(string msg, AIG cir1, AIG cir2) {
-//    if(!verbose)
-    return;
-    cout << msg << endl;
-    cout << "Cir1" << endl;
-    cout << cir1.getRaw();
-    cout << "Cir2" << endl;
-    cout << cir2.getRaw();
+    int baseLength = (cir1.getInputNum() + 1) * 2;
+    for(int i = 0 ; i < cir2.getInputNum() ; i++){
+        for(int q = 0 ; q < cir1.getInputNum() ; q++){
+            cout << cir2.fromOrderToName(i) << " " << cir1.fromOrderToName(q) << " " << (q * baseLength + i * 2 + 1) << endl;
+        }
+    }
 }

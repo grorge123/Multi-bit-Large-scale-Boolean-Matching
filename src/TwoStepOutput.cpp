@@ -52,6 +52,17 @@ MP TwoStep::outputSolver(bool projection, vector<MP> &R) {
         clauseNum.clear();
         return outputSolver(false, R);
     }else{
+        auto busConflict = [&](const MP& mp) -> bool{
+            bool conflict = false;
+            if(cir1BusMapping.find(mp.first) == cir1BusMapping.end() || cir2BusMapping.find(mp.second) == cir2BusMapping.end())return conflict;
+            if(cir1OutputBusMatch.find(cir1BusMapping[mp.first]) != cir1OutputBusMatch.end()){
+                if(cir1OutputBusMatch[cir1BusMapping[mp.first]] != cir2BusMapping[mp.second]) conflict = true;
+            }
+            if(cir2OutputBusMatch.find(cir2BusMapping[mp.second]) != cir2OutputBusMatch.end()){
+                if(cir2OutputBusMatch[cir2BusMapping[mp.second]] != cir1BusMapping[mp.first]) conflict = true;
+            }
+            return conflict;
+        };
         set<MP> nowSelect;
         for(const auto& mp : R){
             nowSelect.insert(mp);
@@ -64,6 +75,9 @@ MP TwoStep::outputSolver(bool projection, vector<MP> &R) {
                     if(initVe[i][q]){
                         MP re = MP(cir1Output[q / 2] + (q % 2 == 0 ? "" : "\'"), cir2Output[i]);
                         if(nowSelect.find(re) != nowSelect.end())continue;
+                        if(enableBus){
+                            if(busConflict(re))continue;
+                        }
                         nowSelect.insert(re);
                         size_t hashValue = hashSet(nowSelect);
                         if(forbid.find(hashValue) != forbid.end()){
@@ -72,6 +86,8 @@ MP TwoStep::outputSolver(bool projection, vector<MP> &R) {
                         }else{
                             forbid.insert(hashValue);
                         }
+                        cir1OutputBusMatch[cir1BusMapping[re.first]] = cir2BusMapping[re.second];
+                        cir2OutputBusMatch[cir2BusMapping[re.second]] = cir1BusMapping[re.first];
                         cir1Choose[q / 2]++;
                         cir2Choose[i] = q;
                         backtrace.push(re);
@@ -85,17 +101,25 @@ MP TwoStep::outputSolver(bool projection, vector<MP> &R) {
 }
 int cnt = 0;
 
-void TwoStep::outputSolverPop() {
+void TwoStep::outputSolverPop(vector<MP> &R) {
     MP last = backtrace.top();
+    R.pop_back();
     backtrace.pop();
     if(last.first.back() == '\'')last.first.pop_back();
+    bool eraseBusMatch = true;
+    for(const auto &pair : R){
+        if(cir1BusMapping[pair.first] == cir1BusMapping[last.first])eraseBusMatch = false;
+    }
+    if(eraseBusMatch){
+        cir1OutputBusMatch.erase(cir1BusMapping[last.first]);
+        cir2OutputBusMatch.erase(cir2BusMapping[last.second]);
+    }
     cir1Choose[cir1OutputMap[last.first]]--;
     cir2Choose[cir2OutputMap[last.second]] = -1;
     while (static_cast<int>(clauseStack.size()) > clauseNum.back()){
         clauseStack.pop_back();
     }
     clauseNum.pop_back();
-
 }
 
 bool TwoStep::heuristicsOrderCmp(const string& a, const string& b) {

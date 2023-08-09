@@ -19,6 +19,7 @@ class CNF {
     int lastClauses = 0;
     list<vector<int> > clauses;
 public:
+    int getLastClauses() const;
     const list <vector<int>> &getClauses() const;
     vector<bool> satisfiedInput;
     bool satisfiable = false;

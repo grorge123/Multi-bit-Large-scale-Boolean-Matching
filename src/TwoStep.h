@@ -31,8 +31,10 @@ class TwoStep {
     vector<vector<string>> clauseStack;
     vector<int> clauseNum;
     // Bus
+    unordered_map<int ,int> cir1OutputBusMatch, cir2OutputBusMatch;
     unordered_map<string, int> cir1BusMapping, cir2BusMapping;
     vector<vector<string> > cir1InputBus, cir2InputBus;
+    vector<vector<string> > cir1OutputBus, cir2OutputBus;
     // input solver
     string mappingSpaceFileName = "TwoStepSolveMapping.cnf";
     // hyper parameter
@@ -47,7 +49,7 @@ class TwoStep {
     static int nowMs();
     vector<int> generateOutputGroups(vector<string> &f, vector<string> &g);
     MP outputSolver(bool projection, vector<MP> &R);
-    void outputSolverPop();
+    void outputSolverPop(vector<MP> &R);
     int recordOutput(const vector<MP> &inputMatch, const vector<MP> &R);
     vector<MP> inputSolver(vector<MP> &R, bool outputProjection);
     bool generateClause(CNF &mappingSpace, AIG &cir1Reduce, AIG &cir2Reduce, const vector<MP> &R,
@@ -96,11 +98,15 @@ public:
         for(auto &bus: input.cir1Bus){
             if(cir1.isInput(cir1.fromNameToIndex("!" + bus[0]))){
                 cir1InputBus.emplace_back(bus);
+            }else{
+                cir1OutputBus.emplace_back(bus);
             }
         }
         for(auto &bus: input.cir2Bus){
             if(cir2.isInput(cir2.fromNameToIndex("@" + bus[0]))){
                 cir2InputBus.emplace_back(bus);
+            }else{
+                cir2OutputBus.emplace_back(bus);
             }
         }
         sort(cir1InputBus.begin(), cir1InputBus.end());

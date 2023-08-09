@@ -21,15 +21,14 @@ void TwoStep::start() {
             R.push_back(newPair);
         }else{
             // TODO disable projection
-            if(!projection){
+            if(!projection && cir1.getOutputNum() != cir2.getOutputNum()){
                 projection = true;
             }else{
                 if(R.empty()){
                     optimal = true;
                     break;
                 }
-                R.pop_back();
-                outputSolverPop();
+                outputSolverPop(R);
                 projection = false;
             }
             continue;
@@ -45,8 +44,7 @@ void TwoStep::start() {
         vector<MP> inputMatch = inputSolver(R, projection);
         stopStatistic("inputMatch");
         if(inputMatch.empty()){
-            R.pop_back();
-            outputSolverPop();
+            outputSolverPop(R);
         }else{
             unordered_map<string, int> nameMap;
             vector<Group> inputGroups, outputGroups;
