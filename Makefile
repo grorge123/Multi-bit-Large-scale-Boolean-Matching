@@ -1,7 +1,7 @@
 CC := g++
 exe := main
 #obj := main.o statistic.o evaluate.o utility.o
-CFLAGS := -std=c++17 -O2 -Wall -Wextra -g
+CFLAGS := -std=c++17 -O3 -Wall -Wextra -pg
 SANITIZE := -fsanitize=undefined -fsanitize=address
 DEFINE := -DINF -DDBG
 LINK := -lm -ldl -lreadline -ltinfo

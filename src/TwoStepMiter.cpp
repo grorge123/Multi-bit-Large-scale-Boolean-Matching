@@ -431,7 +431,16 @@ void TwoStep::tsDebug(string msg, AIG cir1, AIG cir2) {
     int baseLength = (cir1.getInputNum() + 1) * 2;
     for(int i = 0 ; i < cir2.getInputNum() ; i++){
         for(int q = 0 ; q < cir1.getInputNum() ; q++){
-            cout << cir2.fromOrderToName(i) << " " << cir1.fromOrderToName(q) << " " << (q * baseLength + i * 2 + 1) << endl;
+            cout << cir2.fromOrderToName(i) << " " << cir1.fromOrderToName(q) << " " << (i * baseLength + q * 2 + 1) << endl;
+        }
+    }
+}
+void TwoStep::tsDebug(const vector<int> &cir1BusMatch, const vector<int> &cir2BusMatch, const int lastMaxIdx){
+    int busBaseLength = static_cast<int>(cir1BusMatch.size());
+    cout << "BusMatchClause:" << endl;
+    for(int i = 0 ; i < static_cast<int>(cir1BusMatch.size()) ; i++){
+        for(int q = 0 ; q < static_cast<int>(cir2BusMatch.size()) ; q++ ){
+            cout << cir1BusMatch[i] << " " << cir2BusMatch[q] << " " << (lastMaxIdx + busBaseLength * q + i + 1) << endl;
         }
     }
 }

@@ -44,7 +44,7 @@ class TwoStep {
     int iteratorCounter = 0;
     int lastTime = 0;
     int verbose = 0;
-    bool enableBus = false;
+    bool enableBus = true;
 
     static int nowMs();
     vector<int> generateOutputGroups(vector<string> &f, vector<string> &g);
@@ -173,6 +173,7 @@ public:
     }
     void start();
     void tsDebug(string msg, AIG cir1, AIG cir2);
+    void tsDebug(const vector<int> &cir1BusMatch, const vector<int> &cir2BusMatch, const int lastMaxIdx);
 };
 extern int cnt;
 extern TwoStep ts;
