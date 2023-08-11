@@ -51,7 +51,9 @@ class TwoStep {
     MP outputSolver(bool projection, vector<MP> &R);
     void outputSolverPop(vector<MP> &R);
     int recordOutput(const vector<MP> &inputMatch, const vector<MP> &R);
+public:
     vector<MP> inputSolver(vector<MP> &R, bool outputProjection);
+private:
     bool generateClause(CNF &mappingSpace, AIG &cir1Reduce, AIG &cir2Reduce, const vector<MP> &R,
                         bool outputProjection);
     void generateBusClause(CNF &mappingSpace, AIG &cir1Reduce, AIG &cir2Reduce, const vector<int> &cir1BusMatch,

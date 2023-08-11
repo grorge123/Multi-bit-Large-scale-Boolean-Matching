@@ -94,6 +94,7 @@ MP TwoStep::outputSolver(bool projection, vector<MP> &R) {
                         return re;
                     }
                 }
+                if(cir2Choose[i] == -1)return {};
             }
         }
         return {};
