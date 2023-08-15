@@ -50,6 +50,33 @@ MP TwoStep::outputSolver(bool projection, vector<MP> &R) {
         outputSolverInit = true;
         clauseStack.clear();
         clauseNum.clear();
+
+        // TODO delete this
+
+//        cout << "cir1Output:" << endl;
+//        for(int i = 0 ; i < static_cast<int>(cir1Output.size()) ; i++){
+//            vector<bool> inp(cir1.getInputNum());
+//            vector<bool> inp2(cir1.getInputNum());
+//            inp2[cir1.fromNameToOrder(*cir1.getSupport(cir1Output[i], 1).begin())] = 1;
+//            vector<bool> oup = cir1.generateOutput(inp);
+//            vector<bool> oup2 = cir1.generateOutput(inp2);
+//            bool eq = oup[cir1.fromNameToOrder(cir1Output[i]) - cir1.getInputNum()] == 0;
+//            cout << cir1Output[i] << " " << hGroupId[i] << " " << cir1.getSupport(cir1Output[i], 1).size() << " " << *cir1.getSupport(cir1Output[i], 1).begin() << " " << (eq ? "buf" : "not") << endl;
+////            if(hGroupId[i] != hGroupId[0])break;
+//        }
+//        cout << "cir2Output:" << endl;
+//        for(int i = 0 ; i < static_cast<int>(cir2Output.size()) ; i++){
+//            vector<bool> inp(cir2.getInputNum());
+//            vector<bool> inp2(cir2.getInputNum());
+//            inp2[cir2.fromNameToOrder(*cir2.getSupport(cir2Output[i], 1).begin())] = 1;
+//            vector<bool> oup = cir2.generateOutput(inp);
+//            vector<bool> oup2 = cir2.generateOutput(inp2);
+//            bool eq = oup[cir2.fromNameToOrder(cir2Output[i]) - cir2.getInputNum()] == 0;
+//            cout << cir2Output[i] << " " << hGroupId[i] << " " << cir2.getSupport(cir2Output[i], 1).size() << " " << *cir2.getSupport(cir2Output[i], 1).begin() << " " << (eq ? "buf" : "not") << endl;
+////            if(hGroupId[i] != hGroupId[0])break;
+//        }
+
+
         return outputSolver(false, R);
     }else{
         auto busConflict = [&](const MP& mp) -> bool{
@@ -86,8 +113,10 @@ MP TwoStep::outputSolver(bool projection, vector<MP> &R) {
                         }else{
                             forbid.insert(hashValue);
                         }
-                        cir1OutputBusMatch[cir1BusMapping[re.first]] = cir2BusMapping[re.second];
-                        cir2OutputBusMatch[cir2BusMapping[re.second]] = cir1BusMapping[re.first];
+                        if(cir1BusMapping.find(re.first) != cir1BusMapping.end() && cir2BusMapping.find(re.second) != cir2BusMapping.end()){
+                            cir1OutputBusMatch[cir1BusMapping[re.first]] = cir2BusMapping[re.second];
+                            cir2OutputBusMatch[cir2BusMapping[re.second]] = cir1BusMapping[re.first];
+                        }
                         cir1Choose[q / 2]++;
                         cir2Choose[i] = q;
                         backtrace.push(re);
@@ -109,7 +138,9 @@ void TwoStep::outputSolverPop(vector<MP> &R) {
     if(last.first.back() == '\'')last.first.pop_back();
     bool eraseBusMatch = true;
     for(const auto &pair : R){
-        if(cir1BusMapping[pair.first] == cir1BusMapping[last.first])eraseBusMatch = false;
+        if(cir1BusMapping.find(pair.first) != cir1BusMapping.end() && cir2BusMapping.find(pair.second) != cir2BusMapping.end()){
+            if(cir1BusMapping[pair.first] == cir1BusMapping[last.first])eraseBusMatch = false;
+        }
     }
     if(eraseBusMatch){
         cir1OutputBusMatch.erase(cir1BusMapping[last.first]);
