@@ -48,4 +48,5 @@ clean:
 run: all
 	./main input.txt output.txt
 	rm -f *.aig *.aag stdoutOutput.txt *.cnf
+	rm -rf optimizeAIG
 

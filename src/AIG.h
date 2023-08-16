@@ -9,6 +9,7 @@
 #include <cstring>
 #include <map>
 #include <unordered_map>
+#include <unordered_set>
 #include <set>
 #include <iostream>
 #include <utility>
@@ -40,6 +41,8 @@ private:
     vector<string> orderToName; // AIG input order to verilog name
                                 // verilog input name to order
     vector<bool> invMap; // AIG input order if is inverted
+    unordered_set<string> inputPort;
+    unordered_set<string> outputPort;
     unordered_map<string , set<string> > strSupport; // input Name to strSupport set search by recursive
     unordered_map<string , set<string> > abcStrSupport; // input Name to strSupport set search by abc
     unordered_map<string , set<string> > funSupport; // input Name to funSupport set
@@ -58,33 +61,7 @@ public:
     string cirName;
     AIG(){};
     AIG(const string &name, string cirName = "") : cirName(std::move(cirName)){
-        aiger *input = aiger_init();
-        const char *err_msg = aiger_open_and_read_from_file(input, name.c_str());
-#ifdef DBG
-        if(err_msg != nullptr){
-            cout << "[AIG]ERROR: " << err_msg << endl;
-            exit(1);
-        }
-#endif
-        ifstream ifs;
-        ifs.open (name.c_str(), ios::binary );
-        ifs.seekg (0, ios::end);
-        int length = ifs.tellg();
-        length = length * 8 + 1000;
-        char* tmp = (char*)malloc(sizeof(char ) * length);
-        aiger_mode mode = aiger_ascii_mode;
-        int err = aiger_write_to_string(input, mode, tmp, length);
-#ifdef DBG
-        if(err != 1){
-            cout << "[AIG]ERROR: AIG write error" << endl;
-            exit(1);
-        }
-#endif
-        raw = tmp;
-        free(tmp);
-        ifs.close();
-        aiger_reset(input);
-        parseRaw();
+        readFromAIGFile(name);
     }
     const string &inputFromIndexToName(int index);
     const vector<string> &outputFromIndexToName(int idx);
@@ -100,6 +77,8 @@ public:
     int getMaxNum() const;
     bool isInput(int idx);
     bool isOutput(int idx);
+    bool isInput(string name);
+    bool isOutput(string name);
     bool portExist(string name);
     bool portIsNegative(int order);
     const set<string> & getSupport(const string &name, int supType); // 0: funSuppose 1: abcStrSuppose 2: recurStrSuppose
@@ -116,10 +95,12 @@ public:
     void exportInput(const string &from, const string &to, bool negative);
     void setConstant(const string &origin, int val);
     void writeToAIGFile(const string &fileName);
+    void readFromAIGFile(const string &fileName);
     void modifyAIG();
     void Debug();
     void selfTest();
     void calSymmetry();
+    void optimize();
     vector<vector<string>> getSymGroup(const vector<MP> &sym);
     vector<vector<string>> getNP3Sym(const string& output, bool positive, int fsg, int fsf);
     vector<vector<string>> getNPSym(bool positive);

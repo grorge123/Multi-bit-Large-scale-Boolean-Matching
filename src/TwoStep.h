@@ -95,7 +95,9 @@ public:
     TwoStep()= default;
     TwoStep(const InputStructure& input, string outputFilePath) : outputFilePath(std::move(outputFilePath)){
         cir1 = AIG(input.cir1AIGPath, "!");
+//        cir1.optimize();
         cir2 = AIG(input.cir2AIGPath, "@");
+//        cir2.optimize();
         allOutputNumber = (cir2.getOutputNum() + cir1.getOutputNum());
         for(auto &bus: input.cir1Bus){
             if(cir1.isInput(cir1.fromNameToIndex("!" + bus[0]))){

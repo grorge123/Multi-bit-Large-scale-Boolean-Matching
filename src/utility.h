@@ -131,5 +131,6 @@ int compareVectors(const std::vector<T>& vector1, const std::vector<T>& vector2)
 
     return 0;       // 兩個向量相等
 }
+bool exeAbcCmd(const string &abcCmd, const string &fromFun, const string& keyword = "");
 extern Abc_Frame_t * pAbc;
 #endif //JUDGE_UTILITY_H

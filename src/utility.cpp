@@ -68,3 +68,51 @@ void printStatistic() {
         cout << pair.first << ": " << pair.second / 1000000 << endl;
     }
 }
+
+bool exeAbcCmd(const string &abcCmd, const string &fromFun, const string& keyword) {
+    string resultPath = "stdoutOutput.txt";
+    cout.flush();
+    FILE *saveStdout = stdout;
+    stdout = fopen(resultPath.c_str(), "a");
+    if (stdout != nullptr) {
+        if (Cmd_CommandExecute(pAbc, abcCmd.c_str())){
+#ifdef DBG
+            cout << "[" << fromFun << "] ERROR:Cannot execute command \"" << abcCmd << "\".\n";
+            exit(1);
+#endif
+        }
+        fflush(stdout);
+        fclose(stdout);
+        stdout = saveStdout;
+    } else {
+#ifdef DBG
+        cout << "[" << fromFun << "] ERROR:Can't write file:" << resultPath << endl;
+        exit(1);
+#endif
+    }
+    if(!keyword.empty()){
+        bool find = false;
+        ifstream readFile(resultPath, ios::in);
+        if(readFile.is_open()){
+            string result;
+            while (getline(readFile, result)){
+                if(result.find(keyword) != string::npos){
+                    find = true;
+                }
+            }
+            readFile.close();
+        }else{
+            cout << "Can't read writeFile:" << resultPath << endl;
+            exit(1);
+        }
+        ofstream writeFile(resultPath, std::ios::trunc);
+        if (writeFile.is_open()) {
+            writeFile.close();
+        } else {
+            cout << "Can't clean writeFile:" << resultPath << endl;
+            exit(1);
+        }
+        return find;
+    }
+    return true;
+}
