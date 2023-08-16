@@ -44,6 +44,25 @@ MP TwoStep::outputSolver(bool projection, vector<MP> &R) {
                 }
             }
         }
+
+        if(enableBus){
+            for(int i = 0 ; i < static_cast<int>(cir2Output.size()) ; i++){
+                for(int q = 0 ; q < static_cast<int>(cir1Output.size() * 2) ; q += 2){
+                    bool cir1InBus = (cir1BusMapping.find(cir1Output[q/2]) != cir1BusMapping.end());
+                    bool cir2InBus = (cir2BusMapping.find(cir2Output[i]) != cir2BusMapping.end());
+                    if(cir1InBus && cir2InBus){
+                        if(cir1OutputBus[cir1BusMapping[cir1Output[q/2]]].size() != cir2OutputBus[cir2BusMapping[cir2Output[i]]].size()){
+                            initVe[i][q] = initVe[i][q + 1] = false;
+                        }
+                    }else{
+                        if(cir1InBus ^ cir2InBus){
+                            initVe[i][q] = initVe[i][q + 1] = false;
+                        }
+                    }
+                }
+            }
+        }
+
         cir1Choose.resize(cir1Output.size(), 0);
         cir2Choose.resize(cir2Output.size(), -1);
 //        lastCir1 = lastCir2 = 0;

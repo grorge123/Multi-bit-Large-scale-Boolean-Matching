@@ -100,27 +100,35 @@ public:
 //        cir2.optimize();
         allOutputNumber = (cir2.getOutputNum() + cir1.getOutputNum());
         for(auto &bus: input.cir1Bus){
-            if(cir1.isInput(cir1.fromNameToIndex("!" + bus[0]))){
+            if(cir1.isInput("!" + bus[0])){
                 cir1InputBus.emplace_back(bus);
             }else{
                 cir1OutputBus.emplace_back(bus);
             }
         }
         for(auto &bus: input.cir2Bus){
-            if(cir2.isInput(cir2.fromNameToIndex("@" + bus[0]))){
+            if(cir2.isInput("@" + bus[0])){
                 cir2InputBus.emplace_back(bus);
             }else{
                 cir2OutputBus.emplace_back(bus);
             }
         }
-        sort(cir1InputBus.begin(), cir1InputBus.end());
-        sort(cir2InputBus.begin(), cir2InputBus.end());
         for(auto &bus : cir1InputBus){
             for(auto &name : bus){
                 name.insert(0, "!");
             }
         }
         for(auto &bus : cir2InputBus){
+            for(auto &name : bus){
+                name.insert(0, "@");
+            }
+        }
+        for(auto &bus : cir1OutputBus){
+            for(auto &name : bus){
+                name.insert(0, "!");
+            }
+        }
+        for(auto &bus : cir2OutputBus){
             for(auto &name : bus){
                 name.insert(0, "@");
             }
@@ -132,6 +140,16 @@ public:
         }
         for(int i = 0 ; i < static_cast<int>(cir2InputBus.size()) ; i++){
             for(const auto& name : cir2InputBus[i]){
+                cir2BusMapping[name] = i;
+            }
+        }
+        for(int i = 0 ; i < static_cast<int>(cir1OutputBus.size()) ; i++){
+            for(const auto& name : cir1OutputBus[i]){
+                cir1BusMapping[name] = i;
+            }
+        }
+        for(int i = 0 ; i < static_cast<int>(cir2OutputBus.size()) ; i++){
+            for(const auto& name : cir2OutputBus[i]){
                 cir2BusMapping[name] = i;
             }
         }
@@ -154,26 +172,26 @@ public:
 //            }
 //        }
 #endif
-//        int cnt = 0;
-//        cout << "Bus1:" << endl;
-//        for(auto &bus : cir1InputBus){
-//            cout << cnt << ": ";
-//            cnt++;
-//            for(auto &name : bus){
-//                cout << name << " ";
-//            }
-//            cout << endl;
-//        }
-//        cnt = 0;
-//        cout << "Bus2:" << endl;
-//        for(auto &bus : cir2InputBus){
-//            cout << cnt << ": ";
-//            cnt++;
-//            for(auto &name : bus){
-//                cout << name << " ";
-//            }
-//            cout << endl;
-//        }
+        int cnt = 0;
+        cout << "Bus1:" << endl;
+        for(auto &bus : cir1OutputBus){
+            cout << cnt << ": ";
+            cnt++;
+            for(auto &name : bus){
+                cout << name << " ";
+            }
+            cout << endl;
+        }
+        cnt = 0;
+        cout << "Bus2:" << endl;
+        for(auto &bus : cir2OutputBus){
+            cout << cnt << ": ";
+            cnt++;
+            for(auto &name : bus){
+                cout << name << " ";
+            }
+            cout << endl;
+        }
     }
     void start();
     void tsDebug(string msg, AIG cir1, AIG cir2);

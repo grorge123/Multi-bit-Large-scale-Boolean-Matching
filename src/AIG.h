@@ -77,9 +77,9 @@ public:
     int getMaxNum() const;
     bool isInput(int idx);
     bool isOutput(int idx);
-    bool isInput(string name);
-    bool isOutput(string name);
-    bool portExist(string name);
+    bool isInput(const string& name);
+    bool isOutput(const string& name);
+    bool portExist(const string& name);
     bool portIsNegative(int order);
     const set<string> & getSupport(const string &name, int supType); // 0: funSuppose 1: abcStrSuppose 2: recurStrSuppose
     vector<bool> generateOutput(vector<bool> input);

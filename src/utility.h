@@ -133,4 +133,7 @@ int compareVectors(const std::vector<T>& vector1, const std::vector<T>& vector2)
 }
 bool exeAbcCmd(const string &abcCmd, const string &fromFun, const string& keyword = "");
 extern Abc_Frame_t * pAbc;
+static string resyn3 = "balance; resub; resub -K 6; balance; resub -z; resub -z -K 6; balance; resub -z -K 5; balance;";
+static string resyn2 = "balance; rewrite; refactor; balance; rewrite ; rewrite -z ; balance; refactor -z; rewrite -z ;balance;";
+static string compress2rs = "balance -l; resub -K 6 -l; rewrite -l; resub -K 6 -N 2 -l; refactor -l; resub -K 8 -l; balance -l; resub -K 8 -N 2 -l; rewrite -l; resub -K 10 -l; rewrite -z -l; resub -K 10 -N 2 -l; balance -l; resub -K 12 -l; refactor -z -l; resub -K 12 -N 2 -l; rewrite -z -l; balance -l;";
 #endif //JUDGE_UTILITY_H

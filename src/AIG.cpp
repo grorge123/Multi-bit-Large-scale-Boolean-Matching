@@ -68,8 +68,10 @@ void AIG::parseRaw() {
         nameMap[portName] = indexMap[order];
         if(order < inputNum){
             inputNameMapInv[indexMap[order]] = portName;
+            inputPort.insert(portName);
         }else{
             outputNameMapInv[indexMap[order]].push_back(portName);
+            outputPort.insert(portName);
         }
         orderToName.push_back(portName);
         if(indexMap[order] == 0){
@@ -376,6 +378,13 @@ void AIG::changeName(const string& oldName, const string& newName) {
             }
         }
     }
+    if(inputPort.find(oldName) != inputPort.end()){
+        inputPort.erase(oldName);
+        inputPort.insert(newName);
+    }else{
+        outputPort.erase(oldName);
+        outputPort.insert(newName);
+    }
     orderToName[tmpOrder] = newName;
     nameMap.erase(oldName);
     selfTest();
@@ -412,6 +421,7 @@ void AIG::erasePort(const vector<string>& nameList) {
 //            inputIndexMapInv.erase(nodeIdx);
             orderToName.erase(orderToName.begin() + inputOrder);
             invMap.erase(invMap.begin() + inputOrder);
+            inputPort.erase(name);
         }else{
             outputNum--;
             unsigned int inputOrder = 0;
@@ -441,6 +451,7 @@ void AIG::erasePort(const vector<string>& nameList) {
             if(outputNameMapInv[nodeIdx].empty()){
                 outputNameMapInv.erase(nodeIdx);
             }
+            outputPort.erase(name);
 //            for(auto it = outputIndexMapInv[nodeIdx].begin() ; it != outputIndexMapInv[nodeIdx].end() ; it++){
 //                if(*it == (int)inputOrder){
 //                    outputIndexMapInv[nodeIdx].erase(it);
@@ -566,8 +577,14 @@ bool AIG::isInput(int idx) {
 bool AIG::isOutput(int idx) {
     return tree[idx].isOutput;
 }
+bool AIG::isInput(const string& name) {
+    return inputPort.find(name) != inputPort.end();
+}
+bool AIG::isOutput(const string& name) {
+    return outputPort.find(name) != outputPort.end();
+}
 
-bool AIG::portExist(string name) {
+bool AIG::portExist(const string& name) {
     return nameMap.find(name) != nameMap.end();
 }
 
@@ -605,6 +622,7 @@ void AIG::addNegativeOutput() {
         nameMap[newName] = indexMap[newOrder];
         outputNameMapInv[indexMap[newOrder]].push_back(newName);
         orderToName.push_back(newName);
+        outputPort.insert(newName);
         outputNum++;
         if(indexMap[newOrder] == 0){
             if(invMap[newOrder]){
@@ -636,6 +654,7 @@ void AIG::addFloatInput(const vector<string>& name) {
     }
     for(const auto & i : name){
         int newIdx = ++MAXIndex;
+        inputPort.insert(i);
         nameMap[i] = newIdx;
         inputNameMapInv[newIdx] = i;
         indexMap[inputNum] = newIdx; // AIG input order to AIG Node index
@@ -701,6 +720,7 @@ void AIG::copyOutput(const string &origin, const string &newName, const bool neg
     }
 #endif
     int originalIdx = nameMap[origin];
+    outputPort.insert(newName);
     nameMap[newName] = originalIdx;
     indexMap.push_back(originalIdx);
     int newOrder = indexMap.size() - 1;
@@ -845,6 +865,7 @@ void AIG::setConstant(const string &origin, int val) {
     outputIndexMapInv[idx].clear();
     vector<string> ve;
     ve.emplace_back(origin);
+    inputPort.erase(origin);
     erasePort(ve);
     selfTest();
 }
@@ -1107,8 +1128,6 @@ void AIG::optimize() {
                  cirName + to_string(i) + ".aig;";
         exeAbcCmd(abcCmd, "AIG");
     }
-    static string resyn3 = "balance; resub; resub -K 6; balance; resub -z; resub -z -K 6; balance; resub -z -K 5; balance;";
-    static string resyn2 = "balance; rewrite; refactor; balance; rewrite ; rewrite -z ; balance; refactor -z; rewrite -z ;balance;";
     for(int i = 0 ; i < outputNum ; i++){
         int lastNum = INT32_MAX, repeat = 0;
         exeAbcCmd("read_aiger " + folderPath + cirName + to_string(i) + ".aig;", "AIG");

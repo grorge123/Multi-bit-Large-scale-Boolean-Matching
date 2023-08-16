@@ -51,3 +51,31 @@
         }
     }
 #endif
+
+//bus conflict
+#ifdef DBG
+                unordered_map<int ,int> cir1InputBusMatch, cir2InputBusMatch;
+                auto busConflict = [&](const MP& mp) -> bool{
+                    bool conflict = false;
+                    if(cir1BusMapping.find(mp.first) == cir1BusMapping.end() || cir2BusMapping.find(mp.second) == cir2BusMapping.end())return conflict;
+                    if(cir1InputBusMatch.find(cir1BusMapping[mp.first]) != cir2InputBusMatch.end()){
+                        if(cir1InputBusMatch[cir1BusMapping[mp.first]] != cir2BusMapping[mp.second]) conflict = true;
+                    }
+                    if(cir2InputBusMatch.find(cir2BusMapping[mp.second]) != cir2InputBusMatch.end()){
+                        if(cir2InputBusMatch[cir2BusMapping[mp.second]] != cir1BusMapping[mp.first]) conflict = true;
+                    }
+                    return conflict;
+                };
+                bool conflict = false;
+                for (const auto &pair: mapping) {
+                    if(busConflict(pair)){
+                        conflict = true;
+                    }else{
+                        if(cir1BusMapping.find(pair.first) != cir1BusMapping.end() && cir2BusMapping.find(pair.second) != cir2BusMapping.end()){
+                            cir1InputBusMatch[cir1BusMapping[pair.first]] = cir2BusMapping[pair.second];
+                            cir2InputBusMatch[cir2BusMapping[pair.second]] = cir1BusMapping[pair.first];
+                        }
+                    }
+                }
+                cout << "Bus conflict:" << conflict << endl;
+#endif
