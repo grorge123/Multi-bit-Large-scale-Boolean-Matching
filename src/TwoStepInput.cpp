@@ -496,7 +496,7 @@ vector<MP> TwoStep::inputSolver(vector<MP> &R, bool outputProjection) {
     auto cir2BusMatch = std::move(cir2BusPair.first);
     auto cir2BusCapacity = std::move(cir2BusPair.second);
     int lastMaxIdx = mappingSpace.maxIdx;
-    if(enableBus){
+    if(enableInputBus){
 
         mappingSpace.maxIdx += static_cast<int>(cir1BusMatch.size() * cir2BusMatch.size());
         generateBusClause(mappingSpace, cir1Reduce, cir2Reduce, cir1BusMatch, cir2BusMatch, lastMaxIdx,
@@ -512,7 +512,6 @@ vector<MP> TwoStep::inputSolver(vector<MP> &R, bool outputProjection) {
         }
         return {};
     }
-//    cout << mappingSpace.getRaw() << endl;
     while (true) {
         startStatistic("solveMapping");
         mapping = solveMapping(mappingSpace, cir1Reduce, cir2Reduce, baseLength);
@@ -581,7 +580,7 @@ vector<MP> TwoStep::inputSolver(vector<MP> &R, bool outputProjection) {
 pair<pair<vector<int>, unordered_map<int, int>>, pair<vector<int>, unordered_map<int, int>>>
 TwoStep::generateBusMatchVector(AIG &cir1, AIG &cir2) {
     unordered_map<int, int> cir1BusCapacity, cir2BusCapacity;
-    if(enableBus){
+    if(enableInputBus){
         for(int i = 0 ; i < cir1.getInputNum() ; i++){
             if(cir1BusMapping.find(cir1.fromOrderToName(i)) == cir1BusMapping.end())continue;
             int busIdx = cir1BusMapping[cir1.fromOrderToName(i)];

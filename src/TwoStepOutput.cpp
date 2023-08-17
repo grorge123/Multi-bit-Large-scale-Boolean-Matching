@@ -45,7 +45,7 @@ MP TwoStep::outputSolver(bool projection, vector<MP> &R) {
             }
         }
 
-        if(enableBus){
+        if(enableOutputBus){
             for(int i = 0 ; i < static_cast<int>(cir2Output.size()) ; i++){
                 for(int q = 0 ; q < static_cast<int>(cir1Output.size() * 2) ; q += 2){
                     bool cir1InBus = (cir1BusMapping.find(cir1Output[q/2]) != cir1BusMapping.end());
@@ -121,7 +121,7 @@ MP TwoStep::outputSolver(bool projection, vector<MP> &R) {
                     if(initVe[i][q]){
                         MP re = MP(cir1Output[q / 2] + (q % 2 == 0 ? "" : "\'"), cir2Output[i]);
                         if(nowSelect.find(re) != nowSelect.end())continue;
-                        if(enableBus){
+                        if(enableOutputBus){
                             if(busConflict(re))continue;
                         }
                         nowSelect.insert(re);
@@ -142,7 +142,7 @@ MP TwoStep::outputSolver(bool projection, vector<MP> &R) {
                         return re;
                     }
                 }
-                if(cir2Choose[i] == -1)return {};
+//                if(cir2Choose[i] == -1)return {};
             }
         }
         return {};

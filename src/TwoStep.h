@@ -44,7 +44,8 @@ class TwoStep {
     int iteratorCounter = 0;
     int lastTime = 0;
     int verbose = 0;
-    bool enableBus = true;
+    bool enableOutputBus = true;
+    bool enableInputBus = true;
 
     static int nowMs();
     vector<int> generateOutputGroups(vector<string> &f, vector<string> &g);
@@ -95,9 +96,9 @@ public:
     TwoStep()= default;
     TwoStep(const InputStructure& input, string outputFilePath) : outputFilePath(std::move(outputFilePath)){
         cir1 = AIG(input.cir1AIGPath, "!");
-//        cir1.optimize();
+        cir1.optimize();
         cir2 = AIG(input.cir2AIGPath, "@");
-//        cir2.optimize();
+        cir2.optimize();
         allOutputNumber = (cir2.getOutputNum() + cir1.getOutputNum());
         for(auto &bus: input.cir1Bus){
             if(cir1.isInput("!" + bus[0])){

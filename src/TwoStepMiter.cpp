@@ -301,7 +301,7 @@ void TwoStep::reduceSpace(CNF &mappingSpace, const int baseLength, AIG &cir1, AI
 //        for(auto i : clause){
 //            cout << i << " ";
 //        }
-//        cout << endl;
+//        cout << 0 << endl;
         clauseSet.insert({recordVe.size(), clause});
         recordVe.push_back(record);
     }
@@ -431,7 +431,30 @@ void TwoStep::tsDebug(string msg, AIG cir1, AIG cir2) {
     int baseLength = (cir1.getInputNum() + 1) * 2;
     for(int i = 0 ; i < cir2.getInputNum() ; i++){
         for(int q = 0 ; q < cir1.getInputNum() ; q++){
-            cout << cir2.fromOrderToName(i) << " " << cir1.fromOrderToName(q) << " " << (i * baseLength + q * 2 + 1) << endl;
+            // case 6
+//            if(cir1.fromOrderToName(q) == "!n454" && cir2.fromOrderToName(i) == "@n5")cout << cir1.fromOrderToName(q) << " " << cir2.fromOrderToName(i) << " " << (i * baseLength + q * 2 + 1) << endl;
+//            if(cir1.fromOrderToName(q) == "!n85" && cir2.fromOrderToName(i) == "@n106")cout << cir1.fromOrderToName(q) << " " << cir2.fromOrderToName(i) << " " << (i * baseLength + q * 2 + 1) << endl;
+//            if(cir1.fromOrderToName(q) == "!n280" && cir2.fromOrderToName(i) == "@n111")cout << cir1.fromOrderToName(q) << " " << cir2.fromOrderToName(i) << " " << (i * baseLength + q * 2 + 1) << endl;
+//            if(cir1.fromOrderToName(q) == "!n582" && cir2.fromOrderToName(i) == "@n117")cout << cir1.fromOrderToName(q) << " " << cir2.fromOrderToName(i) << " " << (i * baseLength + q * 2 + 1) << endl;
+//            if(cir1.fromOrderToName(q) == "!n659" && cir2.fromOrderToName(i) == "@n157")cout << cir1.fromOrderToName(q) << " " << cir2.fromOrderToName(i) << " " << (i * baseLength + q * 2 + 1) << endl;
+//            if(cir1.fromOrderToName(q) == "!n159" && cir2.fromOrderToName(i) == "@n249")cout << cir1.fromOrderToName(q) << " " << cir2.fromOrderToName(i) << " " << (i * baseLength + q * 2 + 1) << endl;
+//            if(cir1.fromOrderToName(q) == "!n664" && cir2.fromOrderToName(i) == "@n289")cout << cir1.fromOrderToName(q) << " " << cir2.fromOrderToName(i) << " " << (i * baseLength + q * 2 + 1) << endl;
+//            if(cir1.fromOrderToName(q) == "!n349" && cir2.fromOrderToName(i) == "@n300")cout << cir1.fromOrderToName(q) << " " << cir2.fromOrderToName(i) << " " << (i * baseLength + q * 2 + 1) << endl;
+//            if(cir1.fromOrderToName(q) == "!n511" && cir2.fromOrderToName(i) == "@n303")cout << cir1.fromOrderToName(q) << " " << cir2.fromOrderToName(i) << " " << (i * baseLength + q * 2 + 1) << endl;
+//            if(cir1.fromOrderToName(q) == "!n428" && cir2.fromOrderToName(i) == "@n365")cout << cir1.fromOrderToName(q) << " " << cir2.fromOrderToName(i) << " " << (i * baseLength + q * 2 + 1) << endl;
+//            if(cir1.fromOrderToName(q) == "!n93" && cir2.fromOrderToName(i) == "@n393")cout << cir1.fromOrderToName(q) << " " << cir2.fromOrderToName(i) << " " << (i * baseLength + q * 2 + 1) << endl;
+//            if(cir1.fromOrderToName(q) == "!n206" && cir2.fromOrderToName(i) == "@n403")cout << cir1.fromOrderToName(q) << " " << cir2.fromOrderToName(i) << " " << (i * baseLength + q * 2 + 1) << endl;
+//            if(cir1.fromOrderToName(q) == "!n96" && cir2.fromOrderToName(i) == "@n409")cout << cir1.fromOrderToName(q) << " " << cir2.fromOrderToName(i) << " " << (i * baseLength + q * 2 + 1) << endl;
+//            if(cir1.fromOrderToName(q) == "!n2" && cir2.fromOrderToName(i) == "@n439")cout << cir1.fromOrderToName(q) << " " << cir2.fromOrderToName(i) << " " << (i * baseLength + q * 2 + 1) << endl;
+//            if(cir1.fromOrderToName(q) == "!n525" && cir2.fromOrderToName(i) == "@n511")cout << cir1.fromOrderToName(q) << " " << cir2.fromOrderToName(i) << " " << (i * baseLength + q * 2 + 1) << endl;
+//            if(cir1.fromOrderToName(q) == "!n368" && cir2.fromOrderToName(i) == "@n537")cout << cir1.fromOrderToName(q) << " " << cir2.fromOrderToName(i) << " " << (i * baseLength + q * 2 + 1) << endl;
+//            if(cir1.fromOrderToName(q) == "!n46" && cir2.fromOrderToName(i) == "@n593")cout << cir1.fromOrderToName(q) << " " << cir2.fromOrderToName(i) << " " << (i * baseLength + q * 2 + 1) << endl;
+//            if(cir1.fromOrderToName(q) == "!n600" && cir2.fromOrderToName(i) == "@n606")cout << cir1.fromOrderToName(q) << " " << cir2.fromOrderToName(i) << " " << (i * baseLength + q * 2 + 1) << endl;
+//            if(cir1.fromOrderToName(q) == "!n287" && cir2.fromOrderToName(i) == "@n642")cout << cir1.fromOrderToName(q) << " " << cir2.fromOrderToName(i) << " " << (i * baseLength + q * 2 + 1) << endl;
+//            if(cir1.fromOrderToName(q) == "!n266" && cir2.fromOrderToName(i) == "@n656")cout << cir1.fromOrderToName(q) << " " << cir2.fromOrderToName(i) << " " << (i * baseLength + q * 2 + 1) << endl;
+//            if(cir1.fromOrderToName(q) == "!n511" && cir2.fromOrderToName(i) == "@n671")cout << cir1.fromOrderToName(q) << " " << cir2.fromOrderToName(i) << " " << (i * baseLength + q * 2 + 1) << endl;
+//            if(cir1.fromOrderToName(q) == "!n673" && cir2.fromOrderToName(i) == "@n684")cout << cir1.fromOrderToName(q) << " " << cir2.fromOrderToName(i) << " " << (i * baseLength + q * 2 + 1) << endl;
+//            if(cir1.fromOrderToName(q) == "!n13" && cir2.fromOrderToName(i) == "@n742")cout << cir1.fromOrderToName(q) << " " << cir2.fromOrderToName(i) << " " << (i * baseLength + q * 2 + 1) << endl;
         }
     }
 }
@@ -440,7 +463,14 @@ void TwoStep::tsDebug(const vector<int> &cir1BusMatch, const vector<int> &cir2Bu
     cout << "BusMatchClause:" << endl;
     for(int i = 0 ; i < static_cast<int>(cir1BusMatch.size()) ; i++){
         for(int q = 0 ; q < static_cast<int>(cir2BusMatch.size()) ; q++ ){
-            cout << cir1BusMatch[i] << " " << cir2BusMatch[q] << " " << (lastMaxIdx + busBaseLength * q + i + 1) << endl;
+//            if(cir1BusMatch[i] == 0 && cir2BusMatch[q] == 7)cout << cir1BusMatch[i] << " " << cir2BusMatch[q] << " " << (lastMaxIdx + busBaseLength * q + i + 1) << endl;
+//            if(cir1BusMatch[i] == 4 && cir2BusMatch[q] == 8)cout << cir1BusMatch[i] << " " << cir2BusMatch[q] << " " << (lastMaxIdx + busBaseLength * q + i + 1) << endl;
+//            if(cir1BusMatch[i] == 5 && cir2BusMatch[q] == 6)cout << cir1BusMatch[i] << " " << cir2BusMatch[q] << " " << (lastMaxIdx + busBaseLength * q + i + 1) << endl;
+//            if(cir1BusMatch[i] == 7 && cir2BusMatch[q] == 0)cout << cir1BusMatch[i] << " " << cir2BusMatch[q] << " " << (lastMaxIdx + busBaseLength * q + i + 1) << endl;
+//            if(cir1BusMatch[i] == 2 && cir2BusMatch[q] == 3)cout << cir1BusMatch[i] << " " << cir2BusMatch[q] << " " << (lastMaxIdx + busBaseLength * q + i + 1) << endl;
+//            if(cir1BusMatch[i] == 3 && cir2BusMatch[q] == 2)cout << cir1BusMatch[i] << " " << cir2BusMatch[q] << " " << (lastMaxIdx + busBaseLength * q + i + 1) << endl;
+//            if(cir1BusMatch[i] == 1 && cir2BusMatch[q] == 1)cout << cir1BusMatch[i] << " " << cir2BusMatch[q] << " " << (lastMaxIdx + busBaseLength * q + i + 1) << endl;
+//            if(cir1BusMatch[i] == 8 && cir2BusMatch[q] == 5)cout << cir1BusMatch[i] << " " << cir2BusMatch[q] << " " << (lastMaxIdx + busBaseLength * q + i + 1) << endl;
         }
     }
 }
