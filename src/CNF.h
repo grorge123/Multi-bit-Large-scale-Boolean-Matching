@@ -12,6 +12,7 @@
 #include <map>
 #include "AIG.h"
 #include "cadical.hpp"
+#include "unordered_map"
 using namespace std;
 class CNF {
     CaDiCaL::Solver *solver = new CaDiCaL::Solver();
@@ -19,14 +20,12 @@ class CNF {
     int lastClauses = 0;
     list<vector<int> > clauses;
 public:
+    int getLastClauses() const;
     const list <vector<int>> &getClauses() const;
     vector<bool> satisfiedInput;
     bool satisfiable = false;
     vector<int> inv;
-    map<string, int> varMap;
-#ifdef DBG
-    set<string> DC;
-#endif
+    unordered_map<string, int> varMap;
     int maxIdx = 0;
     CNF()= default;
     CNF(const CNF& other) {
@@ -38,17 +37,12 @@ public:
         satisfiable = other.satisfiable;
         inv = other.inv;
         varMap = other.varMap;
-#ifdef DBG
-        DC = other.DC;
-#endif
         maxIdx = other.maxIdx;
         solver = new CaDiCaL::Solver();
     }
-
     // Assignment operator
     CNF& operator=(const CNF& other) {
         if (this != &other) {
-            delete solver;
             change = 2;
             lastClauses = 0;
             clauses = other.clauses;
@@ -56,10 +50,8 @@ public:
             satisfiable = other.satisfiable;
             inv = other.inv;
             varMap = other.varMap;
-#ifdef DBG
-            DC = other.DC;
-#endif
             maxIdx = other.maxIdx;
+            delete solver;
             solver = new CaDiCaL::Solver();
         }
         return *this;
@@ -67,8 +59,8 @@ public:
     ~CNF() {
         delete solver;
     }
-    explicit CNF(string inputPath){
-        readFromFile(std::move(inputPath));
+    explicit CNF(const string& inputPath){
+        readFromFile(inputPath);
     }
     explicit CNF(AIG aig){
         readFromAIG(aig);
@@ -79,7 +71,6 @@ public:
     void readFromFile(const string& inputPath);
     void combine(const CNF &a);
     const vector<int> &getClause(list<vector<int>>::iterator it);
-    bool isDC(const string &name);
     void addAssume(int lit);
     string getRaw();
     void copy(CNF &other); // copy this to other

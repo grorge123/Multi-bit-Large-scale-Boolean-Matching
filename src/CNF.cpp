@@ -20,11 +20,7 @@ void CNF::readFromAIG(AIG &aig) {
     ifstream ifs;
     ifs.open(fileName + ".cnf");
     string input;
-#ifdef DBG
-    for(int i = 0 ; i < aig.getInputNum() + aig.getOutputNum() ; i++){
-        DC.insert(aig.fromOrderToName(i));
-    }
-#endif
+
     inv.resize(maxIdx);
     while (getline(ifs, input)){
         if(input[0] != 'c')break;
@@ -33,31 +29,15 @@ void CNF::readFromAIG(AIG &aig) {
         ss << input;
         ss >> input;
         int aigIdx = -1, cnfIdx = -1;
-        ss >> aigIdx >> input >> cnfIdx;
-#ifdef DBG
-            if(aigIdx % 2 != 0){
-                cout << "[CNF] Break aigIdx not negative assume" << endl;
-                exit(1);
-            }
-#endif
+        string nodeName;
+        ss >> nodeName >> aigIdx >> input >> cnfIdx;
         aigIdx /= 2;
-        if(aig.isInput(aigIdx)){
-            int order = aig.inputFromIndexToOrder(aigIdx);
+        if(nodeName != "NaN"){
+            int order = aig.fromNameToOrder(nodeName);
             if(aig.portIsNegative(order)){
                 inv[cnfIdx];
             }
-#ifdef DBG
-            DC.erase(aig.inputFromIndexToName(aigIdx));
-#endif
-            varMap.insert(pair<string, int> (aig.inputFromIndexToName(aigIdx), cnfIdx));
-        }
-        if(aig.isOutput(aigIdx)){
-            for(const auto& name : aig.outputFromIndexToName(aigIdx)){
-#ifdef DBG
-                DC.erase(name);
-#endif
-    //            varMap.insert(pair<string, int> (name, cnfIdx));
-            }
+            varMap.insert(pair<string, int> (nodeName, cnfIdx));
         }
     }
     ifs.close();
@@ -161,7 +141,7 @@ bool CNF::solve() {
         lastClauses = 0;
     }
     int setCnt = static_cast<int>(clauses.size()) - lastClauses;
-    startStatistic("addCNF");
+    startStatistic("addClause");
     for(auto it = clauses.rbegin() ; it != clauses.rend() ; ++it){
         for(int number: *it){
             solver->add(number);
@@ -170,7 +150,7 @@ bool CNF::solve() {
         --setCnt;
         if(!setCnt)break;
     }
-    stopStatistic("addCNF");
+    stopStatistic("addClause");
     startStatistic("CNF_optimize");
     solver->optimize(9);
     stopStatistic("CNF_optimize");
@@ -188,22 +168,13 @@ bool CNF::solve() {
     } else {
         cout << "[CNF] Error: The solver was unable to determine satisfiability." << endl;
     }
-    change = 0;
+    if(change == 3){
+        change = 1;
+    }else{
+        change = 0;
+    }
     lastClauses = static_cast<int>(clauses.size());
     return satisfiable;
-}
-
-bool CNF::isDC(const string &name) {
-#ifdef DBG
-    bool reIsDC = (DC.find(name) != DC.end());
-    if(reIsDC != (varMap.find(name) == varMap.end())){
-        cout << "[CNF] Error: DC determine error." << endl;
-        exit(1);
-    }
-    return reIsDC;
-#else
-    return varMap.find(name) == varMap.end();
-#endif
 }
 
 list<vector<int>>::iterator CNF::addClause(const vector<int> &clause) {
@@ -228,7 +199,12 @@ const vector<int> &CNF::getClause(list<vector<int>>::iterator it) {
 }
 
 void CNF::addAssume(int lit) {
+    if(change != 2){
+        change = 3;
+    }
+    startStatistic("addAssume");
     solver->assume(lit);
+    startStatistic("addAssume");
 }
 
 void CNF::copy(CNF &other) {
@@ -239,9 +215,10 @@ void CNF::copy(CNF &other) {
     other.satisfiedInput = satisfiedInput;
     other.inv = inv;
     other.varMap = varMap;
-#ifdef DBG
-    other.DC = DC;
-#endif
     other.maxIdx = maxIdx;
     solver->copy(*other.solver);
+}
+
+int CNF::getLastClauses() const {
+    return max(lastClauses, static_cast<int>(clauses.size()));
 }
