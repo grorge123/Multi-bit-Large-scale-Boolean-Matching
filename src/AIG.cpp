@@ -10,6 +10,8 @@
 #include <sstream>
 #include <queue>
 #include <unordered_set>
+#include <filesystem>
+
 
 void AIG::parseRaw() {
     stringstream ss;
@@ -62,7 +64,7 @@ void AIG::parseRaw() {
         }else{
             break;
         }
-        string portName = cirName + b;
+        string portName = (b[0] != cirName[0] ? cirName + b : b);
         nameMap[portName] = indexMap[order];
         if(order < inputNum){
             inputNameMapInv[indexMap[order]] = portName;
@@ -860,6 +862,36 @@ void AIG::writeToAIGFile(const string &fileName) {
     aiger_reset(aig);
 }
 
+void AIG::readFromAIGFile(const string &fileName) {
+    aiger *input = aiger_init();
+    const char *err_msg = aiger_open_and_read_from_file(input, fileName.c_str());
+#ifdef DBG
+    if(err_msg != nullptr){
+        cout << "[AIG]ERROR: " << err_msg << endl;
+        exit(1);
+    }
+#endif
+    ifstream ifs;
+    ifs.open (fileName.c_str(), ios::binary );
+    ifs.seekg (0, ios::end);
+    int length = ifs.tellg();
+    length = length * 8 + 1000;
+    char* tmp = (char*)malloc(sizeof(char ) * length);
+    aiger_mode mode = aiger_ascii_mode;
+    int err = aiger_write_to_string(input, mode, tmp, length);
+#ifdef DBG
+    if(err != 1){
+        cout << "[AIG]ERROR: AIG write error" << endl;
+        exit(1);
+    }
+#endif
+    raw = tmp;
+    free(tmp);
+    ifs.close();
+    aiger_reset(input);
+    parseRaw();
+}
+
 bool AIG::portIsNegative(int order) {
     return invMap[order];
 }
@@ -951,6 +983,71 @@ vector<vector<string> > AIG::getHardSym() {
         // TODO not implement
     };
     return vector<vector<string>>();
+}
+
+void AIG::optimize() {
+    cout << "start optimize AIG: " << MAXIndex << " " << andNum << endl;
+    startStatistic("optimizeAIG");
+    const string folderPath = "./optimizeAIG/";
+    if (!filesystem::exists(folderPath)) {
+        try {
+            filesystem::create_directory(folderPath);
+        } catch (const std::exception& e) {
+            cout << "[AIG] Error creating folder: " << e.what() << std::endl;
+#ifdef DBG
+            exit(1);
+#endif
+        }
+    }
+    const string origin = cirName + "origin.aig";
+    const string final = cirName + "final.aig";
+    Abc_Ntk_t * pNtk = Abc_FrameReadNtk(pAbc);
+    writeToAIGFile(folderPath + origin);
+    for(int i = 0 ; i < outputNum ; i++){
+        string abcCmd = "read_aiger " + folderPath + origin + "; cone -O " + to_string(i) + "; write_aiger -s " + folderPath +
+                        cirName + to_string(i) + ".aig;";
+        exeAbcCmd(abcCmd, "AIG");
+    }
+    for(int i = 0 ; i < outputNum ; i++){
+        int lastNum = INT32_MAX, repeat = 0;
+        exeAbcCmd("read_aiger " + folderPath + cirName + to_string(i) + ".aig;", "AIG");
+        while (repeat < 2){
+            string abcCmd = resyn3;
+            exeAbcCmd(abcCmd, "AIG");
+            if(lastNum > pNtk->nObjCounts[7]){
+                lastNum = pNtk->nObjCounts[7];
+                repeat = 0;
+            }else{
+                repeat++;
+            }
+        }
+        exeAbcCmd("write_aiger -s " + folderPath + cirName + to_string(i) + ".aig;", "AIG");
+    }
+    exeAbcCmd("read_aiger " + folderPath + cirName + "0" + ".aig;", "AIG");
+    for(int i = 1 ; i < outputNum ; i++){
+        exeAbcCmd("append " + folderPath + cirName + to_string(i) + ".aig;", "AIG");
+    }
+    exeAbcCmd("write_aiger -s " + folderPath + final, "AIG");
+    if(!exeAbcCmd("cec " + folderPath + origin, "AIG", "Networks are equivalent")){
+#ifdef DBG
+        cout << "[AIG] Error optimize ntk not equal." << endl;
+        exit(1);
+#endif
+    }else{
+        tree.clear();
+        nameMap.clear();
+        inputNameMapInv.clear();
+        outputNameMapInv.clear();
+        indexMap.clear();
+        inputIndexMapInv.clear();
+        outputIndexMapInv.clear();
+        orderToName.clear();
+        invMap.clear();
+        modifyAIG();
+        readFromAIGFile(folderPath + final);
+    }
+    stopStatistic("optimizeAIG");
+    cout << "end optimize AIG: " << MAXIndex << " " << andNum << endl;
 }
 
 void solveMiter(AIG &cir1, AIG &cir2, CNF &miter, AIG &miterAIG) {

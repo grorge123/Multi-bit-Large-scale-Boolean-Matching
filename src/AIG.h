@@ -8,6 +8,8 @@
 #include "satsolver.h"
 #include <cstring>
 #include <map>
+#include <unordered_map>
+#include <unordered_set>
 #include <set>
 #include <iostream>
 #include <utility>
@@ -113,10 +115,12 @@ public:
     void exportInput(const string &from, const string &to, bool negative);
     void setConstant(const string &origin, int val);
     void writeToAIGFile(const string &fileName);
+    void readFromAIGFile(const string &fileName);
     void modifyAIG();
     void Debug();
     void selfTest();
     void calSymmetry();
+    void optimize();
     vector<vector<string> > getHardSym();
 };
 

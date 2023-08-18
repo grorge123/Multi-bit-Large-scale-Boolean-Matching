@@ -12,7 +12,6 @@
 #include <map>
 #include "AIG.h"
 #include "cadical.hpp"
-#include "unordered_map"
 using namespace std;
 class CNF {
     CaDiCaL::Solver *solver = new CaDiCaL::Solver();

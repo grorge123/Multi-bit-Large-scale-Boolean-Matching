@@ -131,6 +131,7 @@ int compareVectors(const std::vector<T>& vector1, const std::vector<T>& vector2)
 
     return 0;       // 兩個向量相等
 }
+bool exeAbcCmd(const string &abcCmd, const string &fromFun, const string& keyword = "");
 extern Abc_Frame_t * pAbc;
 static string resyn3 = "balance; resub; resub -K 6; balance; resub -z; resub -z -K 6; balance; resub -z -K 5; balance;";
 static string resyn2 = "balance; rewrite; refactor; balance; rewrite ; rewrite -z ; balance; refactor -z; rewrite -z ;balance;";
