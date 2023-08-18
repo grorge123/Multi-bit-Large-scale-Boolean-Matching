@@ -50,7 +50,9 @@ class TwoStep {
     MP outputSolver(bool projection, vector<MP> &R);
     void outputSolverPop();
     int recordOutput(const vector<MP> &inputMatch, const vector<MP> &R);
+public:
     vector<MP> inputSolver(vector<MP> &R, bool outputProjection);
+private:
     bool generateClause(CNF &mappingSpace, AIG &cir1Reduce, AIG &cir2Reduce, const vector<MP> &R,
                         bool outputProjection);
     void generateBusClause(CNF &mappingSpace, AIG &cir1Reduce, AIG &cir2Reduce, const vector<int> &cir1BusMatch,
@@ -92,9 +94,9 @@ public:
     TwoStep()= default;
     TwoStep(const InputStructure& input, string outputFilePath) : outputFilePath(std::move(outputFilePath)){
         cir1 = AIG(input.cir1AIGPath, "!");
-        cir1.optimize();
+//        cir1.optimize();
         cir2 = AIG(input.cir2AIGPath, "@");
-        cir2.optimize();
+//        cir2.optimize();
         allOutputNumber = (cir2.getOutputNum() + cir1.getOutputNum());
         for(auto &bus: input.cir1Bus){
             if(cir1.isInput(cir1.fromNameToIndex("!" + bus[0]))){

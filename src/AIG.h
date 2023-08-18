@@ -61,33 +61,7 @@ public:
     string cirName;
     AIG(){};
     AIG(const string &name, string cirName = "") : cirName(std::move(cirName)){
-        aiger *input = aiger_init();
-        const char *err_msg = aiger_open_and_read_from_file(input, name.c_str());
-#ifdef DBG
-        if(err_msg != nullptr){
-            cout << "[AIG]ERROR: " << err_msg << endl;
-            exit(1);
-        }
-#endif
-        ifstream ifs;
-        ifs.open (name.c_str(), ios::binary );
-        ifs.seekg (0, ios::end);
-        int length = ifs.tellg();
-        length = length * 8 + 1000;
-        char* tmp = (char*)malloc(sizeof(char ) * length);
-        aiger_mode mode = aiger_ascii_mode;
-        int err = aiger_write_to_string(input, mode, tmp, length);
-#ifdef DBG
-        if(err != 1){
-            cout << "[AIG]ERROR: AIG write error" << endl;
-            exit(1);
-        }
-#endif
-        raw = tmp;
-        free(tmp);
-        ifs.close();
-        aiger_reset(input);
-        parseRaw();
+        readFromAIGFile(name);
     }
     const string &inputFromIndexToName(int index);
     const vector<string> &outputFromIndexToName(int idx);
@@ -100,9 +74,10 @@ public:
     int fromNameToOrder(string name);
     int getInputNum() const;
     int getOutputNum() const;
+    int getMaxNum() const;
     bool isInput(int idx);
     bool isOutput(int idx);
-    bool portExist(string name);
+    bool portExist(const string& name);
     bool portIsNegative(int order);
     const set<string> & getSupport(const string &name, int supType); // 0: funSuppose 1: abcStrSuppose 2: recurStrSuppose
     vector<bool> generateOutput(vector<bool> input);

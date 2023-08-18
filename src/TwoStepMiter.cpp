@@ -301,7 +301,7 @@ void TwoStep::reduceSpace(CNF &mappingSpace, const int baseLength, AIG &cir1, AI
 //        for(auto i : clause){
 //            cout << i << " ";
 //        }
-//        cout << endl;
+//        cout << 0 << endl;
         clauseSet.insert({recordVe.size(), clause});
         recordVe.push_back(record);
     }

@@ -302,7 +302,9 @@ const string &AIG::fromOrderToName(int order) {
 int AIG::getOutputNum() const {
     return outputNum;
 }
-
+int AIG::getMaxNum() const {
+    return MAXIndex;
+}
 int AIG::inputFromIndexToOrder(int idx) {
 #ifdef DBG
     if(inputIndexMapInv.find(idx) == inputIndexMapInv.end()){
@@ -460,6 +462,11 @@ void AIG::erasePort(const vector<string>& nameList) {
     exist.resize(tree.size());
     queue<int> existQueue;
     int maxIdx = 0;
+    for(int order = 0 ; order < inputNum ; order++){
+        if(tree[indexMap[order]].exist){
+            maxIdx = max(maxIdx, indexMap[order]);
+        }
+    }
     for(int order = inputNum ; order < inputNum + outputNum ; order++){
         int idx = indexMap[order];
         if(idx != 0){
@@ -536,7 +543,7 @@ int AIG::fromNameToOrder(string name) {
     }
     if(name == "0")return -1;
 #ifdef DBG
-    cout << "[AIG] Error: Cant not from Name(" << name << ") to find Order." << endl;
+    cout << "[AIG] Error: Can not from Name(" << name << ") to find Order." << endl;
     exit(1);
 #endif
 }
@@ -560,7 +567,7 @@ bool AIG::isOutput(int idx) {
     return tree[idx].isOutput;
 }
 
-bool AIG::portExist(string name) {
+bool AIG::portExist(const string& name) {
     return nameMap.find(name) != nameMap.end();
 }
 
@@ -900,6 +907,7 @@ void AIG::modifyAIG() {
     raw = "";
     funSupport.clear();
     strSupport.clear();
+    abcStrSupport.clear();
     posSym.clear();
     negSym.clear();
 }
@@ -1005,7 +1013,7 @@ void AIG::optimize() {
     writeToAIGFile(folderPath + origin);
     for(int i = 0 ; i < outputNum ; i++){
         string abcCmd = "read_aiger " + folderPath + origin + "; cone -O " + to_string(i) + "; write_aiger -s " + folderPath +
-                        cirName + to_string(i) + ".aig;";
+                 cirName + to_string(i) + ".aig;";
         exeAbcCmd(abcCmd, "AIG");
     }
     for(int i = 0 ; i < outputNum ; i++){
@@ -1057,28 +1065,8 @@ void solveMiter(AIG &cir1, AIG &cir2, CNF &miter, AIG &miterAIG) {
     cir2.writeToAIGFile(savePath2);
 
     //TODO optimize abc command
-    string resyn3 = "balance; resub; resub -K 6; balance; resub -z; resub -z -K 6; balance; resub -z -K 5; balance;";
-    string abcCmd = "miter " + savePath1 + " " + savePath2 + ";" + resyn3 + resyn3 + " write_aiger -s miter.aig;";
-    string resultPath = "stdoutOutput.txt";
-    cout.flush();
-    FILE *saveStdout = stdout;
-    stdout = fopen(resultPath.c_str(), "a");
-    if (stdout != NULL) {
-        if (Cmd_CommandExecute(pAbc, abcCmd.c_str())){
-#ifdef DBG
-            cout << "[AIG] ERROR:Cannot execute command \"" << abcCmd << "\".\n";
-            exit(1);
-#endif
-        }
-        fflush(stdout);
-        fclose(stdout);
-        stdout = saveStdout;
-    } else {
-#ifdef DBG
-        cout << "[AIG] ERROR:Can't write file:" << resultPath << endl;
-        exit(1);
-#endif
-    }
+    string abcCmd = "miter " + savePath1 + " " + savePath2 + ";" + simplify + " write_aiger -s miter.aig;";
+    exeAbcCmd(abcCmd, "AIG");
     char miterAIGFileName[]{"miter.aig"};
     char miterCNFFileName[]{"miter.cnf"};
     aigtocnf(miterAIGFileName, miterCNFFileName);

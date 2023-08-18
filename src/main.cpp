@@ -17,11 +17,11 @@ int main (int argc, char *argv[]){
     }
 #endif
     InputStructure input = parseInput(argv[1]);
-    lg = LargeScale(input, argv[2], 1);
-    int lgMatch = lg.start();
-    if(lgMatch == -1){
-        return 0;
-    }
+//    lg = LargeScale(input, argv[2], 1);
+//    int lgMatch = lg.start();
+//    if(lgMatch == -1){
+//        return 0;
+//    }
     ts = TwoStep(input, argv[2]);
     ts.start();
     Abc_Stop();
