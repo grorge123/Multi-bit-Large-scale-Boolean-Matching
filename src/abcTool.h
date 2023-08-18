@@ -256,10 +256,10 @@ public:
     }
     void init(string &path);
     void init(AIG &cir);
-    map<string, set<string> > funSupport();
-    map<string, set<string> > strSupport();
+    unordered_map<string, set<string>> funSupport();
+    unordered_map<string, set<string>> strSupport();
     vector<pair<string, string>> calSymmetryPair(Extra_BitMat_t *pMat, Vec_Int_t *vSupport, Sym_Man_t *p);
-    map<string, vector<pair<string, string> > > calSymmetry();
+    unordered_map<string, vector<pair<string, string>>> calSymmetry();
 };
 #endif //MULTI_BIT_LARGE_SCALE_BOOLEAN_MATCHING_ABCTOOL_H
 

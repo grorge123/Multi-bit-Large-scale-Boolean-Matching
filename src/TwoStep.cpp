@@ -92,6 +92,9 @@ void TwoStep::start() {
             timeout = true;
         }
         iteratorCounter++;
+        if(iteratorCounter == 2){
+            break;
+        }
 //        cout << "iteration: " << iteratorCounter << endl;
     }
     cout << "Final iteration: " << iteratorCounter << endl;
@@ -103,7 +106,7 @@ int TwoStep::nowMs() {
 int recordCounter = 0;
 
 int TwoStep::recordOutput(const vector<MP> &inputMatch, const vector<MP> &R) {
-    map<string, int> nameMap;
+    unordered_map<string, int> nameMap;
     vector<Group> inputGroups, outputGroups;
     vector<string> one, zero;
     int matchOutput = 0;

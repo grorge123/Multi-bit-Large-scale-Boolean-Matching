@@ -523,9 +523,9 @@ vector<MP> TwoStep::inputSolver(vector<MP> &R, bool outputProjection) {
     return {};
 }
 
-pair<pair<vector<int>, map<int, int>>, pair<vector<int>, map<int, int>>>
+pair<pair<vector<int>, unordered_map<int, int>>, pair<vector<int>, unordered_map<int, int>>>
 TwoStep::generateBusMatchVector(AIG &cir1, AIG &cir2) {
-    map<int, int> cir1BusCapacity, cir2BusCapacity;
+    unordered_map<int, int> cir1BusCapacity, cir2BusCapacity;
     if(enableBus){
         for(int i = 0 ; i < cir1.getInputNum() ; i++){
             if(cir1BusMapping.find(cir1.fromOrderToName(i)) == cir1BusMapping.end())continue;
