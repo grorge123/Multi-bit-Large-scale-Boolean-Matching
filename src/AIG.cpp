@@ -1121,7 +1121,6 @@ void AIG::optimize() {
     }
     const string origin = cirName + "origin.aig";
     const string final = cirName + "final.aig";
-    Abc_Ntk_t * pNtk = Abc_FrameReadNtk(pAbc);
     writeToAIGFile(folderPath + origin);
     for(int i = 0 ; i < outputNum ; i++){
         string abcCmd = "read_aiger " + folderPath + origin + "; cone -O " + to_string(i) + "; write_aiger -s " + folderPath +
@@ -1134,6 +1133,7 @@ void AIG::optimize() {
         while (repeat < 2){
             string abcCmd = resyn3;
             exeAbcCmd(abcCmd, "AIG");
+            Abc_Ntk_t * pNtk = Abc_FrameReadNtk(pAbc);
             if(lastNum > pNtk->nObjCounts[7]){
                 lastNum = pNtk->nObjCounts[7];
                 repeat = 0;
@@ -1177,7 +1177,7 @@ void solveMiter(AIG &cir1, AIG &cir2, CNF &miter, AIG &miterAIG) {
     cir2.writeToAIGFile(savePath2);
 
     //TODO optimize abc command
-    string abcCmd = "miter " + savePath1 + " " + savePath2 + ";" + compress2rs + compress2rs + compress2rs + " write_aiger -s miter.aig;";
+    string abcCmd = "miter " + savePath1 + " " + savePath2 + ";" + simplify + " write_aiger -s miter.aig;";
     exeAbcCmd(abcCmd, "AIG");
     char miterAIGFileName[]{"miter.aig"};
     char miterCNFFileName[]{"miter.cnf"};

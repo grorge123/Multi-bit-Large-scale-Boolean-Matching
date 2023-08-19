@@ -81,7 +81,7 @@ void TwoStep::start() {
                 }
             }
 #ifdef INF
-            cout << "Two step matching port number: " << matchOutput << "(" << (float)matchOutput / (float)allOutputNumber * 100 << "%) in " << iteratorCounter << " iterations."<< endl;
+            cout << "Two step matching port number: " << matchOutput << "(" << (float)matchOutput / (float)allOutputNumber * 100 << "%) in " << iteratorCounter << " iterations. time: " << (nowMs() - startMs) / 1000 << endl;
 #endif
             parseOutput(outputFilePath, OutputStructure{inputGroups, outputGroups, one, zero}, matchOutput);
             if( matchOutput == allOutputNumber)optimal = true;
