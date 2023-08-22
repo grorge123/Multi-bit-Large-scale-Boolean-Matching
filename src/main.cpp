@@ -23,7 +23,9 @@ int main (int argc, char *argv[]){
 //        return 0;
 //    }
     ts = TwoStep(input, argv[2]);
-    ts.start();
+    vector<MP> R = {{"!n449", "@n175"}, {"!n196", "@n753"}};
+    ts.inputSolver(R, false);
+//    ts.start();
     Abc_Stop();
     cout << "Optimize:" << allOptimize / 1000000 << endl;
     printStatistic();

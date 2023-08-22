@@ -66,50 +66,50 @@ bool TwoStep::generateClause(CNF &mappingSpace, AIG &cir1Reduce, AIG &cir2Reduce
                 }
             }
         }
-        if(!outputProjection){
-            LargeScale inputLg = LargeScale(cir1Reduce, cir2Reduce);
-            auto eigenValue = inputLg.calculateEigenvalue();
-            for (int i = 0; i < cir1Reduce.getInputNum(); i++) {
-                for (int q = 0; q < cir2Reduce.getInputNum(); q++) {
-                    if (eigenValue[cir1Reduce.fromOrderToName(i)] == eigenValue[cir2Reduce.fromOrderToName(q)])continue;
-                    vector<int> clause;
-                    clause.push_back(-1 * (q * baseLength + 2 * i + 1));
-                    mappingSpace.addClause(clause);
-                    clause.clear();
-                    clause.push_back(-1 * (q * baseLength + 2 * i + 1 + 1));
-                    mappingSpace.addClause(clause);
-                }
-            }
-        }
-//        Output Group Signature Heuristics
-        for (int i = 0; i < cir1Reduce.getInputNum(); i++) {
-            for (int q = 0; q < cir2Reduce.getInputNum(); q++) {
-                bool equal = true;
-                auto cir2Sup = cir2Reduce.getSupport(cir2Reduce.fromOrderToName(q), 1);
-                auto cir1Sup = cir1Reduce.getSupport(cir1Reduce.fromOrderToName(i), 1);
-                for(const auto& supName: cir1Sup){
-                    bool find = false;
-                    for(const auto& pair : R){
-                        auto [gateName, negative] = analysisName(pair.first);
-                        if(cir1.cirName + gateName == supName && cir2Sup.find(pair.second) != cir2Sup.end()){
-                            find = true;
-                            break;
-                        }
-                    }
-                    if(!find){
-                        equal = false;
-                    }
-                }
-                if(equal)continue;
-
-                vector<int> clause;
-                clause.push_back(-1 * (q * baseLength + 2 * i + 1));
-                mappingSpace.addClause(clause);
-                clause.clear();
-                clause.push_back(-1 * (q * baseLength + 2 * i + 1 + 1));
-                mappingSpace.addClause(clause);
-            }
-        }
+//        if(!outputProjection){
+//            LargeScale inputLg = LargeScale(cir1Reduce, cir2Reduce);
+//            auto eigenValue = inputLg.calculateEigenvalue();
+//            for (int i = 0; i < cir1Reduce.getInputNum(); i++) {
+//                for (int q = 0; q < cir2Reduce.getInputNum(); q++) {
+//                    if (eigenValue[cir1Reduce.fromOrderToName(i)] == eigenValue[cir2Reduce.fromOrderToName(q)])continue;
+//                    vector<int> clause;
+//                    clause.push_back(-1 * (q * baseLength + 2 * i + 1));
+//                    mappingSpace.addClause(clause);
+//                    clause.clear();
+//                    clause.push_back(-1 * (q * baseLength + 2 * i + 1 + 1));
+//                    mappingSpace.addClause(clause);
+//                }
+//            }
+//        }
+////        Output Group Signature Heuristics
+//        for (int i = 0; i < cir1Reduce.getInputNum(); i++) {
+//            for (int q = 0; q < cir2Reduce.getInputNum(); q++) {
+//                bool equal = true;
+//                auto cir2Sup = cir2Reduce.getSupport(cir2Reduce.fromOrderToName(q), 1);
+//                auto cir1Sup = cir1Reduce.getSupport(cir1Reduce.fromOrderToName(i), 1);
+//                for(const auto& supName: cir1Sup){
+//                    bool find = false;
+//                    for(const auto& pair : R){
+//                        auto [gateName, negative] = analysisName(pair.first);
+//                        if(cir1.cirName + gateName == supName && cir2Sup.find(pair.second) != cir2Sup.end()){
+//                            find = true;
+//                            break;
+//                        }
+//                    }
+//                    if(!find){
+//                        equal = false;
+//                    }
+//                }
+//                if(equal)continue;
+//
+//                vector<int> clause;
+//                clause.push_back(-1 * (q * baseLength + 2 * i + 1));
+//                mappingSpace.addClause(clause);
+//                clause.clear();
+//                clause.push_back(-1 * (q * baseLength + 2 * i + 1 + 1));
+//                mappingSpace.addClause(clause);
+//            }
+//        }
     }else if(cir1Reduce.getInputNum() < cir2Reduce.getInputNum()){
 //         TODO this have bug in projection
 //        if(!outputProjection){

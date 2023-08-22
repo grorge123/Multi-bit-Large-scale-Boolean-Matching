@@ -27,6 +27,9 @@ class TwoStep {
     vector<int> cir2Choose; // choose which cir1 port
     vector<string> cir1Output, cir2Output;
     unordered_map<string, int> cir1OutputMap, cir2OutputMap;
+    vector<int> cir1OutputMaxSup;
+    vector<int> cir2OutputMaxSup;
+
 //    int lastCir1, lastCir2;
     vector<vector<string>> clauseStack;
     vector<int> clauseNum;
@@ -43,7 +46,7 @@ class TwoStep {
     bool outputSolverInit = false;
     int iteratorCounter = 0;
     int lastTime = 0;
-    int verbose = 0;
+    int verbose = 1;
     bool enableOutputBus = true;
     bool enableInputBus = true;
 
@@ -96,9 +99,9 @@ public:
     TwoStep()= default;
     TwoStep(const InputStructure& input, string outputFilePath) : outputFilePath(std::move(outputFilePath)){
         cir1 = AIG(input.cir1AIGPath, "!");
-        cir1.optimize();
+//        cir1.optimize();
         cir2 = AIG(input.cir2AIGPath, "@");
-        cir2.optimize();
+//        cir2.optimize();
         allOutputNumber = (cir2.getOutputNum() + cir1.getOutputNum());
         for(auto &bus: input.cir1Bus){
             if(cir1.isInput("!" + bus[0])){
@@ -192,6 +195,22 @@ public:
                 cout << name << " ";
             }
             cout << endl;
+        }
+
+        cir1OutputMaxSup.resize(cir1.getOutputNum());
+        cir2OutputMaxSup.resize(cir2.getOutputNum());
+
+        for (int i = 0; i < cir1.getOutputNum(); i++){
+            auto funSup = cir1.getSupport(cir1.fromOrderToName(cir1.getInputNum() + i), 1);
+            for(const auto& sup : funSup){
+                cir1OutputMaxSup[i] = max(cir1OutputMaxSup[i], static_cast<int>(cir1.getSupport(sup, 1).size()));
+            }
+        }
+        for (int i = 0; i < cir2.getOutputNum(); i++){
+            auto funSup = cir2.getSupport(cir2.fromOrderToName(cir2.getInputNum() + i), 1);
+            for(const auto& sup : funSup){
+                cir2OutputMaxSup[i] = max(cir2OutputMaxSup[i], static_cast<int>(cir2.getSupport(sup, 1).size()));
+            }
         }
     }
     void start();

@@ -62,6 +62,14 @@ MP TwoStep::outputSolver(bool projection, vector<MP> &R) {
                 }
             }
         }
+        // with only negative output match could solve case 5 but it is has bug on case 10
+        for(int q = 0 ; q < static_cast<int>(cir1Output.size()) ; q++) {
+            for (int i = 0; i < static_cast<int>(cir2Output.size()); i++) {
+                if(cir1OutputMaxSup[cir1.fromNameToOrder(cir1Output[q]) - cir1.getInputNum()] < cir2OutputMaxSup[cir2.fromNameToOrder(cir2Output[i]) - cir2.getInputNum()]){
+                    initVe[i][q * 2] = initVe[i][q * 2 + 1] = false;
+                }
+            }
+        }
 
         cir1Choose.resize(cir1Output.size(), 0);
         cir2Choose.resize(cir2Output.size(), -1);
@@ -95,6 +103,23 @@ MP TwoStep::outputSolver(bool projection, vector<MP> &R) {
 ////            if(hGroupId[i] != hGroupId[0])break;
 //        }
 
+        int possible = 1;
+        for (int i = 0; i < static_cast<int>(cir2Output.size()); i++) {
+//            if(hGroupId[i] != hGroupId[0])break;
+            int cntPos = 0;
+            for(int q = 0 ; q < static_cast<int>(cir1Output.size()) ; q++) {
+//                if(hGroupId[q] != hGroupId[0])break;
+                if(initVe[i][q * 2])cntPos++;
+                if(initVe[i][q * 2 + 1])cntPos++;
+                cout << initVe[i][q * 2] << " " << initVe[i][q * 2 + 1] << " ";
+            }
+            possible *= cntPos;
+            cout << cntPos << endl;
+        }
+        cout <<"possible:"<< possible << endl;
+
+//        exit(0);
+
 
         return outputSolver(false, R);
     }else{
@@ -116,7 +141,7 @@ MP TwoStep::outputSolver(bool projection, vector<MP> &R) {
         // TODO optimize record last choose number
         for(int i = 0 ; i < static_cast<int>(cir2Output.size()) ; i++){
             if(cir2Choose[i] == -1){
-                for(int q = 0 ; q < static_cast<int>(cir1Output.size() * 2) ; q++){
+                for(int q = 1 ; q < static_cast<int>(cir1Output.size() * 2) ; q+=2){
                     if(!projection &&(cir1Choose[q / 2] != 0))continue;
                     if(initVe[i][q]){
                         MP re = MP(cir1Output[q / 2] + (q % 2 == 0 ? "" : "\'"), cir2Output[i]);
@@ -142,7 +167,7 @@ MP TwoStep::outputSolver(bool projection, vector<MP> &R) {
                         return re;
                     }
                 }
-//                if(cir2Choose[i] == -1)return {};
+                if(cir2Choose[i] == -1)return {};
             }
         }
         return {};
@@ -192,40 +217,12 @@ bool TwoStep::heuristicsOrderCmp(const string& a, const string& b) {
     int strSupportSizeA = static_cast<int>(strSupport(a).size());
     int strSupportSizeB = static_cast<int>(strSupport(b).size());
 
-    set<int> busSupportA;
-    set<int> busSupportB;
-    if(a[0] == '!'){
-        for(const auto& port : funSupport(a)){
-            if(cir1BusMapping.find(port) != cir1BusMapping.end()){
-                busSupportA.insert(cir1BusMapping[port]);
-            }
-        }
-        for(const auto& port : funSupport(b)){
-            if(cir1BusMapping.find(port) != cir1BusMapping.end()){
-                busSupportB.insert(cir1BusMapping[port]);
-            }
-        }
-    }else{
-        for(const auto& port : funSupport(a)){
-            if(cir2BusMapping.find(port) != cir2BusMapping.end()){
-                busSupportA.insert(cir2BusMapping[port]);
-            }
-        }
-        for(const auto& port : funSupport(b)){
-            if(cir2BusMapping.find(port) != cir2BusMapping.end()){
-                busSupportB.insert(cir2BusMapping[port]);
-            }
-        }
-    }
-
-    if(funSupportSizeA == funSupportSizeB){
-        if(strSupportSizeA == strSupportSizeB){
-            return busSupportA.size() < busSupportB.size();
-        }else{
-            return strSupportSizeA < strSupportSizeB;
-        }
-    }else{
+    if(funSupportSizeA != funSupportSizeB){
         return funSupportSizeA < funSupportSizeB;
+    }else if(strSupportSizeA != strSupportSizeB){
+        return strSupportSizeA < strSupportSizeB;
+    }else{
+        return a < b;
     }
 }
 

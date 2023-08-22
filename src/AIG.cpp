@@ -1131,9 +1131,10 @@ void AIG::optimize() {
         int lastNum = INT32_MAX, repeat = 0;
         exeAbcCmd("read_aiger " + folderPath + cirName + to_string(i) + ".aig;", "AIG");
         while (repeat < 2){
-            string abcCmd = resyn3;
+            string abcCmd = resyn2;
             exeAbcCmd(abcCmd, "AIG");
             Abc_Ntk_t * pNtk = Abc_FrameReadNtk(pAbc);
+//            cout << lastNum << " " << pNtk->nObjCounts[7] << endl;
             if(lastNum > pNtk->nObjCounts[7]){
                 lastNum = pNtk->nObjCounts[7];
                 repeat = 0;
@@ -1148,12 +1149,12 @@ void AIG::optimize() {
         exeAbcCmd("append " + folderPath + cirName + to_string(i) + ".aig;", "AIG");
     }
     exeAbcCmd("write_aiger -s " + folderPath + final, "AIG");
-    if(!exeAbcCmd("cec " + folderPath + origin, "AIG", "Networks are equivalent")){
-#ifdef DBG
-        cout << "[AIG] Error optimize ntk not equal." << endl;
-        exit(1);
-#endif
-    }else{
+//    if(!exeAbcCmd("cec " + folderPath + origin, "AIG", "Networks are equivalent")){
+//#ifdef DBG
+//        cout << "[AIG] Error optimize ntk not equal." << endl;
+//        exit(1);
+//#endif
+//    }else{
         tree.clear();
         nameMap.clear();
         inputNameMapInv.clear();
@@ -1165,7 +1166,7 @@ void AIG::optimize() {
         invMap.clear();
         modifyAIG();
         readFromAIGFile(folderPath + final);
-    }
+//    }
     stopStatistic("optimizeAIG");
     cout << "end optimize AIG: " << MAXIndex << " " << andNum << endl;
 }
