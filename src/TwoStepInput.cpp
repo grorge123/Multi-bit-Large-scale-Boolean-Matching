@@ -254,6 +254,7 @@ void TwoStep::generateBusClause(CNF &mappingSpace, AIG &cir1Reduce, AIG &cir2Red
             }
         }
     }
+    cout << "CS0:" << mappingSpace.getClauses().size() << endl;
     // set 1 to 1
     if(cir1BusMatch.size() > cir2BusMatch.size()){
         for(int i = 0 ; i < cir2BMS ; i++){
@@ -293,7 +294,7 @@ void TwoStep::generateBusClause(CNF &mappingSpace, AIG &cir1Reduce, AIG &cir2Red
             }
         }
     }
-
+    cout << "CS1:" << mappingSpace.getClauses().size() << endl;
     // A match B => Bus of A Match Bus of B
     for(int i = 0 ; i < cir2BMS ; i++){
         for(int q = 0 ; q < cir1BMS ; q++){
@@ -311,6 +312,7 @@ void TwoStep::generateBusClause(CNF &mappingSpace, AIG &cir1Reduce, AIG &cir2Red
             }
         }
     }
+    cout << "CS2:" << mappingSpace.getClauses().size() << endl;
     // port of small size bus need to all match other bus
     for(int i = 0 ; i < cir2BMS ; i++) {
         for (int q = 0; q < cir1BMS; q++) {
@@ -341,9 +343,9 @@ void TwoStep::generateBusClause(CNF &mappingSpace, AIG &cir1Reduce, AIG &cir2Red
             }
         }
     }
-//
-    vector<vector<bool>> groupVE(cir2BusMatch.size(), vector<bool>(cir1BusMatch.size(), true));
+    cout << "CS3:" << mappingSpace.getClauses().size() << endl;
     // pruning by output
+    vector<vector<bool>> groupVE(cir2BusMatch.size(), vector<bool>(cir1BusMatch.size(), true));
     for(const auto& pair : R){
         auto [gateName, negation] = analysisName(pair.first);
         auto cir1Sup = cir1.getSupport(cir1.cirName + gateName, 1);
@@ -376,6 +378,7 @@ void TwoStep::generateBusClause(CNF &mappingSpace, AIG &cir1Reduce, AIG &cir2Red
         }
     }
 
+    cout << "CS3:" << mappingSpace.getClauses().size() << endl;
     for(int i = 0 ; i < static_cast<int>(cir1BusMatch.size()) ; i++){
         for(int q = 0 ; q < static_cast<int>(cir2BusMatch.size()) ; q++ ){
             if(cir1BusMatch[i] == 0 && cir2BusMatch[q] == 2)mappingSpace.addClause({lastMaxIdx + busBaseLength * q + i + 1});
@@ -386,9 +389,9 @@ void TwoStep::generateBusClause(CNF &mappingSpace, AIG &cir1Reduce, AIG &cir2Red
             if(cir1BusMatch[i] == 3 && cir2BusMatch[q] == 3)mappingSpace.addClause({lastMaxIdx + busBaseLength * q + i + 1});
             if(cir1BusMatch[i] == 1 && cir2BusMatch[q] == 4)mappingSpace.addClause({lastMaxIdx + busBaseLength * q + i + 1});
             if(cir1BusMatch[i] == 8 && cir2BusMatch[q] == 6)mappingSpace.addClause({lastMaxIdx + busBaseLength * q + i + 1});
+            if(cir1BusMatch[i] == 7 && cir2BusMatch[q] == 7)mappingSpace.addClause({lastMaxIdx + busBaseLength * q + i + 1});
         }
     }
-
 }
 
 vector<MP> TwoStep::inputSolver(vector<MP> &R, bool outputProjection) {
@@ -516,7 +519,6 @@ vector<MP> TwoStep::inputSolver(vector<MP> &R, bool outputProjection) {
         generateBusClause(mappingSpace, cir1Reduce, cir2Reduce, cir1BusMatch, cir2BusMatch, lastMaxIdx,
                           R);
     }
-
     vector<MP> mapping;
     CNF miter = generateMiter(R, cir1Reduce, cir2Reduce);
     // TODO add unsatisfied

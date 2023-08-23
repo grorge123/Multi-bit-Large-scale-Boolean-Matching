@@ -52,8 +52,8 @@ void TwoStep::start() {
         if(nowMs() - startMs > maxRunTime){
             timeout = true;
         }
-        iteratorCounter++;
 //        cout << "iteration: " << iteratorCounter << endl;
+        iteratorCounter++;
     }
     cout << "Final iteration: " << iteratorCounter << " " << optimal << endl;
 }
