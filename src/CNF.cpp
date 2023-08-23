@@ -32,13 +32,12 @@ void CNF::readFromAIG(AIG &aig) {
         string nodeName;
         ss >> nodeName >> aigIdx >> input >> cnfIdx;
         aigIdx /= 2;
-        if(nodeName != "NaN"){
-            int order = aig.fromNameToOrder(nodeName);
-            if(aig.portIsNegative(order)){
-                inv[cnfIdx];
-            }
-            varMap.insert(pair<string, int> (nodeName, cnfIdx));
+        if(cnfIdx == -1 || nodeName == "NaN")continue;
+        int order = aig.fromNameToOrder(nodeName);
+        if(aig.portIsNegative(order)){
+            inv[cnfIdx];
         }
+        varMap.insert(pair<string, int> (nodeName, cnfIdx));
     }
     ifs.close();
 
@@ -95,7 +94,7 @@ void CNF::combine(const CNF &a) {
 #endif
         varMap[mapTable.first] = mapTable.second + maxIdx;
     }
-    for(const auto& clause : clauses){
+    for(const auto& clause : a.clauses){
         vector<int> ve;
         for(auto var : clause){
             int newVar = (abs(var) + maxIdx ) * (var > 0 ? 1 : -1);
@@ -104,6 +103,26 @@ void CNF::combine(const CNF &a) {
         clauses.push_back(ve);
     }
     maxIdx += a.maxIdx;
+}
+
+void CNF::eraseMiter() {
+    if(varMap.find("miter") == varMap.end()){
+        cout << "[CNF] Can not erase miter." << endl;
+        exit(1);
+    }
+    int miterIdx = varMap["miter"];
+    bool erase = false;
+    for(auto it = clauses.begin() ; it != clauses.end() ; it++){
+        if(it->size() == 1 && abs(it->at(0)) == miterIdx){
+            clauses.erase(it);
+            erase = true;
+            break;
+        }
+    }
+    if(!erase){
+        cout << "[CNF] Can not found miter." << endl;
+        exit(0);
+    }
 }
 
 //bool CNF::solve() {
@@ -222,3 +241,4 @@ void CNF::copy(CNF &other) {
 int CNF::getLastClauses() const {
     return max(lastClauses, static_cast<int>(clauses.size()));
 }
+

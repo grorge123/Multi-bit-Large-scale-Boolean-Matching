@@ -254,7 +254,6 @@ void TwoStep::generateBusClause(CNF &mappingSpace, AIG &cir1Reduce, AIG &cir2Red
             }
         }
     }
-    cout << "CS0:" << mappingSpace.getClauses().size() << endl;
     // set 1 to 1
     if(cir1BusMatch.size() > cir2BusMatch.size()){
         for(int i = 0 ; i < cir2BMS ; i++){
@@ -294,7 +293,6 @@ void TwoStep::generateBusClause(CNF &mappingSpace, AIG &cir1Reduce, AIG &cir2Red
             }
         }
     }
-    cout << "CS1:" << mappingSpace.getClauses().size() << endl;
     // A match B => Bus of A Match Bus of B
     for(int i = 0 ; i < cir2BMS ; i++){
         for(int q = 0 ; q < cir1BMS ; q++){
@@ -312,7 +310,6 @@ void TwoStep::generateBusClause(CNF &mappingSpace, AIG &cir1Reduce, AIG &cir2Red
             }
         }
     }
-    cout << "CS2:" << mappingSpace.getClauses().size() << endl;
     // port of small size bus need to all match other bus
     for(int i = 0 ; i < cir2BMS ; i++) {
         for (int q = 0; q < cir1BMS; q++) {
@@ -343,7 +340,6 @@ void TwoStep::generateBusClause(CNF &mappingSpace, AIG &cir1Reduce, AIG &cir2Red
             }
         }
     }
-    cout << "CS3:" << mappingSpace.getClauses().size() << endl;
     // pruning by output
     vector<vector<bool>> groupVE(cir2BusMatch.size(), vector<bool>(cir1BusMatch.size(), true));
     for(const auto& pair : R){
@@ -378,7 +374,6 @@ void TwoStep::generateBusClause(CNF &mappingSpace, AIG &cir1Reduce, AIG &cir2Red
         }
     }
 
-    cout << "CS3:" << mappingSpace.getClauses().size() << endl;
     for(int i = 0 ; i < static_cast<int>(cir1BusMatch.size()) ; i++){
         for(int q = 0 ; q < static_cast<int>(cir2BusMatch.size()) ; q++ ){
             if(cir1BusMatch[i] == 0 && cir2BusMatch[q] == 2)mappingSpace.addClause({lastMaxIdx + busBaseLength * q + i + 1});
@@ -487,6 +482,23 @@ vector<MP> TwoStep::inputSolver(vector<MP> &R, bool outputProjection) {
         return {};
     }
     stopStatistic("generateClause");
+    startStatistic("FindInput");
+    // set bus constraint
+    combineMappingAndMiter(mappingSpace, cir1Reduce, cir2Reduce, R);
+//     set projection
+//    for(int i = 0 ; i < cir2Reduce.getInputNum() ; i++){
+//        for(int q = i + 1 ; q < cir2Reduce.getInputNum() ; q++){
+//#ifdef DBG
+//            if(mappingSpace.varMap.find(cir2Reduce.fromOrderToName(i)) == mappingSpace.varMap.end() || mappingSpace.varMap.find(cir2Reduce.fromOrderToName(q)) == mappingSpace.varMap.end()){
+//                cout << "[TwoStepInput] set projection failed." << endl;
+//                exit(1);
+//            }
+//#endif
+//            mappingSpace.varMap[cir2Reduce.fromOrderToName(i) + "_" + cir2Reduce.fromOrderToName(q)] = ++mappingSpace.maxIdx;
+//            mappingSpace.addClause({-1 * mappingSpace.maxIdx, mappingSpace.varMap[cir2Reduce.fromOrderToName(i)], -1 * mappingSpace.varMap[cir2Reduce.fromOrderToName(q)]});
+//            mappingSpace.addClause({-1 * mappingSpace.maxIdx, -1 * mappingSpace.varMap[cir2Reduce.fromOrderToName(i)], mappingSpace.varMap[cir2Reduce.fromOrderToName(q)]});
+//        }
+//    }
     // recover learning clause
     startStatistic("RecoverClause");
     for (const auto &clauses: clauseStack) {
@@ -504,49 +516,53 @@ vector<MP> TwoStep::inputSolver(vector<MP> &R, bool outputProjection) {
         mappingSpace.addClause(clause);
         clause.clear();
     }
-    stopStatistic("RecoverClause");
-    startStatistic("FindInput");
-    // set bus constraint
+    int lastMaxIdx = mappingSpace.maxIdx;
     auto [cir1BusPair, cir2BusPair]= generateBusMatchVector(cir1Reduce, cir2Reduce);
     auto cir1BusMatch = std::move(cir1BusPair.first);
     auto cir1BusCapacity = std::move(cir1BusPair.second);
     auto cir2BusMatch = std::move(cir2BusPair.first);
     auto cir2BusCapacity = std::move(cir2BusPair.second);
-    int lastMaxIdx = mappingSpace.maxIdx;
     if(enableInputBus){
-
         mappingSpace.maxIdx += static_cast<int>(cir1BusMatch.size() * cir2BusMatch.size());
         generateBusClause(mappingSpace, cir1Reduce, cir2Reduce, cir1BusMatch, cir2BusMatch, lastMaxIdx,
                           R);
     }
-    vector<MP> mapping;
-    CNF miter = generateMiter(R, cir1Reduce, cir2Reduce);
-    // TODO add unsatisfied
-    if(miter.maxIdx == 0){
-        if(verbose){
-            cout << "Can not found possible match." << endl;
-        }
-        return {};
+    cnt++;
+    if(cnt == 2){
+        tsDebug("", cir1Reduce, cir2Reduce);
+        tsDebug(cir1BusMatch, cir2BusMatch, lastMaxIdx);
+//        cout << mappingSpace.getRaw() << endl;
+//        exit(0);
     }
     while (true) {
-        startStatistic("solveMapping");
-        mapping = solveMapping(mappingSpace, cir1Reduce, cir2Reduce, baseLength);
-        stopStatistic("solveMapping");
-        if (mapping.empty()){
-            if(verbose)
-                cout << "No mapping result." << endl;
-            break;
-        }
+        vector<MP> mapping;
         startStatistic("solveMiter");
-        auto counter = solveMiter(mapping, miter, cir1Reduce, cir2Reduce);
+        auto counter = solveAllMiter(mapping, mappingSpace, cir1Reduce, cir2Reduce);
         stopStatistic("solveMiter");
-#ifdef DBG
-        if(((cir1Reduce.getInputNum() + 1) * 2) * cir2Reduce.getInputNum() + cir1BusMatch.size() * cir2BusMatch.size() != mappingSpace.satisfiedInput.size()){
-            cout << "[TwoStep] Error: SAT return wrong input number!" << endl;
-            exit(1);
-        }
-#endif
-        if (counter.first.empty()) {
+        if(!mappingSpace.satisfiable){
+            CNF mappingSpaceCopy = mappingSpace;
+            mappingSpaceCopy.eraseMiter();
+            mappingSpaceCopy.solve();
+            if(!mappingSpaceCopy.satisfiable){
+                if(verbose)
+                    cout << "No mapping result." << endl;
+                break;
+            }
+            for(int i = 0 ; i < cir2Reduce.getInputNum() ; i++){
+                for(int q = 0 ; q < (cir1Reduce.getInputNum() + 1) * 2 ; q++){
+                    if(mappingSpaceCopy.satisfiedInput[i * baseLength + q] > 0){
+                        if(q >= cir1Reduce.getInputNum() * 2){
+                            if(q == cir1Reduce.getInputNum() * 2 ){
+                                mapping.emplace_back( "0",cir2Reduce.fromOrderToName(i));
+                            }else{
+                                mapping.emplace_back( "1",cir2Reduce.fromOrderToName(i));
+                            }
+                        }else{
+                            mapping.emplace_back(cir1Reduce.fromOrderToName(q / 2) + (q % 2 == 0 ? "" : "\'"), cir2Reduce.fromOrderToName(i));
+                        }
+                    }
+                }
+            }
             if (verbose) {
                 cout << "Find Mapping" << endl;
                 for (const auto &pair: mapping) {
@@ -567,7 +583,7 @@ vector<MP> TwoStep::inputSolver(vector<MP> &R, bool outputProjection) {
                 cout << "BUS MATCH:" << endl;
                 for(int i = 0 ; i < static_cast<int>(cir1BusMatch.size()) ; i++){
                     for(int q = 0 ; q < static_cast<int>(cir2BusMatch.size()) ; q++){
-                        if(mappingSpace.satisfiedInput[lastMaxIdx + cir1BusMatch.size() * q + i]){
+                        if(mappingSpaceCopy.satisfiedInput[lastMaxIdx + cir1BusMatch.size() * q + i]){
                             cout << cir1BusMatch[i] << " " << cir2BusMatch[q] << endl;
                         }
                     }

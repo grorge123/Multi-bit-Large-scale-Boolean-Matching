@@ -41,7 +41,7 @@ class TwoStep {
     // input solver
     string mappingSpaceFileName = "TwoStepSolveMapping.cnf";
     // hyper parameter
-    int maxRunTime = 1000 * 3500; // ms
+    int maxRunTime = 1000 * 350000; // ms
 //    int maxRunTime = 1000 * 10; // ms
     bool outputSolverInit = false;
     int iteratorCounter = 0;
@@ -64,8 +64,11 @@ private:
                            const vector<int> &cir2BusMatch, const int lastMaxIdx, const vector<MP> &R);
     static vector<MP> solveMapping(CNF &mappingSpace, AIG &cir1, AIG &cir2, const int baseLength);
     CNF generateMiter(const vector<MP> &outputMatchPair, AIG cir1, AIG cir2);
+    void combineMappingAndMiter(CNF &mappingSpace, AIG cir1, AIG cir2, vector<MP> &R);
     pair<vector<bool>, vector<bool>>
     solveMiter(const vector<MP> &inputMatchPair, CNF originMiter, AIG &cir1, AIG &cir2);
+    pair<vector<bool>, vector<bool>>
+    solveAllMiter(vector<MP> &inputMatchPair, CNF &miter, AIG &cir1, AIG &cir2);
     pair<pair<vector<int>, unordered_map<int, int>>, pair<vector<int>, unordered_map<int, int>>>
     generateBusMatchVector(AIG &cir1, AIG &cir2);
     void reduceSpace(CNF &mappingSpace, const int baseLength, AIG &cir1, AIG &cir2, const vector<MP> &mapping,

@@ -163,12 +163,10 @@ int _aigtocnf (int argc, char **argv){
             m++;
             n++;
         }
-        char **nameMap = (char**)malloc(sizeof(char*) * (2*aiger->maxvar+2));
+        int nonInput = 0;
+        int *litMap = (int*)malloc(sizeof(int) * (2*aiger->maxvar+2));
         for (unsigned int idx = 0; idx < 2*aiger->maxvar+2; idx++) {
-            nameMap[idx] = nullptr;
-        }
-        for(unsigned int idx = 0 ; idx < aiger->num_inputs ; idx++){
-            nameMap[aiger->inputs[idx].lit] = aiger->inputs[idx].name;
+            litMap[idx] = -1;
         }
         for (lit = 2; lit <= 2*aiger->maxvar; lit += 2)
         {
@@ -176,17 +174,24 @@ int _aigtocnf (int argc, char **argv){
             map[lit] = ++m;
             map[lit+1] = -m;
             if (prtmap){
-                if(aiger_lit2tag(aiger,lit) == 1){
-                    fprintf (file, "c %s %d -> %d\n", nameMap[lit], lit, m);
-                }else{
-                    fprintf (file, "c %s %d -> %d\n","NaN", lit, m);
-                }
+                litMap[lit] = m;
+//                if(aiger_lit2tag(aiger,lit) == 1){
+//                    fprintf (file, "c %s %d -> %d\n", nameMap[lit], lit, m);
+//                }else{
+//                    fprintf (file, "c %s %d -> %d\n","NaN", lit, m);
+//                }
             }
             if (lit <= 2*aiger->num_inputs+1) continue;
             if (refs[lit]) n += 2;
             if (refs[lit+1]) n += 1;
         }
-        free(nameMap);
+        for(unsigned int idx = 0 ; idx < aiger->num_inputs ; idx++){
+            fprintf (file, "c %s %d -> %d\n", aiger->inputs[idx].name, aiger->inputs[idx].lit, litMap[aiger->inputs[idx].lit]);
+        }
+        for(unsigned int idx = 0 ; idx < aiger->num_outputs ; idx++){
+            fprintf (file, "c %s %d -> %d\n", aiger->outputs[idx].name, aiger->outputs[idx].lit, litMap[aiger->outputs[idx].lit/2*2]);
+        }
+        free(litMap);
 
         fprintf (file, "p cnf %u %u\n", m, n);
         msg ("p cnf %u %u", m, n);

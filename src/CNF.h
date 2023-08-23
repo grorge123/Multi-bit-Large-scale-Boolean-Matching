@@ -69,6 +69,7 @@ public:
     void readFromAIG(AIG &aig);
     void readFromFile(const string& inputPath);
     void combine(const CNF &a);
+    void eraseMiter();
     const vector<int> &getClause(list<vector<int>>::iterator it);
     void addAssume(int lit);
     string getRaw();

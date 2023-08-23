@@ -152,6 +152,81 @@ TwoStep::solveMiter(const vector<MP> &inputMatchPair, CNF originMiter, AIG &cir1
     }
 }
 
+pair<vector<bool>, vector<bool>> TwoStep::solveAllMiter(vector<MP> &inputMatchPair, CNF &miter, AIG &cir1, AIG &cir2){
+    miter.solve();
+    vector<bool> cir1Input(cir1.getInputNum());
+    vector<bool> cir2Input(cir2.getInputNum());
+    int baseLength = (cir1.getInputNum() + 1) * 2;
+    if(miter.satisfiable){
+        for(int i = 0 ; i < cir2.getInputNum() ; i++){
+            for(int q = 0 ; q < (cir1.getInputNum() + 1) * 2 ; q++){
+                if(miter.satisfiedInput[i * baseLength + q] > 0){
+                    if(q >= cir1.getInputNum() * 2){
+                        if(q == cir1.getInputNum() * 2 ){
+                            inputMatchPair.emplace_back( "0",cir2.fromOrderToName(i));
+                        }else{
+                            inputMatchPair.emplace_back( "1",cir2.fromOrderToName(i));
+                        }
+                    }else{
+                        inputMatchPair.emplace_back(cir1.fromOrderToName(q / 2) + (q % 2 == 0 ? "" : "\'"), cir2.fromOrderToName(i));
+                    }
+                }
+            }
+        }
+        for(int i = 0 ; i < cir1.getInputNum() ; i++){
+            string name = cir1.fromOrderToName(i);
+#ifdef DBG
+            if(miter.varMap.find(name) == miter.varMap.end()){
+                cout << "[TwoStepMiter] Error: miter can not found cir1 after solve." << endl;
+                exit(1);
+            }
+#endif
+            cir1Input[i] = miter.satisfiedInput[miter.varMap[name] - 1];
+        }
+        for(int i = 0 ; i < cir2.getInputNum() ; i++){
+            string name = cir2.fromOrderToName(i);
+#ifdef DBG
+            if(miter.varMap.find(name) == miter.varMap.end()){
+                cout << "[TwoStepMiter] Error: miter can not found cir1 after solve." << endl;
+                exit(1);
+            }
+#endif
+            cir2Input[i] = miter.satisfiedInput[miter.varMap[name] - 1];
+        }
+#ifdef DBG
+        bool fail = false;
+        for(const auto &pair: inputMatchPair){
+            if(pair.first.size() == 1){
+                if(stoi(pair.first) != cir2Input[cir2.fromNameToOrder(pair.second)]){
+                    cout <<"A:"<< pair.first << " " << pair.second << " " << pair.first << " " << cir2Input[cir2.fromNameToOrder(pair.second)] << endl;
+                    fail = true;
+                }
+            }else{
+                auto [gateName, negation] = analysisName(pair.first);
+                if(negation){
+                    if(cir1Input[cir1.fromNameToOrder(cir1.cirName + gateName)] == cir2Input[cir2.fromNameToOrder(pair.second)]){
+                        cout << "B:" << pair.first << " " << pair.second << " " << cir1Input[cir1.fromNameToOrder(cir1.cirName + gateName)] << " " << cir2Input[cir2.fromNameToOrder(pair.second)] << endl;
+                        fail = true;
+                    }
+                }else{
+                    if(cir1Input[cir1.fromNameToOrder(cir1.cirName + gateName)] != cir2Input[cir2.fromNameToOrder(pair.second)]){
+                        cout << "C:" << pair.first << " " << pair.second << " " << cir1Input[cir1.fromNameToOrder(cir1.cirName + gateName)] << " " << cir2Input[cir2.fromNameToOrder(pair.second)] << endl;
+                        fail = true;
+                    }
+                }
+            }
+        }
+        if(fail){
+            cout << "[TwoStepMiter] Error: selfTest miter assign failed. " << endl;
+            exit(1);
+        }
+#endif
+        return {cir1Input, cir2Input};
+    }else{
+        return {};
+    };
+}
+
 pair<string, bool> TwoStep::analysisName(string name) {
     bool negative = false;
     if(name.back() == '\''){
@@ -280,7 +355,6 @@ void TwoStep::reduceSpace(CNF &mappingSpace, const int baseLength, AIG &cir1, AI
         vector<string> record;
         for(auto i : cir2NonRedundant){
             for(auto j : cir1NonRedundant){
-
                 if(cir1Input[j] == cir2Input[i]){
                     clause.push_back(i * baseLength + j * 2 + 1 + 1);
                     record.push_back(cir1.fromOrderToName(j) + '\'' + "_" + cir2.fromOrderToName(i));
@@ -297,40 +371,54 @@ void TwoStep::reduceSpace(CNF &mappingSpace, const int baseLength, AIG &cir1, AI
                 record.push_back("1_" + cir2.fromOrderToName(i));
             }
         }
+//        for(int i = 0 ; i < static_cast<int>(cir2NonRedundant.size()) ; i++){
+//            for(int q = i + 1 ; q < static_cast<int>(cir2NonRedundant.size()) ; q++){
+//                if(cir2Input[cir2NonRedundant[i]] != cir2Input[cir2NonRedundant[q]]){
+//#ifdef DBG
+//                    if(mappingSpace.varMap.find(cir2.fromOrderToName(cir2NonRedundant[i]) + "_" + cir2.fromOrderToName(cir2NonRedundant[q])) == mappingSpace.varMap.end()){
+//                        cout << "[TwoStepMiter] Error: can not found projection idx." << " " << cir2.fromOrderToName(cir2NonRedundant[i]) << " " << cir2.fromOrderToName(cir2NonRedundant[q]) << endl;
+//                        exit(1);
+//                    }
+//#endif
+//                    clause.push_back(mappingSpace.varMap[cir2.fromOrderToName(cir2NonRedundant[i]) + "_" + cir2.fromOrderToName(cir2NonRedundant[q])]);
+//                    record.push_back(cir2.fromOrderToName(cir2NonRedundant[i]) + "_" + cir2.fromOrderToName(cir2NonRedundant[q]));
+//                }
+//            }
+//        }
 //        cout << "clause:" << endl;
-        cnt++;
-        cout << "CNT:" << cnt << endl;
-        for(auto i : clause){
-            cout << i << " ";
-        }
-        cout << 0 << endl;
-        if(cnt == 306){
-            cout << "MATCH:" << endl;
-            for(const auto& i : mapping){
-                cout << i.first << " " << i.second << endl;
-            }
-            vector<bool> in1(cir1.getInputNum()), in2(cir2.getInputNum());
-            cout << "cir1NonRedundant: ";
-            for(auto i : cir1NonRedundant){
-                cout << cir1.fromOrderToName(i) << " " << cir1Input[i] << " ";
-                in1[i] = cir1Input[i];
-            }
-            cout << endl;
-            cout << "cir2NonRedundant: ";
-            for(auto i : cir2NonRedundant){
-                cout << cir2.fromOrderToName(i) << " " << cir2Input[i] << " ";
-                in2[i] = cir2Input[i];
-            }
-            cout << endl;
-            in1[cir1.fromNameToOrder("!n511")] = false;
-            vector<bool> out1 = cir1.generateOutput(in1);
-            vector<bool> out2 = cir2.generateOutput(in2);
-            cout << "OUT:" << endl;
-            for(int i = 0 ; i < static_cast<int>(out1.size()) ; i++){
-                cout << out1[i] <<" " << out2[i] << endl;
-            }
-            exit(0);
-        }
+//        cnt++;
+//        cout << "CNT:" << cnt << endl;
+//        for(auto i : clause){
+//            cout << i << " ";
+//        }
+//        cout << 0 << endl;
+//        if(cnt == 306){
+//            cout << "MATCH:" << endl;
+//            for(const auto& i : mapping){
+//                cout << i.first << " " << i.second << endl;
+//            }
+//            vector<bool> in1(cir1.getInputNum()), in2(cir2.getInputNum());
+//            cout << "cir1NonRedundant: ";
+//            for(auto i : cir1NonRedundant){
+//                cout << cir1.fromOrderToName(i) << " " << cir1Input[i] << " ";
+//                in1[i] = cir1Input[i];
+//            }
+//            cout << endl;
+//            cout << "cir2NonRedundant: ";
+//            for(auto i : cir2NonRedundant){
+//                cout << cir2.fromOrderToName(i) << " " << cir2Input[i] << " ";
+//                in2[i] = cir2Input[i];
+//            }
+//            cout << endl;
+//            in1[cir1.fromNameToOrder("!n511")] = false;
+//            vector<bool> out1 = cir1.generateOutput(in1);
+//            vector<bool> out2 = cir2.generateOutput(in2);
+//            cout << "OUT:" << endl;
+//            for(int i = 0 ; i < static_cast<int>(out1.size()) ; i++){
+//                cout << out1[i] <<" " << out2[i] << endl;
+//            }
+//            exit(0);
+//        }
         clauseSet.insert({recordVe.size(), clause});
         recordVe.push_back(record);
     }
@@ -454,6 +542,46 @@ vector<int> TwoStep::getNonRedundant2(const vector<bool> &input, AIG &cir, int c
         }
     }
     return nf;
+}
+
+void TwoStep::combineMappingAndMiter(CNF &mappingSpace, AIG cir1, AIG cir2, vector<MP> &R) {
+    int baseLength = (cir1.getInputNum() + 1) * 2;
+    CNF miter = generateMiter(R, cir1, cir2);
+    mappingSpace.combine(miter);
+    for(int i = 0 ; i < cir2.getInputNum() ; i++){
+        for(int q = 0 ; q < (cir1.getInputNum() + 1) * 2 ; q++){
+#ifdef DBG
+            if(mappingSpace.varMap.find(cir2.fromOrderToName(i)) == mappingSpace.varMap.end()){
+                cout << "[TwoStepMiter] Error: can not found port in mappingSpace." << endl;
+                exit(1);
+            }
+#endif
+            int now = -1 * ( i * baseLength + q + 1);
+            if(q >= cir1.getInputNum() * 2){
+                if(q == cir1.getInputNum() * 2 ){
+                    mappingSpace.addClause({ now, -1 * mappingSpace.varMap[cir2.fromOrderToName(i)]});
+                }else{
+                    mappingSpace.addClause({ now, mappingSpace.varMap[cir2.fromOrderToName(i)]});
+                }
+            }else{
+#ifdef DBG
+                if(mappingSpace.varMap.find(cir1.fromOrderToName(q / 2)) == mappingSpace.varMap.end()){
+                    cout << "[TwoStepMiter] Error: can not found port in mappingSpace. " << cir1.fromOrderToName( q / 2) << endl;
+                    exit(1);
+                }
+#endif
+                int A = mappingSpace.varMap[cir1.fromOrderToName(q / 2)];
+                int B = mappingSpace.varMap[cir2.fromOrderToName(i)];
+                if(q % 2 != 0){// negation
+                    mappingSpace.addClause({now, A, B});
+                    mappingSpace.addClause({now, -1 * A, -1 * B});
+                }else{
+                    mappingSpace.addClause({now, A, -1 * B});
+                    mappingSpace.addClause({now, -1 * A, B});
+                }
+            }
+        }
+    }
 }
 
 void TwoStep::tsDebug(string msg, AIG cir1, AIG cir2) {

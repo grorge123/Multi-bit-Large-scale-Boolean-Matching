@@ -54,6 +54,7 @@ void TwoStep::start() {
         }
 //        cout << "iteration: " << iteratorCounter << endl;
         iteratorCounter++;
+        if(iteratorCounter == 3)break;
     }
     cout << "Final iteration: " << iteratorCounter << " " << optimal << endl;
 }
