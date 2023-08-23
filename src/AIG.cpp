@@ -99,6 +99,40 @@ void AIG::recursiveFindStrSupport() {
     }
 }
 
+map<string, set<string>> AIG::satFindSupport() {
+    map<string, set<string> > re;
+    for(int q = 0 ; q < inputNum + outputNum ; q++){
+        string name = fromOrderToName(q);
+        set<string> funSupport;
+        vector<string> erase;
+        AIG copy = *this;
+        for(int i = inputNum ; i < inputNum + outputNum ; i++){
+            if(fromOrderToName(i) != name){
+                erase.emplace_back(fromOrderToName(i));
+            }
+        }
+        copy.erasePort(erase);
+        for(int i = 0 ; i < inputNum ; i++){
+            CNF miter;
+            AIG miterAIG;
+            AIG copy1 = copy, copy2 = copy;
+            copy1.setConstant(fromOrderToName(i), 0);
+            copy2.setConstant(fromOrderToName(i), 1);
+            solveMiter(copy1, copy2, miter, miterAIG);
+            if(miter.satisfiable){
+                funSupport.insert(fromOrderToName(i));
+            }
+        }
+        re[name] = funSupport;
+    }
+    for(const auto& i : re){
+        for(const auto& q : i.second){
+            re[q].insert(i.first);
+        }
+    }
+    return re;
+}
+
 void AIG::abcFindFunSupport() {
     if(!funSupport.empty())return;
     if(inputNum == 0) {
@@ -107,6 +141,15 @@ void AIG::abcFindFunSupport() {
     }
     ABCTool abcT(*this);
     funSupport = abcT.funSupport();
+//#ifdef DBG
+//    auto testFunSupport = satFindSupport();
+//    for(const auto& i : testFunSupport){
+//        if(i.second != funSupport[i.first]){
+//            cout << "[AIG] Error: abc get wrong funSupport." << endl;
+//            exit(1);
+//        }
+//    }
+//#endif
 }
 
 void AIG::abcFindStrSupport() {

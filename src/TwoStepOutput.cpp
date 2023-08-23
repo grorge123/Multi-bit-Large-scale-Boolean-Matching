@@ -141,7 +141,7 @@ MP TwoStep::outputSolver(bool projection, vector<MP> &R) {
         // TODO optimize record last choose number
         for(int i = 0 ; i < static_cast<int>(cir2Output.size()) ; i++){
             if(cir2Choose[i] == -1){
-                for(int q = 1 ; q < static_cast<int>(cir1Output.size() * 2) ; q+=2){
+                for(int q = 0 ; q < static_cast<int>(cir1Output.size() * 2) ; q++){
                     if(!projection &&(cir1Choose[q / 2] != 0))continue;
                     if(initVe[i][q]){
                         MP re = MP(cir1Output[q / 2] + (q % 2 == 0 ? "" : "\'"), cir2Output[i]);
