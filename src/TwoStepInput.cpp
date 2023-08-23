@@ -14,12 +14,12 @@ bool TwoStep::generateClause(CNF &mappingSpace, AIG &cir1Reduce, AIG &cir2Reduce
     //Equation 3
     for (int i = 0; i < cir2Reduce.getInputNum(); i++) {
         vector<int> clause;
-        clause.reserve(baseLength);
-        for (int q = 0; q < baseLength; q++) {
-            clause.push_back(i * baseLength + q + 1);
-        }
-        mappingSpace.addClause(clause);
-        clause.clear();
+//        clause.reserve(baseLength);
+//        for (int q = 0; q < baseLength; q++) {
+//            clause.push_back(i * baseLength + q + 1);
+//        }
+//        mappingSpace.addClause(clause);
+//        clause.clear();
         for (int q = 0; q < baseLength; q++) {
             for (int k = q + 1; k < baseLength; k++) {
                 clause.push_back((i * baseLength + q + 1) * -1);
@@ -30,16 +30,16 @@ bool TwoStep::generateClause(CNF &mappingSpace, AIG &cir1Reduce, AIG &cir2Reduce
         }
     }
     // circuit 1 input must match
-    for(int i = 0 ; i < cir1Reduce.getInputNum() ; i++){
-        vector<int> clause;
-        clause.reserve(2 * cir2Reduce.getInputNum());
-        for(int q = 0 ; q < cir2Reduce.getInputNum() ; q++){
-            clause.push_back(q * baseLength + i * 2 + 1);
-            clause.push_back(q * baseLength + i * 2 + 1 + 1);
-        }
-        mappingSpace.addClause(clause);
-        clause.clear();
-    }
+//    for(int i = 0 ; i < cir1Reduce.getInputNum() ; i++){
+//        vector<int> clause;
+//        clause.reserve(2 * cir2Reduce.getInputNum());
+//        for(int q = 0 ; q < cir2Reduce.getInputNum() ; q++){
+//            clause.push_back(q * baseLength + i * 2 + 1);
+//            clause.push_back(q * baseLength + i * 2 + 1 + 1);
+//        }
+//        mappingSpace.addClause(clause);
+//        clause.clear();
+//    }
     if (cir1Reduce.getInputNum() == cir2Reduce.getInputNum()) {
         //disable match constant
         for (int i = 0; i < cir2Reduce.getInputNum(); i++) {
@@ -375,6 +375,20 @@ void TwoStep::generateBusClause(CNF &mappingSpace, AIG &cir1Reduce, AIG &cir2Red
             }
         }
     }
+
+    for(int i = 0 ; i < static_cast<int>(cir1BusMatch.size()) ; i++){
+        for(int q = 0 ; q < static_cast<int>(cir2BusMatch.size()) ; q++ ){
+            if(cir1BusMatch[i] == 0 && cir2BusMatch[q] == 2)mappingSpace.addClause({lastMaxIdx + busBaseLength * q + i + 1});
+            if(cir1BusMatch[i] == 4 && cir2BusMatch[q] == 5)mappingSpace.addClause({lastMaxIdx + busBaseLength * q + i + 1});
+            if(cir1BusMatch[i] == 5 && cir2BusMatch[q] == 8)mappingSpace.addClause({lastMaxIdx + busBaseLength * q + i + 1});
+            if(cir1BusMatch[i] == 6 && cir2BusMatch[q] == 0)mappingSpace.addClause({lastMaxIdx + busBaseLength * q + i + 1});
+            if(cir1BusMatch[i] == 2 && cir2BusMatch[q] == 1)mappingSpace.addClause({lastMaxIdx + busBaseLength * q + i + 1});
+            if(cir1BusMatch[i] == 3 && cir2BusMatch[q] == 3)mappingSpace.addClause({lastMaxIdx + busBaseLength * q + i + 1});
+            if(cir1BusMatch[i] == 1 && cir2BusMatch[q] == 4)mappingSpace.addClause({lastMaxIdx + busBaseLength * q + i + 1});
+            if(cir1BusMatch[i] == 8 && cir2BusMatch[q] == 6)mappingSpace.addClause({lastMaxIdx + busBaseLength * q + i + 1});
+        }
+    }
+
 }
 
 vector<MP> TwoStep::inputSolver(vector<MP> &R, bool outputProjection) {

@@ -464,7 +464,7 @@ void TwoStep::tsDebug(const vector<int> &cir1BusMatch, const vector<int> &cir2Bu
     for(int i = 0 ; i < static_cast<int>(cir1BusMatch.size()) ; i++){
         for(int q = 0 ; q < static_cast<int>(cir2BusMatch.size()) ; q++ ){
             if(cir1BusMatch[i] == 0 && cir2BusMatch[q] == 2)cout << cir1BusMatch[i] << " " << cir2BusMatch[q] << " " << (lastMaxIdx + busBaseLength * q + i + 1) << endl;
-            if(cir1BusMatch[i] == 4 && cir2BusMatch[q] == 4)cout << cir1BusMatch[i] << " " << cir2BusMatch[q] << " " << (lastMaxIdx + busBaseLength * q + i + 1) << endl;
+            if(cir1BusMatch[i] == 4 && cir2BusMatch[q] == 5)cout << cir1BusMatch[i] << " " << cir2BusMatch[q] << " " << (lastMaxIdx + busBaseLength * q + i + 1) << endl;
             if(cir1BusMatch[i] == 5 && cir2BusMatch[q] == 8)cout << cir1BusMatch[i] << " " << cir2BusMatch[q] << " " << (lastMaxIdx + busBaseLength * q + i + 1) << endl;
             if(cir1BusMatch[i] == 6 && cir2BusMatch[q] == 0)cout << cir1BusMatch[i] << " " << cir2BusMatch[q] << " " << (lastMaxIdx + busBaseLength * q + i + 1) << endl;
             if(cir1BusMatch[i] == 2 && cir2BusMatch[q] == 1)cout << cir1BusMatch[i] << " " << cir2BusMatch[q] << " " << (lastMaxIdx + busBaseLength * q + i + 1) << endl;

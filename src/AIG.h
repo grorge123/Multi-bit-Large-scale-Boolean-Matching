@@ -51,6 +51,7 @@ private:
     bool symInit = false;
     void parseRaw();
     void recursiveFindSupport(int output, int now, vector<bool> &visit);
+    map<string, set<string>> satFindSupport();
     bool recursiveGenerateOutput(int now, vector<int>& signal, vector<bool>& input);
     vector<string> zero, one;
     vector<pair<string,string>> wire; // <output name, input name>
