@@ -298,10 +298,39 @@ void TwoStep::reduceSpace(CNF &mappingSpace, const int baseLength, AIG &cir1, AI
             }
         }
 //        cout << "clause:" << endl;
-//        for(auto i : clause){
-//            cout << i << " ";
-//        }
-//        cout << 0 << endl;
+        cnt++;
+        cout << "CNT:" << cnt << endl;
+        for(auto i : clause){
+            cout << i << " ";
+        }
+        cout << 0 << endl;
+        if(cnt == 306){
+            cout << "MATCH:" << endl;
+            for(const auto& i : mapping){
+                cout << i.first << " " << i.second << endl;
+            }
+            vector<bool> in1(cir1.getInputNum()), in2(cir2.getInputNum());
+            cout << "cir1NonRedundant: ";
+            for(auto i : cir1NonRedundant){
+                cout << cir1.fromOrderToName(i) << " " << cir1Input[i] << " ";
+                in1[i] = cir1Input[i];
+            }
+            cout << endl;
+            cout << "cir2NonRedundant: ";
+            for(auto i : cir2NonRedundant){
+                cout << cir2.fromOrderToName(i) << " " << cir2Input[i] << " ";
+                in2[i] = cir2Input[i];
+            }
+            cout << endl;
+            in1[cir1.fromNameToOrder("!n511")] = false;
+            vector<bool> out1 = cir1.generateOutput(in1);
+            vector<bool> out2 = cir2.generateOutput(in2);
+            cout << "OUT:" << endl;
+            for(int i = 0 ; i < static_cast<int>(out1.size()) ; i++){
+                cout << out1[i] <<" " << out2[i] << endl;
+            }
+            exit(0);
+        }
         clauseSet.insert({recordVe.size(), clause});
         recordVe.push_back(record);
     }
@@ -471,6 +500,7 @@ void TwoStep::tsDebug(const vector<int> &cir1BusMatch, const vector<int> &cir2Bu
             if(cir1BusMatch[i] == 3 && cir2BusMatch[q] == 3)cout << cir1BusMatch[i] << " " << cir2BusMatch[q] << " " << (lastMaxIdx + busBaseLength * q + i + 1) << endl;
             if(cir1BusMatch[i] == 1 && cir2BusMatch[q] == 4)cout << cir1BusMatch[i] << " " << cir2BusMatch[q] << " " << (lastMaxIdx + busBaseLength * q + i + 1) << endl;
             if(cir1BusMatch[i] == 8 && cir2BusMatch[q] == 6)cout << cir1BusMatch[i] << " " << cir2BusMatch[q] << " " << (lastMaxIdx + busBaseLength * q + i + 1) << endl;
+            if(cir1BusMatch[i] == 7 && cir2BusMatch[q] == 7)cout << cir1BusMatch[i] << " " << cir2BusMatch[q] << " " << (lastMaxIdx + busBaseLength * q + i + 1) << endl;
         }
     }
 }
