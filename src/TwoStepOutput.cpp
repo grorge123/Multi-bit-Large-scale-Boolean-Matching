@@ -103,20 +103,20 @@ MP TwoStep::outputSolver(bool projection, vector<MP> &R) {
 ////            if(hGroupId[i] != hGroupId[0])break;
 //        }
 
-        int possible = 1;
-        for (int i = 0; i < static_cast<int>(cir2Output.size()); i++) {
-//            if(hGroupId[i] != hGroupId[0])break;
-            int cntPos = 0;
-            for(int q = 0 ; q < static_cast<int>(cir1Output.size()) ; q++) {
-//                if(hGroupId[q] != hGroupId[0])break;
-                if(initVe[i][q * 2])cntPos++;
-                if(initVe[i][q * 2 + 1])cntPos++;
-                cout << initVe[i][q * 2] << " " << initVe[i][q * 2 + 1] << " ";
-            }
-            possible *= cntPos;
-            cout << cntPos << endl;
-        }
-        cout <<"possible:"<< possible << endl;
+//        int possible = 1;
+//        for (int i = 0; i < static_cast<int>(cir2Output.size()); i++) {
+////            if(hGroupId[i] != hGroupId[0])break;
+//            int cntPos = 0;
+//            for(int q = 0 ; q < static_cast<int>(cir1Output.size()) ; q++) {
+////                if(hGroupId[q] != hGroupId[0])break;
+//                if(initVe[i][q * 2])cntPos++;
+//                if(initVe[i][q * 2 + 1])cntPos++;
+//                cout << initVe[i][q * 2] << " " << initVe[i][q * 2 + 1] << " ";
+//            }
+//            possible *= cntPos;
+//            cout << cntPos << endl;
+//        }
+//        cout <<"possible:"<< possible << endl;
 
 //        exit(0);
 
@@ -167,7 +167,7 @@ MP TwoStep::outputSolver(bool projection, vector<MP> &R) {
                         return re;
                     }
                 }
-                if(cir2Choose[i] == -1)return {};
+//                if(cir2Choose[i] == -1)return {};
             }
         }
         return {};
@@ -217,12 +217,39 @@ bool TwoStep::heuristicsOrderCmp(const string& a, const string& b) {
     int strSupportSizeA = static_cast<int>(strSupport(a).size());
     int strSupportSizeB = static_cast<int>(strSupport(b).size());
 
+    set<int> busSupportA;
+    set<int> busSupportB;
+    if(a[0] == '!'){
+        for(const auto& port : funSupport(a)){
+            if(cir1BusMapping.find(port) != cir1BusMapping.end()){
+                busSupportA.insert(cir1BusMapping[port]);
+            }
+        }
+        for(const auto& port : funSupport(b)){
+            if(cir1BusMapping.find(port) != cir1BusMapping.end()){
+                busSupportB.insert(cir1BusMapping[port]);
+            }
+        }
+    }else{
+        for(const auto& port : funSupport(a)){
+            if(cir2BusMapping.find(port) != cir2BusMapping.end()){
+                busSupportA.insert(cir2BusMapping[port]);
+            }
+        }
+        for(const auto& port : funSupport(b)){
+            if(cir2BusMapping.find(port) != cir2BusMapping.end()){
+                busSupportB.insert(cir2BusMapping[port]);
+            }
+        }
+    }
+
     if(funSupportSizeA != funSupportSizeB){
         return funSupportSizeA < funSupportSizeB;
     }else if(strSupportSizeA != strSupportSizeB){
         return strSupportSizeA < strSupportSizeB;
     }else{
-        return a < b;
+        return funSupportSizeA < funSupportSizeB;
+//        return a < b;
     }
 }
 
