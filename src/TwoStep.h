@@ -63,8 +63,9 @@ private:
     solveMiter(const vector<MP> &inputMatchPair, CNF originMiter, AIG &cir1, AIG &cir2);
     pair<pair<vector<int>, unordered_map<int, int>>, pair<vector<int>, unordered_map<int, int>>>
     generateBusMatchVector(AIG &cir1, AIG &cir2);
-    void reduceSpace(CNF &mappingSpace, const int baseLength, AIG &cir1, AIG &cir2, const vector<MP> &mapping,
-                     const vector<MP> &R, const vector<bool> &cir1Input, const vector<bool> &cir2Input);
+    pair<vector<vector<int>>, vector<vector<int>>>
+    reduceSpace(CNF &mappingSpace, const int baseLength, AIG &cir1, AIG &cir2, const vector<MP> &mapping,
+                const vector<MP> &R, const vector<bool> &cir1Input, const vector<bool> &cir2Input);
     static vector<int> getNonRedundant(const vector<bool> &input, AIG &cir, int counterIdx); // return port order
     static vector<int> getNonRedundant2(const vector<bool> &input, AIG &cir, int counterIdx); // return port order
     bool heuristicsOrderCmp(const string& a, const string& b);

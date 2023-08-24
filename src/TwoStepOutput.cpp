@@ -8,6 +8,7 @@
 #include "parser.h"
 
 MP TwoStep::outputSolver(bool projection, vector<MP> &R) {
+    static vector<pair<int,int> > tmpDisable;
     if(!outputSolverInit){
         forbid.clear();
         // Output Matching Order Heuristics
@@ -44,6 +45,22 @@ MP TwoStep::outputSolver(bool projection, vector<MP> &R) {
                 }
             }
         }
+        for(int i = 0 ; i < static_cast<int>(cir1Output.size()) ; i++){
+            if(cir1.getSupport(cir1Output[i], 1).size() <= 1){
+                for(int q = 0 ; q < static_cast<int>(cir2Output.size()) ; q++){
+                    initVe[q][i * 2] = initVe[q][i * 2 + 1] = false;
+                    tmpDisable.emplace_back(q, i);
+                }
+            }
+        }
+        for(int q = 0 ; q < static_cast<int>(cir2Output.size()) ; q++){
+            if(cir1.getSupport(cir1Output[q], 1).size() <= 1){
+                for(int i = 0 ; i < static_cast<int>(cir1Output.size()) ; i++){
+                    initVe[q][i * 2] = initVe[q][i * 2 + 1] = false;
+                    tmpDisable.emplace_back(q, i);
+                }
+            }
+        }
         cir1Choose.resize(cir1Output.size(), 0);
         cir2Choose.resize(cir2Output.size(), -1);
 //        lastCir1 = lastCir2 = 0;
@@ -52,6 +69,11 @@ MP TwoStep::outputSolver(bool projection, vector<MP> &R) {
         clauseNum.clear();
         return outputSolver(false, R);
     }else{
+        if(R.size() == 20){
+            for(auto i : tmpDisable){
+                initVe[i.first][i.second] = initVe[i.first][i.second + 1] = true;
+            }
+        }
         set<MP> nowSelect;
         for(const auto& mp : R){
             nowSelect.insert(mp);

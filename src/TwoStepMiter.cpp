@@ -163,8 +163,9 @@ pair<string, bool> TwoStep::analysisName(string name) {
 }
 
 
-void TwoStep::reduceSpace(CNF &mappingSpace, const int baseLength, AIG &cir1, AIG &cir2, const vector<MP> &mapping,
-                          const vector<MP> &R, const vector<bool> &cir1Input, const vector<bool> &cir2Input) {
+pair<vector<vector<int>>, vector<vector<int>>>
+TwoStep::reduceSpace(CNF &mappingSpace, const int baseLength, AIG &cir1, AIG &cir2, const vector<MP> &mapping,
+                     const vector<MP> &R, const vector<bool> &cir1Input, const vector<bool> &cir2Input) {
 
     bool notEqual = false;
     vector<bool> testCir1Output = cir1.generateOutput(cir1Input);
@@ -324,10 +325,11 @@ void TwoStep::reduceSpace(CNF &mappingSpace, const int baseLength, AIG &cir1, AI
     }
 #ifdef DBG
     if(infinite){
-        cout << "[TwoStep] Error: can not find right clause cause infinite loop." << endl;
-        exit(1);
+//        cout << "[TwoStep] Error: can not find right clause cause infinite loop." << endl;
+//        exit(1);
     }
 #endif
+    return {cir1NRSet, cir2NRSet};
 }
 vector<int> TwoStep::getNonRedundant(const vector<bool> &input, AIG &cir, int counterIdx) {
     auto originOutput = cir.generateOutput(input);

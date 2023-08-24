@@ -458,6 +458,59 @@ vector<MP> TwoStep::inputSolver(vector<MP> &R, bool outputProjection) {
         }
         return {};
     }
+    CNF miterCopy = miter;
+    for(int num = 0 ; num < 10000 ; num++){
+        miterCopy.solve();
+        if(miterCopy.satisfiable){
+            vector<bool> cir1Input(cir1Reduce.getInputNum());
+            vector<bool> cir2Input(cir2Reduce.getInputNum());
+            for(int i = 0 ; i < cir1Reduce.getInputNum() ; i++){
+                string name = cir1Reduce.fromOrderToName(i);
+#ifdef DBG
+                if(miterCopy.varMap.find(name) == miterCopy.varMap.end()){
+                    cout << "[TwoStepInput] Error: miter can not found cir1 after solve. " << name << endl;
+                    exit(1);
+                }
+#endif
+                cir1Input[i] = miterCopy.satisfiedInput[miterCopy.varMap[name] - 1];
+            }
+            for(int i = 0 ; i < cir2Reduce.getInputNum() ; i++){
+                string name = cir2Reduce.fromOrderToName(i);
+#ifdef DBG
+                if(miterCopy.varMap.find(name) == miterCopy.varMap.end()){
+                    cout << "[TwoStepInput] Error: miter can not found cir1 after solve." << endl;
+                    exit(1);
+                }
+#endif
+                cir2Input[i] = miterCopy.satisfiedInput[miterCopy.varMap[name] - 1];
+            }
+            auto [cir1NRSet, cir2NRSet] = reduceSpace(mappingSpace, baseLength, cir1Reduce, cir2Reduce, mapping,
+                        R, cir1Input, cir2Input);
+            for(int idx = 0 ; idx < static_cast<int> (cir1NRSet.size()) ; idx++) {
+                const auto &cir1NonRedundant = cir1NRSet[idx];
+                const auto &cir2NonRedundant = cir2NRSet[idx];
+                vector<int> clause;
+                for(auto i : cir1NonRedundant){
+                    if(cir1Input[i]){
+                        clause.emplace_back(-1 * miterCopy.varMap[cir1Reduce.fromOrderToName(i)]);
+                    }else{
+                        clause.emplace_back(miterCopy.varMap[cir1Reduce.fromOrderToName(i)]);
+                    }
+                }
+                for(auto i : cir2NonRedundant){
+                    if(cir2Input[i]){
+                        clause.emplace_back(-1 * miterCopy.varMap[cir2Reduce.fromOrderToName(i)]);
+                    }else{
+                        clause.emplace_back(miterCopy.varMap[cir2Reduce.fromOrderToName(i)]);
+                    }
+                }
+                miterCopy.addClause(clause);
+            }
+        }else{
+            break;
+        }
+    }
+    cout << "save:"<< cnt << endl;
     while (true) {
         if (nowMs() - startMs > maxRunTime) {
             return {};
