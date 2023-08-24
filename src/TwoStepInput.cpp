@@ -19,7 +19,7 @@ bool TwoStep::generateClause(CNF &mappingSpace, AIG &cir1Reduce, AIG &cir2Reduce
 //            clause.push_back(i * baseLength + q + 1);
 //        }
 //        mappingSpace.addClause(clause);
-//        clause.clear();
+        clause.clear();
         for (int q = 0; q < baseLength; q++) {
             for (int k = q + 1; k < baseLength; k++) {
                 clause.push_back((i * baseLength + q + 1) * -1);
@@ -29,7 +29,7 @@ bool TwoStep::generateClause(CNF &mappingSpace, AIG &cir1Reduce, AIG &cir2Reduce
             }
         }
     }
-    // circuit 1 input must match
+//    // circuit 1 input must match
 //    for(int i = 0 ; i < cir1Reduce.getInputNum() ; i++){
 //        vector<int> clause;
 //        clause.reserve(2 * cir2Reduce.getInputNum());
@@ -40,82 +40,38 @@ bool TwoStep::generateClause(CNF &mappingSpace, AIG &cir1Reduce, AIG &cir2Reduce
 //        mappingSpace.addClause(clause);
 //        clause.clear();
 //    }
-    if (cir1Reduce.getInputNum() == cir2Reduce.getInputNum()) {
-        //disable match constant
-        for (int i = 0; i < cir2Reduce.getInputNum(); i++) {
-            vector<int> clause;
-            clause.push_back(-1 * (i * baseLength + cir1Reduce.getInputNum() * 2 + 1));
-            mappingSpace.addClause(clause);
-            clause.clear();
-            clause.push_back(-1 * (i * baseLength + cir1Reduce.getInputNum() * 2 + 1 + 1));
-            mappingSpace.addClause(clause);
-        }
-        // disable input projection
-        for (int i = 0; i < cir1Reduce.getInputNum() ; i++) {
-            for(int u = 0 ; u < 2 ; u++){
-                for (int q = 0; q < cir2Reduce.getInputNum(); q++) {
-                    for(int d = 0 ; d < 2 ; d++){
-                        for (int k = q; k < cir2Reduce.getInputNum(); k++) {
-                            if(k == q && d <= u)continue;
-                            vector<int> clause;
-                            clause.push_back((q * baseLength + i * 2 + u + 1) * -1);
-                            clause.push_back((k * baseLength + i * 2 + d + 1) * -1);
-                            mappingSpace.addClause(clause);
-                        }
-                    }
-                }
-            }
-        }
-        if(!outputProjection){
-            LargeScale inputLg = LargeScale(cir1Reduce, cir2Reduce);
-            auto eigenValue = inputLg.calculateEigenvalue();
-            for (int i = 0; i < cir1Reduce.getInputNum(); i++) {
-                for (int q = 0; q < cir2Reduce.getInputNum(); q++) {
-                    if (eigenValue[cir1Reduce.fromOrderToName(i)] == eigenValue[cir2Reduce.fromOrderToName(q)])continue;
-                    vector<int> clause;
-                    clause.push_back(-1 * (q * baseLength + 2 * i + 1));
-                    mappingSpace.addClause(clause);
-                    clause.clear();
-                    clause.push_back(-1 * (q * baseLength + 2 * i + 1 + 1));
-                    mappingSpace.addClause(clause);
-                }
-            }
-        }
-//        Output Group Signature Heuristics
-        for (int i = 0; i < cir1Reduce.getInputNum(); i++) {
-            for (int q = 0; q < cir2Reduce.getInputNum(); q++) {
-                bool equal = true;
-                auto cir2Sup = cir2Reduce.getSupport(cir2Reduce.fromOrderToName(q), 1);
-                auto cir1Sup = cir1Reduce.getSupport(cir1Reduce.fromOrderToName(i), 1);
-                for(const auto& supName: cir1Sup){
-                    bool find = false;
-                    for(const auto& pair : R){
-                        auto [gateName, negative] = analysisName(pair.first);
-                        if(cir1.cirName + gateName == supName && cir2Sup.find(pair.second) != cir2Sup.end()){
-                            find = true;
-                            break;
-                        }
-                    }
-                    if(!find){
-                        equal = false;
-                    }
-                }
-                if(equal)continue;
-
-                vector<int> clause;
-                clause.push_back(-1 * (q * baseLength + 2 * i + 1));
-                mappingSpace.addClause(clause);
-                clause.clear();
-                clause.push_back(-1 * (q * baseLength + 2 * i + 1 + 1));
-                mappingSpace.addClause(clause);
-            }
-        }
-    }else if(cir1Reduce.getInputNum() < cir2Reduce.getInputNum()){
-//         TODO this have bug in projection
+//    if (cir1Reduce.getInputNum() == cir2Reduce.getInputNum()) {
+//        //disable match constant
+//        for (int i = 0; i < cir2Reduce.getInputNum(); i++) {
+//            vector<int> clause;
+//            clause.push_back(-1 * (i * baseLength + cir1Reduce.getInputNum() * 2 + 1));
+//            mappingSpace.addClause(clause);
+//            clause.clear();
+//            clause.push_back(-1 * (i * baseLength + cir1Reduce.getInputNum() * 2 + 1 + 1));
+//            mappingSpace.addClause(clause);
+//        }
+//        // disable input projection
+//        for (int i = 0; i < cir1Reduce.getInputNum() ; i++) {
+//            for(int u = 0 ; u < 2 ; u++){
+//                for (int q = 0; q < cir2Reduce.getInputNum(); q++) {
+//                    for(int d = 0 ; d < 2 ; d++){
+//                        for (int k = q; k < cir2Reduce.getInputNum(); k++) {
+//                            if(k == q && d <= u)continue;
+//                            vector<int> clause;
+//                            clause.push_back((q * baseLength + i * 2 + u + 1) * -1);
+//                            clause.push_back((k * baseLength + i * 2 + d + 1) * -1);
+//                            mappingSpace.addClause(clause);
+//                        }
+//                    }
+//                }
+//            }
+//        }
 //        if(!outputProjection){
+//            LargeScale inputLg = LargeScale(cir1Reduce, cir2Reduce);
+//            auto eigenValue = inputLg.calculateEigenvalue();
 //            for (int i = 0; i < cir1Reduce.getInputNum(); i++) {
 //                for (int q = 0; q < cir2Reduce.getInputNum(); q++) {
-//                    if (cir1Reduce.getSupport(cir1Reduce.fromOrderToName(i), 1).size() <= cir2Reduce.getSupport(cir2Reduce.fromOrderToName(q), 1).size())continue;
+//                    if (eigenValue[cir1Reduce.fromOrderToName(i)] == eigenValue[cir2Reduce.fromOrderToName(q)])continue;
 //                    vector<int> clause;
 //                    clause.push_back(-1 * (q * baseLength + 2 * i + 1));
 //                    mappingSpace.addClause(clause);
@@ -144,11 +100,8 @@ bool TwoStep::generateClause(CNF &mappingSpace, AIG &cir1Reduce, AIG &cir2Reduce
 //                        equal = false;
 //                    }
 //                }
-//                if(cir1Sup.size() == cir2Sup.size()){
-//                    if(equal)continue;
-//                }else{
-//                    if(equal && cir2Sup.size() <= 3)continue;
-//                }
+//                if(equal)continue;
+//
 //                vector<int> clause;
 //                clause.push_back(-1 * (q * baseLength + 2 * i + 1));
 //                mappingSpace.addClause(clause);
@@ -157,9 +110,62 @@ bool TwoStep::generateClause(CNF &mappingSpace, AIG &cir1Reduce, AIG &cir2Reduce
 //                mappingSpace.addClause(clause);
 //            }
 //        }
-    }else if(cir1Reduce.getInputNum() > cir2Reduce.getInputNum()){
-        return false;
-    }
+//    }else if(cir1Reduce.getInputNum() < cir2Reduce.getInputNum()){
+////         TODO this have bug in projection
+////        if(!outputProjection){
+////            for (int i = 0; i < cir1Reduce.getInputNum(); i++) {
+////                for (int q = 0; q < cir2Reduce.getInputNum(); q++) {
+////                    if (cir1Reduce.getSupport(cir1Reduce.fromOrderToName(i), 1).size() <= cir2Reduce.getSupport(cir2Reduce.fromOrderToName(q), 1).size())continue;
+////                    vector<int> clause;
+////                    clause.push_back(-1 * (q * baseLength + 2 * i + 1));
+////                    mappingSpace.addClause(clause);
+////                    clause.clear();
+////                    clause.push_back(-1 * (q * baseLength + 2 * i + 1 + 1));
+////                    mappingSpace.addClause(clause);
+////                }
+////            }
+////        }
+//////        Output Group Signature Heuristics
+//        for (int i = 0; i < cir1Reduce.getInputNum(); i++) {
+//            for (int q = 0; q < cir2Reduce.getInputNum(); q++) {
+//                auto cir2Sup = cir2Reduce.getSupport(cir2Reduce.fromOrderToName(q), 1);
+//                auto cir1Sup = cir1Reduce.getSupport(cir1Reduce.fromOrderToName(i), 1);
+//                bool find = false;
+//                for(const auto& supName: cir1Sup){
+//                    for(const auto& pair : R){
+//                        auto [gateName, negative] = analysisName(pair.first);
+//                        if(cir1.cirName + gateName == supName && cir2Sup.find(pair.second) != cir2Sup.end()){
+//                            find = true;
+//                            break;
+//                        }
+//                    }
+//                    if(find)break;
+//                }
+//                if(find)continue;
+//                vector<int> clause;
+//                clause.push_back(-1 * (q * baseLength + 2 * i + 1));
+//                mappingSpace.addClause(clause);
+//                clause.clear();
+//                clause.push_back(-1 * (q * baseLength + 2 * i + 1 + 1));
+//                mappingSpace.addClause(clause);
+//            }
+//        }
+//    }else if(cir1Reduce.getInputNum() > cir2Reduce.getInputNum()){
+//        return false;
+//    }
+//    for(const auto &pair : R){
+//        auto [gateName, negation] = analysisName(pair.first);
+//        auto cir1Sup = cir1Reduce.getSupport(cir1.cirName + gateName, 1);
+//        auto cir2Sup = cir2Reduce.getSupport(pair.second, 1);
+//        for(auto &cir1Inp : cir1Sup){
+//            vector<int> clause;
+//            for(auto &cir2Inp : cir2Sup){
+//                clause.push_back(-1 * (cir2Reduce.fromNameToOrder(cir2Inp) * baseLength + 2 * cir1Reduce.fromNameToOrder(cir1Inp) + 1));
+//                clause.push_back(-1 * (cir2Reduce.fromNameToOrder(cir2Inp) * baseLength + 2 * cir1Reduce.fromNameToOrder(cir1Inp) + 1 + 1));
+//            }
+//            mappingSpace.addClause(clause);
+//        }
+//    }
 //    // symmetric constraint
 //    int npO = 0;
 //    auto cir1SymSign = cir1Reduce.getSymSign();
@@ -254,7 +260,6 @@ void TwoStep::generateBusClause(CNF &mappingSpace, AIG &cir1Reduce, AIG &cir2Red
             }
         }
     }
-    cout << "CS0:" << mappingSpace.getClauses().size() << endl;
     // set 1 to 1
     if(cir1BusMatch.size() > cir2BusMatch.size()){
         for(int i = 0 ; i < cir2BMS ; i++){
@@ -294,7 +299,6 @@ void TwoStep::generateBusClause(CNF &mappingSpace, AIG &cir1Reduce, AIG &cir2Red
             }
         }
     }
-    cout << "CS1:" << mappingSpace.getClauses().size() << endl;
     // A match B => Bus of A Match Bus of B
     for(int i = 0 ; i < cir2BMS ; i++){
         for(int q = 0 ; q < cir1BMS ; q++){
@@ -312,7 +316,6 @@ void TwoStep::generateBusClause(CNF &mappingSpace, AIG &cir1Reduce, AIG &cir2Red
             }
         }
     }
-    cout << "CS2:" << mappingSpace.getClauses().size() << endl;
     // port of small size bus need to all match other bus
     for(int i = 0 ; i < cir2BMS ; i++) {
         for (int q = 0; q < cir1BMS; q++) {
@@ -343,7 +346,6 @@ void TwoStep::generateBusClause(CNF &mappingSpace, AIG &cir1Reduce, AIG &cir2Red
             }
         }
     }
-    cout << "CS3:" << mappingSpace.getClauses().size() << endl;
     // pruning by output
     vector<vector<bool>> groupVE(cir2BusMatch.size(), vector<bool>(cir1BusMatch.size(), true));
     for(const auto& pair : R){
@@ -378,7 +380,6 @@ void TwoStep::generateBusClause(CNF &mappingSpace, AIG &cir1Reduce, AIG &cir2Red
         }
     }
 
-    cout << "CS3:" << mappingSpace.getClauses().size() << endl;
     for(int i = 0 ; i < static_cast<int>(cir1BusMatch.size()) ; i++){
         for(int q = 0 ; q < static_cast<int>(cir2BusMatch.size()) ; q++ ){
             if(cir1BusMatch[i] == 0 && cir2BusMatch[q] == 2)mappingSpace.addClause({lastMaxIdx + busBaseLength * q + i + 1});
@@ -528,6 +529,54 @@ vector<MP> TwoStep::inputSolver(vector<MP> &R, bool outputProjection) {
         }
         return {};
     }
+    CNF miterCopy = miter;
+    if(false) {
+        for (int num = 0; num < 10000; num++) {
+            miterCopy.solve();
+            if (miterCopy.satisfiable) {
+                vector<bool> cir1Input(cir1Reduce.getInputNum());
+                vector<bool> cir2Input(cir2Reduce.getInputNum());
+                for (int i = 0; i < cir1Reduce.getInputNum(); i++) {
+                    string name = cir1Reduce.fromOrderToName(i);
+#ifdef DBG
+                    if (miterCopy.varMap.find(name) == miterCopy.varMap.end()) {
+                        cout << "[TwoStepInput] Error: miter can not found cir1 after solve. " << name << endl;
+                        exit(1);
+                    }
+#endif
+                    cir1Input[i] = miterCopy.satisfiedInput[miterCopy.varMap[name] - 1];
+                }
+                for (int i = 0; i < cir2Reduce.getInputNum(); i++) {
+                    string name = cir2Reduce.fromOrderToName(i);
+#ifdef DBG
+                    if (miterCopy.varMap.find(name) == miterCopy.varMap.end()) {
+                        cout << "[TwoStepInput] Error: miter can not found cir1 after solve." << endl;
+                        exit(1);
+                    }
+#endif
+                    cir2Input[i] = miterCopy.satisfiedInput[miterCopy.varMap[name] - 1];
+                }
+                auto [cir1NRSet, cir2NRSet] = reduceSpace(mappingSpace, baseLength, cir1Reduce, cir2Reduce, mapping,
+                                                          R, cir1Input, cir2Input);
+                for (int idx = 0; idx < static_cast<int> (cir1NRSet.size()); idx++) {
+                    const auto &cir1NonRedundant = cir1NRSet[idx];
+                    const auto &cir2NonRedundant = cir2NRSet[idx];
+                    vector<int> clause;
+                    for (auto i: cir2NonRedundant) {
+                        if (cir2Input[i]) {
+                            clause.emplace_back(-1 * miterCopy.varMap[cir2Reduce.fromOrderToName(i)]);
+                        } else {
+                            clause.emplace_back(miterCopy.varMap[cir2Reduce.fromOrderToName(i)]);
+                        }
+                    }
+                    miterCopy.addClause(clause);
+                }
+            } else {
+                break;
+            }
+        }
+    }
+    int failTime = 0;
     while (true) {
         startStatistic("solveMapping");
         mapping = solveMapping(mappingSpace, cir1Reduce, cir2Reduce, baseLength);
@@ -548,34 +597,36 @@ vector<MP> TwoStep::inputSolver(vector<MP> &R, bool outputProjection) {
 #endif
         if (counter.first.empty()) {
             if (verbose) {
-                cout << "Find Mapping" << endl;
-                for (const auto &pair: mapping) {
-                    cout << pair.first << " " << pair.second << " ";
-                    auto [gateName, negation] = analysisName(pair.first);
-                    if(cir1BusMapping.find(cir1.cirName + gateName) != cir1BusMapping.end()){
-                        cout << cir1BusMapping[cir1.cirName + gateName] << " " ;
-                    }else{
-                        cout << "Not Found!!" << " " ;
-                    }
-                    if(cir2BusMapping.find(pair.second) != cir2BusMapping.end()){
-                        cout << cir2BusMapping[pair.second];
-                    }else{
-                        cout << "Not Found!!";
-                    }
-                    cout << endl;
-                }
-                cout << "BUS MATCH:" << endl;
-                for(int i = 0 ; i < static_cast<int>(cir1BusMatch.size()) ; i++){
-                    for(int q = 0 ; q < static_cast<int>(cir2BusMatch.size()) ; q++){
-                        if(mappingSpace.satisfiedInput[lastMaxIdx + cir1BusMatch.size() * q + i]){
-                            cout << cir1BusMatch[i] << " " << cir2BusMatch[q] << endl;
-                        }
-                    }
-                }
+                cout << "Find Mapping: " << failTime << endl;
+                printStatistic();
+//                for (const auto &pair: mapping) {
+//                    cout << pair.first << " " << pair.second << " ";
+//                    auto [gateName, negation] = analysisName(pair.first);
+//                    if(cir1BusMapping.find(cir1.cirName + gateName) != cir1BusMapping.end()){
+//                        cout << cir1BusMapping[cir1.cirName + gateName] << " " ;
+//                    }else{
+//                        cout << "Not Found!!" << " " ;
+//                    }
+//                    if(cir2BusMapping.find(pair.second) != cir2BusMapping.end()){
+//                        cout << cir2BusMapping[pair.second];
+//                    }else{
+//                        cout << "Not Found!!";
+//                    }
+//                    cout << endl;
+//                }
+//                cout << "BUS MATCH:" << endl;
+//                for(int i = 0 ; i < static_cast<int>(cir1BusMatch.size()) ; i++){
+//                    for(int q = 0 ; q < static_cast<int>(cir2BusMatch.size()) ; q++){
+//                        if(mappingSpace.satisfiedInput[lastMaxIdx + cir1BusMatch.size() * q + i]){
+//                            cout << cir1BusMatch[i] << " " << cir2BusMatch[q] << endl;
+//                        }
+//                    }
+//                }
             }
             stopStatistic("FindInput");
             return mapping;
         }
+        failTime++;
 //                    if (verbose) {
 //                        cout << "It is counterexample size:" << counter.second.size() << endl;
 //                        recordMs();
@@ -600,16 +651,16 @@ TwoStep::generateBusMatchVector(AIG &cir1, AIG &cir2) {
         for(int i = 0 ; i < cir1.getInputNum() ; i++){
             if(cir1BusMapping.find(cir1.fromOrderToName(i)) == cir1BusMapping.end())continue;
             int busIdx = cir1BusMapping[cir1.fromOrderToName(i)];
-            if(verbose)
-                cout << "bus mapping:" << cir1.fromOrderToName(i) << " " << busIdx << endl;
+//            if(verbose)
+//                cout << "bus mapping:" << cir1.fromOrderToName(i) << " " << busIdx << endl;
             cir1BusCapacity[busIdx] = static_cast<int>(cir1InputBus[busIdx].size());
             cir1BusCapacity[busIdx] = 10;
         }
         for(int i = 0 ; i < cir2.getInputNum() ; i++){
             if(cir2BusMapping.find(cir2.fromOrderToName(i)) == cir2BusMapping.end())continue;
             int busIdx = cir2BusMapping[cir2.fromOrderToName(i)];
-            if(verbose)
-                cout << "bus mapping:" << cir2.fromOrderToName(i) << " " << busIdx << endl;
+//            if(verbose)
+//                cout << "bus mapping:" << cir2.fromOrderToName(i) << " " << busIdx << endl;
             cir2BusCapacity[busIdx] = static_cast<int>(cir2InputBus[busIdx].size());
             cir2BusCapacity[busIdx] = 10;
         }

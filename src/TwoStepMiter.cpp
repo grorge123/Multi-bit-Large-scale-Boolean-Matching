@@ -163,8 +163,9 @@ pair<string, bool> TwoStep::analysisName(string name) {
 }
 
 
-void TwoStep::reduceSpace(CNF &mappingSpace, const int baseLength, AIG &cir1, AIG &cir2, const vector<MP> &mapping,
-                          const vector<MP> &R, const vector<bool> &cir1Input, const vector<bool> &cir2Input) {
+pair<vector<vector<int>>, vector<vector<int>>>
+TwoStep::reduceSpace(CNF &mappingSpace, const int baseLength, AIG &cir1, AIG &cir2, const vector<MP> &mapping,
+                     const vector<MP> &R, const vector<bool> &cir1Input, const vector<bool> &cir2Input) {
 
     bool notEqual = false;
     vector<bool> testCir1Output = cir1.generateOutput(cir1Input);
@@ -236,7 +237,11 @@ void TwoStep::reduceSpace(CNF &mappingSpace, const int baseLength, AIG &cir1, AI
         if (!cir1Counter[cir1CounterIdx] || !cir2Counter[cir2CounterIdx]) {
             continue;
         }
-        auto cir1NR = getNonRedundant2(cir1Input, cir1, cir1CounterIdx);
+//        auto cir1NR = getNonRedundant2(cir1Input, cir1, cir1CounterIdx);
+        vector<int> cir1NR;
+        for(int i = 0 ; i < cir1.getInputNum() ; i++){
+            cir1NR.emplace_back(i);
+        }
 #ifdef DBG
 //        {
 //            auto original = cir1.generateOutput(cir1Input);
@@ -298,39 +303,39 @@ void TwoStep::reduceSpace(CNF &mappingSpace, const int baseLength, AIG &cir1, AI
             }
         }
 //        cout << "clause:" << endl;
-        cnt++;
-        cout << "CNT:" << cnt << endl;
-        for(auto i : clause){
-            cout << i << " ";
-        }
-        cout << 0 << endl;
-        if(cnt == 306){
-            cout << "MATCH:" << endl;
-            for(const auto& i : mapping){
-                cout << i.first << " " << i.second << endl;
-            }
-            vector<bool> in1(cir1.getInputNum()), in2(cir2.getInputNum());
-            cout << "cir1NonRedundant: ";
-            for(auto i : cir1NonRedundant){
-                cout << cir1.fromOrderToName(i) << " " << cir1Input[i] << " ";
-                in1[i] = cir1Input[i];
-            }
-            cout << endl;
-            cout << "cir2NonRedundant: ";
-            for(auto i : cir2NonRedundant){
-                cout << cir2.fromOrderToName(i) << " " << cir2Input[i] << " ";
-                in2[i] = cir2Input[i];
-            }
-            cout << endl;
-            in1[cir1.fromNameToOrder("!n511")] = false;
-            vector<bool> out1 = cir1.generateOutput(in1);
-            vector<bool> out2 = cir2.generateOutput(in2);
-            cout << "OUT:" << endl;
-            for(int i = 0 ; i < static_cast<int>(out1.size()) ; i++){
-                cout << out1[i] <<" " << out2[i] << endl;
-            }
-            exit(0);
-        }
+//        cnt++;
+//        cout << "CNT:" << cnt << endl;
+//        for(auto i : clause){
+//            cout << i << " ";
+//        }
+//        cout << 0 << endl;
+//        if(cnt == 306){
+//            cout << "MATCH:" << endl;
+//            for(const auto& i : mapping){
+//                cout << i.first << " " << i.second << endl;
+//            }
+//            vector<bool> in1(cir1.getInputNum()), in2(cir2.getInputNum());
+//            cout << "cir1NonRedundant: ";
+//            for(auto i : cir1NonRedundant){
+//                cout << cir1.fromOrderToName(i) << " " << cir1Input[i] << " ";
+//                in1[i] = cir1Input[i];
+//            }
+//            cout << endl;
+//            cout << "cir2NonRedundant: ";
+//            for(auto i : cir2NonRedundant){
+//                cout << cir2.fromOrderToName(i) << " " << cir2Input[i] << " ";
+//                in2[i] = cir2Input[i];
+//            }
+//            cout << endl;
+//            in1[cir1.fromNameToOrder("!n511")] = false;
+//            vector<bool> out1 = cir1.generateOutput(in1);
+//            vector<bool> out2 = cir2.generateOutput(in2);
+//            cout << "OUT:" << endl;
+//            for(int i = 0 ; i < static_cast<int>(out1.size()) ; i++){
+//                cout << out1[i] <<" " << out2[i] << endl;
+//            }
+//            exit(0);
+//        }
         clauseSet.insert({recordVe.size(), clause});
         recordVe.push_back(record);
     }
@@ -353,10 +358,11 @@ void TwoStep::reduceSpace(CNF &mappingSpace, const int baseLength, AIG &cir1, AI
     }
 #ifdef DBG
     if(infinite){
-        cout << "[TwoStep] Error: can not find right clause cause infinite loop." << endl;
-        exit(1);
+//        cout << "[TwoStep] Error: can not find right clause cause infinite loop." << endl;
+//        exit(1);
     }
 #endif
+    return {cir1NRSet, cir2NRSet};
 }
 vector<int> TwoStep::getNonRedundant(const vector<bool> &input, AIG &cir, int counterIdx) {
     auto originOutput = cir.generateOutput(input);
