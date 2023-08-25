@@ -165,11 +165,11 @@ bool TwoStep::heuristicsOrderCmp(const string& a, const string& b) {
     }
 
     if(funSupportSizeA == funSupportSizeB){
-//        if(strSupportSizeA == strSupportSizeB){
-//            return busSupportA.size() < busSupportB.size();
-//        }else{
+        if(strSupportSizeA == strSupportSizeB){
+            return busSupportA.size() < busSupportB.size();
+        }else{
             return strSupportSizeA < strSupportSizeB;
-//        }
+        }
     }else{
         return funSupportSizeA < funSupportSizeB;
     }
