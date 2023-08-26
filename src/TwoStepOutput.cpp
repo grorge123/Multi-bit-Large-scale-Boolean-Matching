@@ -217,12 +217,38 @@ bool TwoStep::heuristicsOrderCmp(const string& a, const string& b) {
     int strSupportSizeA = static_cast<int>(strSupport(a).size());
     int strSupportSizeB = static_cast<int>(strSupport(b).size());
 
-    if(funSupportSizeA != funSupportSizeB){
-        return funSupportSizeA < funSupportSizeB;
+    set<int> busSupportA;
+    set<int> busSupportB;
+    if(a[0] == '!'){
+        for(const auto& port : funSupport(a)){
+            if(cir1BusMapping.find(port) != cir1BusMapping.end()){
+                busSupportA.insert(cir1BusMapping[port]);
+            }
+        }
+        for(const auto& port : funSupport(b)){
+            if(cir1BusMapping.find(port) != cir1BusMapping.end()){
+                busSupportB.insert(cir1BusMapping[port]);
+            }
+        }
     }else{
-//    }else if(strSupportSizeA != strSupportSizeB){
+        for(const auto& port : funSupport(a)){
+            if(cir2BusMapping.find(port) != cir2BusMapping.end()){
+                busSupportA.insert(cir2BusMapping[port]);
+            }
+        }
+        for(const auto& port : funSupport(b)){
+            if(cir2BusMapping.find(port) != cir2BusMapping.end()){
+                busSupportB.insert(cir2BusMapping[port]);
+            }
+        }
+    }
+
+    if(funSupportSizeA != funSupportSizeB) {
+        return funSupportSizeA < funSupportSizeB;
+    }else if(strSupportSizeA != strSupportSizeB){
         return strSupportSizeA < strSupportSizeB;
-//        return a < b;
+    }else{
+        return busSupportA.size() < busSupportB.size();
     }
 }
 
