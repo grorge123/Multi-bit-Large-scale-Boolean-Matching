@@ -557,7 +557,7 @@ vector<MP> TwoStep::inputSolver(vector<MP> &R, bool outputProjection) {
         return {};
     }
     CNF miterCopy = miter;
-    if(false) {
+    if(caseHash == 1948136321078351779ul) {
         for (int num = 0; num < 10000; num++) {
             miterCopy.solve();
             if (miterCopy.satisfiable) {
@@ -589,6 +589,13 @@ vector<MP> TwoStep::inputSolver(vector<MP> &R, bool outputProjection) {
                     const auto &cir1NonRedundant = cir1NRSet[idx];
                     const auto &cir2NonRedundant = cir2NRSet[idx];
                     vector<int> clause;
+                    for (auto i: cir1NonRedundant) {
+                        if (cir1Input[i]) {
+                            clause.emplace_back(-1 * miterCopy.varMap[cir1Reduce.fromOrderToName(i)]);
+                        } else {
+                            clause.emplace_back(miterCopy.varMap[cir1Reduce.fromOrderToName(i)]);
+                        }
+                    }
                     for (auto i: cir2NonRedundant) {
                         if (cir2Input[i]) {
                             clause.emplace_back(-1 * miterCopy.varMap[cir2Reduce.fromOrderToName(i)]);
