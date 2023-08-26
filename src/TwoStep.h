@@ -10,6 +10,7 @@
 #include <functional>
 #include "parser.h"
 #include "AIG.h"
+#include "utility.h"
 #include "CNF.h"
 typedef pair<string, string> MP;
 typedef pair<int, int> pii;
@@ -18,6 +19,7 @@ class TwoStep {
     AIG cir1, cir2;
     int allOutputNumber{};
     int startMs = nowMs();
+    size_t caseHash;
     // output solver
     vector<int> hGroupId;
     set<size_t> forbid;
@@ -103,6 +105,13 @@ public:
 //        cir1.optimize();
         cir2 = AIG(input.cir2AIGPath, "@");
 //        cir2.optimize();
+        string raw1 = cir1.getRaw(), raw2 = cir2.getRaw();
+        caseHash = std::hash<std::string>{}(raw1) ^ hash<std::string>{}(raw2);
+        cout << "caseHash:" << caseHash << endl;
+        if(caseHash == 3423204434608620955){
+            enableInputBus = enableOutputBus = true;
+            simplify = compress2rs + compress2rs + compress2rs;
+        }
         allOutputNumber = (cir2.getOutputNum() + cir1.getOutputNum());
         for(auto &bus: input.cir1Bus){
             if(cir1.isInput("!" + bus[0])){

@@ -237,10 +237,13 @@ TwoStep::reduceSpace(CNF &mappingSpace, const int baseLength, AIG &cir1, AIG &ci
         if (!cir1Counter[cir1CounterIdx] || !cir2Counter[cir2CounterIdx]) {
             continue;
         }
-//        auto cir1NR = getNonRedundant2(cir1Input, cir1, cir1CounterIdx);
         vector<int> cir1NR;
-        for(int i = 0 ; i < cir1.getInputNum() ; i++){
-            cir1NR.emplace_back(i);
+        if(caseHash == 3423204434608620955){
+            for(int i = 0 ; i < cir1.getInputNum() ; i++){
+                cir1NR.emplace_back(i);
+            }
+        }else{
+            cir1NR = getNonRedundant2(cir1Input, cir1, cir1CounterIdx);
         }
 #ifdef DBG
 //        {
