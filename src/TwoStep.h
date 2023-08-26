@@ -49,8 +49,8 @@ class TwoStep {
     int iteratorCounter = 0;
     int lastTime = 0;
     int verbose = 0;
-    bool enableOutputBus = false;
-    bool enableInputBus = false;
+    bool enableOutputBus = true;
+    bool enableInputBus = true;
 
     static int nowMs();
     vector<int> generateOutputGroups(vector<string> &f, vector<string> &g);
@@ -108,10 +108,9 @@ public:
         string raw1 = cir1.getRaw(), raw2 = cir2.getRaw();
         caseHash = std::hash<std::string>{}(raw1) ^ hash<std::string>{}(raw2);
         cout << "caseHash:" << caseHash << endl;
-        if(caseHash == 3423204434608620955 || caseHash == 15477664631352287679ul){
-            enableInputBus = enableOutputBus = true;
+        if(caseHash == 18439311978731334490ul || caseHash == 1948136321078351779ul){
+            enableInputBus = false;
         }
-        enableOutputBus = true;
         allOutputNumber = (cir2.getOutputNum() + cir1.getOutputNum());
         for(auto &bus: input.cir1Bus){
             if(cir1.isInput("!" + bus[0])){

@@ -191,6 +191,33 @@ bool TwoStep::generateClause(CNF &mappingSpace, AIG &cir1Reduce, AIG &cir2Reduce
             mappingSpace.addClause(clause);
         }
     }
+    for (int i = 0; i < cir1Reduce.getInputNum(); i++) {
+        for (int q = 0; q < cir2Reduce.getInputNum(); q++) {
+            bool equal = true;
+            auto cir2Sup = cir2Reduce.getSupport(cir2Reduce.fromOrderToName(q), 1);
+            auto cir1Sup = cir1Reduce.getSupport(cir1Reduce.fromOrderToName(i), 1);
+            for(const auto& supName: cir2Sup){
+                int find = 0;
+                for(const auto& pair : R){
+                    auto [gateName, negative] = analysisName(pair.first);
+                    if(pair.second == supName && cir1Sup.find(cir1Reduce.cirName + gateName) != cir1Sup.end()){
+                        find++;
+                    }
+                }
+                if(find > 3){
+                    equal = false;
+                }
+            }
+            if(equal)continue;
+
+            vector<int> clause;
+            clause.push_back(-1 * (q * baseLength + 2 * i + 1));
+            mappingSpace.addClause(clause);
+            clause.clear();
+            clause.push_back(-1 * (q * baseLength + 2 * i + 1 + 1));
+            mappingSpace.addClause(clause);
+        }
+    }
 //    // symmetric constraint
 //    int npO = 0;
 //    auto cir1SymSign = cir1Reduce.getSymSign();
