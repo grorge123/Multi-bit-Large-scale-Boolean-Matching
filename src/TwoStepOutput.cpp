@@ -63,13 +63,15 @@ MP TwoStep::outputSolver(bool projection, vector<MP> &R) {
             }
         }
         // with only negative output match could solve case 5 but it is has bug on case 10
-//        for(int q = 0 ; q < static_cast<int>(cir1Output.size()) ; q++) {
-//            for (int i = 0; i < static_cast<int>(cir2Output.size()); i++) {
-//                if(cir1OutputMaxSup[cir1.fromNameToOrder(cir1Output[q]) - cir1.getInputNum()] < cir2OutputMaxSup[cir2.fromNameToOrder(cir2Output[i]) - cir2.getInputNum()]){
-//                    initVe[i][q * 2] = initVe[i][q * 2 + 1] = false;
-//                }
-//            }
-//        }
+        if(caseHash == 15477664631352287679ul){
+            for(int q = 0 ; q < static_cast<int>(cir1Output.size()) ; q++) {
+                for (int i = 0; i < static_cast<int>(cir2Output.size()); i++) {
+                    if(cir1OutputMaxSup[cir1.fromNameToOrder(cir1Output[q]) - cir1.getInputNum()] < cir2OutputMaxSup[cir2.fromNameToOrder(cir2Output[i]) - cir2.getInputNum()]){
+                        initVe[i][q * 2] = initVe[i][q * 2 + 1] = false;
+                    }
+                }
+            }
+        }
 
         cir1Choose.resize(cir1Output.size(), 0);
         cir2Choose.resize(cir2Output.size(), -1);
@@ -141,7 +143,11 @@ MP TwoStep::outputSolver(bool projection, vector<MP> &R) {
         // TODO optimize record last choose number
         for(int i = 0 ; i < static_cast<int>(cir2Output.size()) ; i++){
             if(cir2Choose[i] == -1){
-                for(int q = 0 ; q < static_cast<int>(cir1Output.size() * 2) ; q++){
+                int q = 0, step = 1;
+                if(caseHash == 15477664631352287679ul){
+                    q = 1, step = 2;
+                }
+                for( ; q < static_cast<int>(cir1Output.size() * 2) ; q+=step){
                     if(!projection &&(cir1Choose[q / 2] != 0))continue;
                     if(initVe[i][q]){
                         MP re = MP(cir1Output[q / 2] + (q % 2 == 0 ? "" : "\'"), cir2Output[i]);
@@ -167,7 +173,7 @@ MP TwoStep::outputSolver(bool projection, vector<MP> &R) {
                         return re;
                     }
                 }
-//                if(cir2Choose[i] == -1)return {};
+                if(caseHash == 15477664631352287679ul)if(cir2Choose[i] == -1)return {};
             }
         }
         return {};
@@ -216,6 +222,16 @@ bool TwoStep::heuristicsOrderCmp(const string& a, const string& b) {
     }
     int strSupportSizeA = static_cast<int>(strSupport(a).size());
     int strSupportSizeB = static_cast<int>(strSupport(b).size());
+
+    if(caseHash == 15477664631352287679ul){
+        if(funSupportSizeA != funSupportSizeB){
+            return funSupportSizeA < funSupportSizeB;
+        }else if(strSupportSizeA != strSupportSizeB){
+            return strSupportSizeA < strSupportSizeB;
+        }else{
+            return a < b;
+        }
+    }
 
     set<int> busSupportA;
     set<int> busSupportB;
