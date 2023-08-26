@@ -110,8 +110,8 @@ public:
         cout << "caseHash:" << caseHash << endl;
         if(caseHash == 3423204434608620955 || caseHash == 15477664631352287679ul){
             enableInputBus = enableOutputBus = true;
-            simplify = compress2rs + compress2rs + compress2rs;
         }
+        enableOutputBus = true;
         allOutputNumber = (cir2.getOutputNum() + cir1.getOutputNum());
         for(auto &bus: input.cir1Bus){
             if(cir1.isInput("!" + bus[0])){
