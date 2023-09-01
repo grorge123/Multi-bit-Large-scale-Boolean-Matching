@@ -10,9 +10,10 @@
 #include "largeScale.h"
 
 TwoStep ts;
-void TwoStep::start() {
+int TwoStep::start() {
     bool optimal = false, timeout = false, projection = false;
     vector<MP> R;
+    int maxMatchNum = 0;
     while (!optimal && !timeout){
         startStatistic("outputSolver");
         MP newPair = outputSolver(projection, R);
@@ -47,6 +48,7 @@ void TwoStep::start() {
             outputSolverPop(R);
         }else{
             int matchOutput = recordOutput(inputMatch, R);
+            maxMatchNum = max(maxMatchNum, matchOutput);
             if( matchOutput == allOutputNumber)optimal = true;
         }
         if(nowMs() - startMs > maxRunTime){
@@ -56,6 +58,8 @@ void TwoStep::start() {
         iteratorCounter++;
     }
     cout << "Final iteration: " << iteratorCounter << " " << optimal << endl;
+    if(optimal)return -1;
+    return maxMatchNum;
 }
 
 int TwoStep::nowMs() {

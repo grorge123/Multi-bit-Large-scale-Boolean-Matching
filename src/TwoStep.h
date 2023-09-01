@@ -100,7 +100,7 @@ private:
 
 public:
     TwoStep()= default;
-    TwoStep(const InputStructure& input, string outputFilePath) : outputFilePath(std::move(outputFilePath)){
+    TwoStep(const InputStructure &input, string outputFilePath, int busType) : outputFilePath(std::move(outputFilePath)){
         cir1 = AIG(input.cir1AIGPath, "!");
 //        cir1.optimize();
         cir2 = AIG(input.cir2AIGPath, "@");
@@ -108,8 +108,11 @@ public:
         string raw1 = cir1.getRaw(), raw2 = cir2.getRaw();
         caseHash = std::hash<std::string>{}(raw1) ^ hash<std::string>{}(raw2);
         cout << "caseHash:" << caseHash << endl;
-        if(caseHash == 18439311978731334490ul || caseHash == 1948136321078351779ul){
+        if(caseHash == 18439311978731334490ul || caseHash == 1948136321078351779ul || busType == 1){
             enableInputBus = false;
+        }
+        if(busType == 2){
+            enableInputBus = enableOutputBus = false;
         }
         allOutputNumber = (cir2.getOutputNum() + cir1.getOutputNum());
         for(auto &bus: input.cir1Bus){
@@ -222,7 +225,7 @@ public:
             }
         }
     }
-    void start();
+    int start();
     void tsDebug(string msg, AIG cir1, AIG cir2);
     void tsDebug(const vector<int> &cir1BusMatch, const vector<int> &cir2BusMatch, const int lastMaxIdx);
 };
