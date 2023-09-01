@@ -88,14 +88,16 @@ int TwoStep::recordOutput(const vector<MP> &inputMatch, const vector<MP> &R) {
                 zero.push_back(pair.second);
             }
         } else {
-            if (nameMap.find(pair.first) == nameMap.end()) {
+            auto [gateName, negation] = analysisName(pair.first);
+            gateName = cir1.cirName + gateName;
+            if (nameMap.find(gateName) == nameMap.end()) {
                 Group newGroup;
-                newGroup.cir1 = pair.first;
-                nameMap[pair.first] = inputGroups.size();
+                newGroup.cir1 = gateName;
+                nameMap[gateName] = inputGroups.size();
                 inputGroups.push_back(newGroup);
             }
-            inputGroups[nameMap[pair.first]].cir2.push_back(pair.second);
-            inputGroups[nameMap[pair.first]].invVector.push_back(false);
+            inputGroups[nameMap[gateName]].cir2.push_back(pair.second);
+            inputGroups[nameMap[gateName]].invVector.push_back(negation);
         }
     }
 #ifdef INF

@@ -71,12 +71,11 @@ bool TwoStep::generateClause(CNF &mappingSpace, AIG &cir1Reduce, AIG &cir2Reduce
     }
     for (int i = 0; i < cir2Reduce.getInputNum(); i++) {
         int lastMax = mappingSpace.maxIdx;
-        int m = static_cast<int>(sqrt(baseLength));
-        int g = ceil_log2(baseLength / m);
+        int g = ceil_log2(baseLength / 2);
         mappingSpace.maxIdx += g;
-        for(int k = 0 ; k < baseLength / m ; k++){
-            for(int q = 0 ; q < m ; q++){
-                int in = k * m + q;
+        for(int k = 0 ; k < baseLength / 2 ; k++){
+            for(int q = 0 ; q < 2 ; q++){
+                int in = k * 2 + q;
                 int x = i * baseLength + in + 1;
                 for(int b = 0; b < g ; b++){
                     vector<int> clause{-1 * x};
@@ -88,32 +87,7 @@ bool TwoStep::generateClause(CNF &mappingSpace, AIG &cir1Reduce, AIG &cir2Reduce
                     mappingSpace.addClause(clause);
                 }
             }
-            vector<int> clause;
-            for(int q = 0 ; q < m ; q++){
-                for(int d = q + 1 ; d < m ; d++){
-                    mappingSpace.addClause({-1 * (i * baseLength + (k * m + q) + 1), -1 * (i * baseLength + (k * m + d) + 1)});
-                }
-            }
-        }
-        int k = baseLength / m;
-        for(int q = 0 ; q < baseLength - (k * m) ; q++){
-            int in = k * m + q;
-            int x = i * baseLength + in + 1;
-            for(int b = 0; b < g ; b++){
-                vector<int> clause{-1 * x};
-                if( k & (1 << b)){
-                    clause.push_back(lastMax + b + 1);
-                }else{
-                    clause.push_back(-1 * (lastMax + b + 1));
-                }
-                mappingSpace.addClause(clause);
-            }
-        }
-        vector<int> clause;
-        for(int q = 0 ; q < baseLength - (k * m) ; q++){
-            for(int d = q + 1 ; d < baseLength - (k * m) ; d++){
-                mappingSpace.addClause({-1 * (i * baseLength + (k * m + q) + 1), -1 * (i * baseLength + (k * m + d) + 1)});
-            }
+            mappingSpace.addClause({-1 * (i * baseLength + (k * 2) + 1), -1 * (i * baseLength + (k * 2 + 1) + 1)});
         }
     }
     // circuit 1 input must match
@@ -155,14 +129,11 @@ bool TwoStep::generateClause(CNF &mappingSpace, AIG &cir1Reduce, AIG &cir2Reduce
 //        }
         for(int i = 0 ; i < cir1Reduce.getInputNum() ; i++){
             int lastMax = mappingSpace.maxIdx;
-            int m = static_cast<int>(cir2Reduce.getInputNum() * 2);
-            int g = ceil_log2(cir2Reduce.getInputNum() * 2 / m);
+            int g = ceil_log2(cir2Reduce.getInputNum());
             mappingSpace.maxIdx += g;
-            int k = 0, cntM = 0;
-            vector<int> amo;
+            int k = 0;
             for(int q = 0 ; q < cir2Reduce.getInputNum() ; q++){
                 for(int u = 0 ; u < 2 ; u++){
-                    amo.push_back(-1 * (q * baseLength + i * 2 + u + 1));
                     for(int b = 0; b < g ; b++){
                         vector<int> clause{-1 * (q * baseLength + i * 2 + u + 1)};
                         if( k & (1 << b)){
@@ -173,22 +144,9 @@ bool TwoStep::generateClause(CNF &mappingSpace, AIG &cir1Reduce, AIG &cir2Reduce
                         mappingSpace.addClause(clause);
                     }
 
-                    if(cntM == m){
-                        for(int j = 0 ; j < static_cast<int>(amo.size()) ; j++){
-                            for(int d = j + 1 ; d < static_cast<int>(amo.size()) ; d++){
-                                mappingSpace.addClause({amo[j], amo[d]});
-                            }
-                        }
-                        amo.clear();
-                        k++;
-                        cntM = 0;
-                    }
                 }
-            }
-            for(int j = 0 ; j < static_cast<int>(amo.size()) ; j++){
-                for(int d = j + 1 ; d < static_cast<int>(amo.size()) ; d++){
-                    mappingSpace.addClause({amo[j], amo[d]});
-                }
+                mappingSpace.addClause({-1 * (q * baseLength + i * 2 + 1), -1 * (q * baseLength + i * 2 + 1 + 1)});
+                k++;
             }
         }
         if(!outputProjection){
